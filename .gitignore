@@ -1,0 +1,18 @@
+node_modules/
+.next/
+bun.lock
+tsconfig.tsbuildinfo
+# .env # Removed by Orchids to allow .env files
+# .env.local # Removed by Orchids to allow .env files
+# .env.*.local # Removed by Orchids to allow .env files
+dist/
+dist-electron/
+build/
+.electron/
+.DS_Store
+*.log
+*.dmg
+*.exe
+*.AppImage
+*.deb
+*.rpm
