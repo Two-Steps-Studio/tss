@@ -1,0 +1,15 @@
+{
+  "name": "tss-dc-bot",
+  "version": "0.0.1",
+  "description": "Discord XP Bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.97",
+    "@supabase/supabase-js": "^2.99.3",
+    "discord.js": "^14.25.1",
+    "dotenv": "^16.6.1"
+  }
+}
