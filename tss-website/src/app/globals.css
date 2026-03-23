@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+@theme {
+  --color-general: var(--color-general-current, #0EA5E9);
+  --color-primary: var(--color-general);
+  --color-primary-foreground: #ffffff;
+  --color-games: #F43F5E;
+  --color-records: #8B5CF6;
+  --color-dev: #F59E0B;
+  --color-e-sport: #10B981;
+  --color-light: #F8FAFC; 
+  --color-dark: #020617; 
+  --color-border: var(--border-color);
+
+  --font-space: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  --font-outfit: var(--font-outfit), "Outfit", sans-serif;
+}
+
+:root {
+  --color-general-current: #0EA5E9;
+  --color-general-rgb: 14, 165, 233;
+  --bg: #F1F5F9; /* Softer, more premium light background */
+  --text: #0F172A;
+  --sidebar-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --border-color: rgba(0, 0, 0, 0.08); /* Darker border for light mode contrast */
+  --selection-bg: var(--color-general);
+  --selection-text: #ffffff;
+  --transition-speed: 0.4s;
+  --transition-timing: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark {
+  --bg: var(--color-dark);
+  --text: #F1F5F9;
+  --sidebar-bg: rgba(2, 6, 23, 0.85);
+  --card-bg: rgba(15, 23, 42, 0.65);
+  --border-color: rgba(255, 255, 255, 0.08);
+  --selection-bg: var(--color-general);
+}
+
+/* --- THEME DEFINITIONS --- */
+
+/* Ocean (Default Sky Blue) */
+.theme-ocean { 
+  --color-general-current: #0EA5E9;
+  --color-general-rgb: 14, 165, 233;
+}
+
+/* Crimson (Gry / Passion) */
+.theme-crimson { 
+  --color-general-current: #F43F5E;
+  --color-general-rgb: 244, 63, 94;
+}
+:root.theme-crimson {
+  --bg: #FFF1F2; /* Subtle rose tint for light mode */
+  --card-bg: rgba(255, 255, 255, 0.8);
+}
+.dark.theme-crimson {
+  --bg: #110002;
+  --card-bg: rgba(28, 5, 8, 0.7);
+}
+
+/* Emerald (E-Sport / Success) */
+.theme-emerald { 
+  --color-general-current: #10B981;
+  --color-general-rgb: 16, 185, 129;
+}
+:root.theme-emerald {
+  --bg: #F0FDF4; /* Subtle mint tint for light mode */
+  --card-bg: rgba(255, 255, 255, 0.8);
+}
+.dark.theme-emerald {
+  --bg: #021105;
+  --card-bg: rgba(5, 28, 12, 0.7);
+}
+
+/* Violet (Records / Magic) */
+.theme-violet { 
+  --color-general-current: #8B5CF6;
+  --color-general-rgb: 139, 92, 246;
+}
+:root.theme-violet {
+  --bg: #F5F3FF; /* Subtle lavender tint for light mode */
+  --card-bg: rgba(255, 255, 255, 0.8);
+}
+.dark.theme-violet {
+  --bg: #0A0211;
+  --card-bg: rgba(12, 5, 28, 0.7);
+}
+
+/* Amber (Dev / Warning) */
+.theme-amber { 
+  --color-general-current: #F59E0B;
+  --color-general-rgb: 245, 158, 11;
+}
+:root.theme-amber {
+  --bg: #FFFBEB; /* Subtle honey tint for light mode */
+  --card-bg: rgba(255, 255, 255, 0.8);
+}
+.dark.theme-amber {
+  --bg: #110A02;
+  --card-bg: rgba(28, 15, 5, 0.7);
+}
+  
+/* Base Styles */
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-space);
+  transition: all var(--transition-speed) var(--transition-timing);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-space);
+  letter-spacing: -0.05em;
+  font-weight: 800;
+}
+
+.glass {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  transition: all var(--transition-speed) var(--transition-timing);
+}
+
+.dark .glass {
+  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.4);
+}
+
+/* Custom Effects */
+.bg-mesh {
+  position: fixed;
+  inset: 0;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(var(--color-general-rgb), 0.15) 0px, transparent 45%),
+    radial-gradient(at 100% 100%, rgba(var(--color-general-rgb), 0.1) 0px, transparent 45%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Interactive elements */
+.btn-premium {
+    background: var(--color-general);
+    color: white;
+    font-weight: 800;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 20px -5px rgba(var(--color-general-rgb), 0.4);
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 15px 30px -8px rgba(var(--color-general-rgb), 0.6);
+}
+/* trigger turbopack reload */
