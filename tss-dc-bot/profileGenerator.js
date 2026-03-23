@@ -6,12 +6,79 @@ GlobalFonts.registerFromPath(path.join(__dirname, 'SpaceGrotesk-Bold.ttf'), 'Spa
 const fs = require('fs');
 
 const ROLE_STYLES = {
-    "Admin": { color: "#ff4d4d", label: "ADM" },
-    "Właściciel": { color: "#ffd700", label: "OWNER" },
-    "Moderator": { color: "#4d94ff", label: "MOD" },
-    "Developer": { color: "#ffcb2f", label: "DEV" },
-    // Dodaj tutaj kolejne role: "Nazwa z Discorda": { color: "kolor", label: "skrót" }
+    "〔 👑︱Owner 〕": { color: "#dc3545", label: "OWNER" },
+    "〔 👑︱Owner Records 〕": { color: "#9b59b6", label: "OWN REC" },
+    "〔 👑︱ Co-Owner Games 〕": { color: "#3cd5d3", label: "CO-OWNER" },
+    "〔 🛡️︱Administrator 〕": { color: "#f6db6f", label: "ADMIN" },
+    "〔 🌐︱Moderator 〕": { color: "#2da4f3", label: "MOD" },
+    "〔 💜︱Server Booster 〕": { color: "#a61cb3", label: "BOOSTER" },
+
+    // VIP
+    "〔 🦣 ︱ MVIP〕": { color: "#ee1616", label: "MVIP" },
+    "〔 🐄 ︱ SVIP〕": { color: "#cea009", label: "SVIP" },
+    "〔 🐨 ︱ VIP〕": { color: "#a7b11a", label: "VIP" },
+
+    // Records
+    "〔 🎙️︱Wykonawca 〕": { color: "#c8a800", label: "EXEC" },
+    "〔 💽︱Producent 〕": { color: "#e09000", label: "PROD" },
+
+    // Marketing
+    "〔 📢︱Główny Marketingowiec 〕": { color: "#e81313", label: "HEAD MKT" },
+    "〔 📢︱Marketingowiec 〕": { color: "#e81313", label: "MKT" },
+
+    // Programiści
+    "〔 💻︱Główny Programista 〕": { color: "#00bcd4", label: "HEAD DEV" },
+    "〔 💻︱Programista 〕": { color: "#2979ff", label: "DEV" },
+
+    // Level Design
+    "〔 🗺️︱Główny Projektantant Poziomów 〕": { color: "#43a047", label: "HEAD LD" },
+    "〔 🗺️︱Projektantant Poziomów 〕": { color: "#43a047", label: "LD" },
+
+    // Artyści 2D
+    "〔 🎨︱Główny Artysta 2D 〕": { color: "#8d4e1a", label: "HEAD 2D" },
+    "〔 🎨︱Artysta 2D 〕": { color: "#e07820", label: "2D" },
+
+    // Artyści 3D
+    "〔 🧱︱ Główny Artysta 3D 〕": { color: "#8d4e1a", label: "HEAD 3D" },
+    "〔 🧱︱Artysta 3D 〕": { color: "#e07820", label: "3D" },
+
+    // VFX
+    "〔✨︱Główny Artysta Efektów 〕": { color: "#d4c400", label: "HEAD VFX" },
+    "〔✨︱Artysta Efektów 〕": { color: "#d4c400", label: "VFX" },
+
+    // Dźwiękowcy
+    "〔 🎧︱Główny Dzwiękowiec 〕": { color: "#9e9e9e", label: "HEAD SFX" },
+    "〔 🎧︱Dzwiękowiec 〕": { color: "#9e9e9e", label: "SFX" },
+
+    // Animatorzy
+    "〔 🕺︱Główny Animator  〕": { color: "#1565c0", label: "HEAD ANIM" },
+    "〔 🕺︱ Animator  〕": { color: "#2979ff", label: "ANIM" },
+
+    // Testerzy
+    "〔 🎮︱ Główny Tester  〕": { color: "#9c27b0", label: "HEAD QA" },
+    "〔 🎮︱Tester  〕": { color: "#ce93d8", label: "QA" },
+
+    // E - Sport
+    "〔 💀︱ Call Of Duty 〕": { color: "#607d8b", label: "COD" },
+
+    // Levele
+    "〔 📊︱Level 100 〕": { color: "#23d160", label: "LVL 100" },
+    "〔 📊︱Level 90 〕": { color: "#23d160", label: "LVL 90" },
+    "〔 📊︱Level 80 〕": { color: "#23d160", label: "LVL 80" },
+    "〔 📊︱Level 70 〕": { color: "#23d160", label: "LVL 70" },
+    "〔 📊︱Level 60 〕": { color: "#23d160", label: "LVL 60" },
+    "〔 📊︱Level 50 〕": { color: "#23d160", label: "LVL 50" },
+    "〔 📊︱Level 40 〕": { color: "#23d160", label: "LVL 40" },
+    "〔 📊︱Level 30 〕": { color: "#23d160", label: "LVL 30" },
+    "〔 📊︱Level 20 〕": { color: "#23d160", label: "LVL 20" },
+    "〔 📊︱Level 10 〕": { color: "#23d160", label: "LVL 10" },
+    "〔 📊︱Level 5 〕": { color: "#23d160", label: "LVL 5" },
+    "〔 📊︱Level 4 〕": { color: "#23d160", label: "LVL 4" },
+    "〔 📊︱Level 3 〕": { color: "#23d160", label: "LVL 3" },
+    "〔 📊︱Level 2 〕": { color: "#23d160", label: "LVL 2" },
+    "〔 📊︱Level 1 〕": { color: "#23d160", label: "LVL 1" },
 };
+    // Dodaj tutaj kolejne role: "Nazwa z Discorda": { color: "kolor", label: "skrót" }
 
 /**
  * Creates a profile card image buffer.
