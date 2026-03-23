@@ -53,7 +53,7 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.48.1",
+    "@supabase/supabase-js": "^2.100.0",
     "@tabler/icons-react": "^3.35.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tsparticles/engine": "^3.8.1",
@@ -148,16 +148,22 @@
       "main": "electron/main.js"
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "public/assets/Logo/Glowne/Two Steps Studio Bez Tła.png"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": [
+        "dmg"
+      ],
       "icon": "public/assets/Logo/Glowne/Two Steps Studio Bez Tła.png",
       "category": "public.app-category.entertainment"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "icon": "public/assets/Logo/Glowne/Two Steps Studio Bez Tła.png",
       "category": "Game"
     },
