@@ -35,7 +35,7 @@ function getLevelFromXP(xp) {
 }
 
 // ── /lowienie ────────────────────────────────────────────────
-async function handleFishing(interaction, supabase, profile) {
+async function handleFishing(interaction, supabase, profile, COIN = '<:CoinTSS:1485751590530060378>') {
     const userId = interaction.user.id;
 
     if (cooldowns.has(userId)) {
@@ -51,7 +51,7 @@ async function handleFishing(interaction, supabase, profile) {
     const BAIT_COST = 10;
     if ((profile.money || 0) < BAIT_COST) {
         return interaction.reply({
-            content: `❌ Nie stać Cię na przynętę! Potrzebujesz **${BAIT_COST} TSS**.`,
+            content: `❌ Nie stać Cię na przynętę! Potrzebujesz **${BAIT_COST} ${COIN}**.`,
             ephemeral: true
         });
     }
@@ -90,7 +90,7 @@ async function handleFishing(interaction, supabase, profile) {
             });
         } catch (_) {} // ignore – tabela może nie istnieć
     }
-
+    
     const embed = new EmbedBuilder()
         .setColor(style.color)
         .setTitle(isTrash
@@ -99,24 +99,24 @@ async function handleFishing(interaction, supabase, profile) {
         .addFields(
             { name: '📦 Rzadkość', value: `${style.emoji} ${style.label}`, inline: true },
             { name: '⚖️ Waga',     value: `${weight} kg`,                  inline: true },
-            { name: '💰 Zysk',     value: isTrash
-                ? `Strata przynęty (-${BAIT_COST} TSS)`
-                : `+${value - BAIT_COST} TSS netto`,                        inline: true },
+            { name: '💰 Zysk', value: isTrash
+                    ? `Strata przynęty (-${BAIT_COST} ${COIN})`
+                    : ` ${value - BAIT_COST >= 0 ? '+' : ''}${value - BAIT_COST} ${COIN}`, inline: true },
         );
 
     if (!isTrash) {
         embed.addFields(
             { name: '✨ XP',      value: `+${fish.xp} XP`,  inline: true },
-            { name: '💵 Gotówka', value: `${newMoney} TSS`, inline: true },
+            { name: '💵 Gotówka', value: `${COIN} ${newMoney}`, inline: true }, // <--- tutaj emotka
         );
     }
 
-    embed.setFooter({ text: `Cooldown: ${FISHING_COOLDOWN}s | Koszt przynęty: ${BAIT_COST} TSS` });
+    embed.setFooter({ text: `Cooldown: ${FISHING_COOLDOWN}s | Koszt przynęty: ${BAIT_COST}` });
     await interaction.editReply({ content: null, embeds: [embed] });
 }
 
 // ── /ryby ────────────────────────────────────────────────────
-async function handleFishInventory(interaction, supabase) {
+async function handleFishInventory(interaction, supabase, COIN = '<:CoinTSS:1485751590530060378>') {
     const userId = interaction.user.id;
 
     const { data: catches } = await supabase
@@ -135,7 +135,7 @@ async function handleFishInventory(interaction, supabase) {
 
     const list = catches.map(c => {
         const s = RARITY_STYLES[c.rarity || 'common'];
-        return `${s.emoji} **${c.fish_name}** – ${c.weight}kg – ${c.value} TSS`;
+        return `${s.emoji} **${c.fish_name}** – ${c.weight}kg – ${c.value} ${COIN}`;
     }).join('\n');
 
     const { data: stats } = await supabase
@@ -152,17 +152,16 @@ async function handleFishInventory(interaction, supabase) {
         .setTitle(`🎣 Ostatnie połowy – ${interaction.user.username}`)
         .setDescription(list)
         .addFields(
-            { name: '🐟 Złapano',          value: `${totalCaught}`,    inline: true },
-            { name: '💰 Zarobiono łącznie', value: `${totalEarned} TSS`, inline: true },
-            { name: '🏆 Rekord',            value: biggest
-                ? `${biggest.fish_name} (${biggest.weight}kg)` : '—',    inline: true },
+            { name: '🐟 Złapano', value: `${totalCaught}`, inline: true },
+            { name: '💰 Zarobiono łącznie', value: `${COIN} ${totalEarned}`, inline: true },
+            { name: '🏆 Rekord', value: biggest ? `${biggest.fish_name} (${biggest.weight}kg)` : '—', inline: true },
         );
 
     interaction.reply({ embeds: [embed] });
 }
 
 // ── /fishtop ─────────────────────────────────────────────────
-async function handleFishTop(interaction, supabase) {
+async function handleFishTop(interaction, supabase, COIN = '<:CoinTSS:1485751590530060378>') {
     const { data: rows } = await supabase
         .from('fishing_catches')
         .select('user_id, value');
@@ -181,7 +180,7 @@ async function handleFishTop(interaction, supabase) {
     const list = Object.entries(grouped)
         .sort((a, b) => b[1].total - a[1].total)
         .slice(0, 10)
-        .map(([uid, d], i) => `**${i + 1}.** <@${uid}> – ${d.count} ryb, ${d.total} TSS`)
+        .map(([uid, d], i) => `**${i + 1}.** <@${uid}> – ${d.count} ryb, ${d.total} ${COIN}`)
         .join('\n');
 
     const embed = new EmbedBuilder()
