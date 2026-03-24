@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-general: var(--color-general-current, #0EA5E9);
+  --color-general: var(--color-general-current, #1bbdbd);
   --color-primary: var(--color-general);
   --color-primary-foreground: #ffffff;
-  --color-games: #F43F5E;
-  --color-records: #8B5CF6;
-  --color-dev: #F59E0B;
-  --color-e-sport: #10B981;
-  --color-light: #F8FAFC; 
-  --color-dark: #020617; 
+  --color-games: #dc3545;
+  --color-records: #ad83f8;
+  --color-dev: #ffcb2f;
+  --color-e-sport: #06e402;
+  --color-light: #e6e6e6;
+  --color-dark: #000000;
   --color-border: var(--border-color);
 
   --font-space: var(--font-space-grotesk), "Space Grotesk", sans-serif;
@@ -17,13 +17,13 @@
 }
 
 :root {
-  --color-general-current: #0EA5E9;
-  --color-general-rgb: 14, 165, 233;
-  --bg: #F1F5F9; /* Softer, more premium light background */
+  --color-general-current: #1bbdbd;
+  --color-general-rgb: 27, 189, 189;
+  --bg: #e6e6e6; /* Tryb Jasny: #e6e6e6 */
   --text: #0F172A;
   --sidebar-bg: rgba(255, 255, 255, 0.9);
   --card-bg: rgba(255, 255, 255, 0.75);
-  --border-color: rgba(0, 0, 0, 0.08); /* Darker border for light mode contrast */
+  --border-color: rgba(0, 0, 0, 0.08);
   --selection-bg: var(--color-general);
   --selection-text: #ffffff;
   --transition-speed: 0.4s;
@@ -31,84 +31,81 @@
 }
 
 .dark {
-  --bg: var(--color-dark);
+  --color-dark: #000000; /* Tryb Ciemny: Prawdziwy czarny */
+  --bg: #000000;
   --text: #F1F5F9;
-  --sidebar-bg: rgba(2, 6, 23, 0.85);
-  --card-bg: rgba(15, 23, 42, 0.65);
-  --border-color: rgba(255, 255, 255, 0.08);
+  --sidebar-bg: rgba(0, 0, 0, 0.9);
+  --card-bg: rgba(20, 20, 20, 0.6);
+  --border-color: rgba(255, 255, 255, 0.1);
   --selection-bg: var(--color-general);
 }
 
 /* --- THEME DEFINITIONS --- */
 
-/* Ocean (Default Sky Blue) */
-.theme-ocean { 
-  --color-general-current: #0EA5E9;
-  --color-general-rgb: 14, 165, 233;
+/* Ocean (Default / Ogólny) */
+.theme-ocean {
+  --color-general-current: #1bbdbd;
+  --color-general-rgb: 27, 189, 189;
 }
 
-/* Crimson (Gry / Passion) */
-.theme-crimson { 
-  --color-general-current: #F43F5E;
-  --color-general-rgb: 244, 63, 94;
+/* Crimson (Games) */
+.theme-crimson {
+  --color-general-current: #dc3545;
+  --color-general-rgb: 220, 53, 69;
 }
 :root.theme-crimson {
-  --bg: #FFF1F2; /* Subtle rose tint for light mode */
-  --card-bg: rgba(255, 255, 255, 0.8);
+  --bg: #FFF1F2;
 }
 .dark.theme-crimson {
-  --bg: #110002;
+  --bg: #000000; /* Zmienione na czarny */
   --card-bg: rgba(28, 5, 8, 0.7);
 }
 
-/* Emerald (E-Sport / Success) */
-.theme-emerald { 
-  --color-general-current: #10B981;
-  --color-general-rgb: 16, 185, 129;
+/* Emerald (E-Sport) */
+.theme-emerald {
+  --color-general-current: #06e402;
+  --color-general-rgb: 6, 228, 2;
 }
 :root.theme-emerald {
-  --bg: #F0FDF4; /* Subtle mint tint for light mode */
-  --card-bg: rgba(255, 255, 255, 0.8);
+  --bg: #F0FDF4;
 }
 .dark.theme-emerald {
-  --bg: #021105;
+  --bg: #000000; /* Zmienione na czarny */
   --card-bg: rgba(5, 28, 12, 0.7);
 }
 
-/* Violet (Records / Magic) */
-.theme-violet { 
-  --color-general-current: #8B5CF6;
-  --color-general-rgb: 139, 92, 246;
+/* Violet (Records) */
+.theme-violet {
+  --color-general-current: #ad83f8;
+  --color-general-rgb: 173, 131, 248;
 }
 :root.theme-violet {
-  --bg: #F5F3FF; /* Subtle lavender tint for light mode */
-  --card-bg: rgba(255, 255, 255, 0.8);
+  --bg: #F5F3FF;
 }
 .dark.theme-violet {
-  --bg: #0A0211;
+  --bg: #000000; /* Zmienione na czarny */
   --card-bg: rgba(12, 5, 28, 0.7);
 }
 
-/* Amber (Dev / Warning) */
-.theme-amber { 
-  --color-general-current: #F59E0B;
-  --color-general-rgb: 245, 158, 11;
+/* Amber (Dev) */
+.theme-amber {
+  --color-general-current: #ffcb2f;
+  --color-general-rgb: 255, 203, 47;
 }
 :root.theme-amber {
-  --bg: #FFFBEB; /* Subtle honey tint for light mode */
-  --card-bg: rgba(255, 255, 255, 0.8);
+  --bg: #FFFBEB;
 }
 .dark.theme-amber {
-  --bg: #110A02;
+  --bg: #000000; /* Zmienione na czarny */
   --card-bg: rgba(28, 15, 5, 0.7);
 }
-  
+
 /* Base Styles */
 body {
   background-color: var(--bg);
   color: var(--text);
   font-family: var(--font-space);
-  transition: all var(--transition-speed) var(--transition-timing);
+  transition: background-color var(--transition-speed) var(--transition-timing), color var(--transition-speed) var(--transition-timing);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   position: relative;
@@ -131,33 +128,33 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .dark .glass {
-  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.6);
 }
 
 /* Custom Effects */
 .bg-mesh {
   position: fixed;
   inset: 0;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(var(--color-general-rgb), 0.15) 0px, transparent 45%),
-    radial-gradient(at 100% 100%, rgba(var(--color-general-rgb), 0.1) 0px, transparent 45%);
+  background-image:
+          radial-gradient(at 0% 0%, rgba(var(--color-general-rgb), 0.15) 0px, transparent 45%),
+          radial-gradient(at 100% 100%, rgba(var(--color-general-rgb), 0.1) 0px, transparent 45%);
   pointer-events: none;
   z-index: -1;
 }
 
 /* Interactive elements */
 .btn-premium {
-    background: var(--color-general);
-    color: white;
-    font-weight: 800;
-    border-radius: 1rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 20px -5px rgba(var(--color-general-rgb), 0.4);
+  background: var(--color-general);
+  color: white;
+  font-weight: 800;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px -5px rgba(var(--color-general-rgb), 0.4);
 }
 
 .btn-premium:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-    box-shadow: 0 15px 30px -8px rgba(var(--color-general-rgb), 0.6);
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 15px 30px -8px rgba(var(--color-general-rgb), 0.6);
 }
 /* trigger turbopack reload */

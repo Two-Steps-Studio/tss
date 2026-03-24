@@ -4,13 +4,75 @@ const { createClient } = require('@supabase/supabase-js');
 const { createProfileCard } = require('./profileGenerator');
 const { handleFishing, handleFishInventory, handleFishTop } = require('./fishing/fishing');
 const { handleShop, handleShopInteraction } = require('./shop');
+const { handleWedka, handleGearInteraction } = require('./fishing/wedka');
+const { handleAfkFishing, handleAfkStop } = require('./fishing/afk_fishing');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-// ── Waluta ───────────────────────────────
 const COIN = '<:CoinTSS:1486049846132605042>';
-// ── Konfiguracja Kanału ──────────────────────────────────────
 const ALLOWED_CHANNEL_ID = '1360920823258550353';
+
+// ── Rangi Levelowe ───────────────────────────────────────────
+const LEVEL_ROLES = [
+    { minLevel: 100, name: '〔 📊︱Level 100 〕' },
+    { minLevel: 90,  name: '〔 📊︱Level 90 〕'  },
+    { minLevel: 80,  name: '〔 📊︱Level 80 〕'  },
+    { minLevel: 70,  name: '〔 📊︱Level 70 〕'  },
+    { minLevel: 60,  name: '〔 📊︱Level 60 〕'  },
+    { minLevel: 50,  name: '〔 📊︱Level 50 〕'  },
+    { minLevel: 40,  name: '〔 📊︱Level 40 〕'  },
+    { minLevel: 30,  name: '〔 📊︱Level 30 〕'  },
+    { minLevel: 20,  name: '〔 📊︱Level 20 〕'  },
+    { minLevel: 10,  name: '〔 📊︱Level 10 〕'  },
+    { minLevel: 5,   name: '〔 📊︱Level 5 〕'   },
+    { minLevel: 4,   name: '〔 📊︱Level 4 〕'   },
+    { minLevel: 3,   name: '〔 📊︱Level 3 〕'   },
+    { minLevel: 2,   name: '〔 📊︱Level 2 〕'   },
+    { minLevel: 1,   name: '〔 📊︱Level 1 〕'   },
+];
+
+const ALL_LEVEL_ROLE_NAMES = new Set(LEVEL_ROLES.map(r => r.name));
+
+function getExpectedRoleName(level) {
+    for (const entry of LEVEL_ROLES) {
+        if (level >= entry.minLevel) return entry.name;
+    }
+    return null;
+}
+
+async function syncLevelRole(member, newLevel) {
+    try {
+        const guild        = member.guild;
+        const expectedName = getExpectedRoleName(newLevel);
+
+        const levelRolesOnServer = guild.roles.cache.filter(r => ALL_LEVEL_ROLE_NAMES.has(r.name));
+        const memberLevelRoles   = member.roles.cache.filter(r => ALL_LEVEL_ROLE_NAMES.has(r.name));
+        const expectedRole       = expectedName
+            ? guild.roles.cache.find(r => r.name === expectedName)
+            : null;
+
+        if (
+            expectedRole &&
+            memberLevelRoles.size === 1 &&
+            memberLevelRoles.has(expectedRole.id)
+        ) return;
+
+        const toRemove = memberLevelRoles.map(r => r.id);
+        if (toRemove.length > 0) {
+            await member.roles.remove(toRemove).catch(e =>
+                console.error('[LEVEL ROLE] Błąd zdejmowania rang:', e.message)
+            );
+        }
+
+        if (expectedRole) {
+            await member.roles.add(expectedRole).catch(e =>
+                console.error('[LEVEL ROLE] Błąd nadawania rangi:', e.message)
+            );
+        }
+    } catch (e) {
+        console.error('[LEVEL ROLE] syncLevelRole error:', e.message);
+    }
+}
 
 const client = new Client({
     intents: [
@@ -61,6 +123,27 @@ const commands = [
     new SlashCommandBuilder()
         .setName('fishtop')
         .setDescription('Ranking najlepszych wędkarzy'),
+    new SlashCommandBuilder()
+        .setName('wedka')
+        .setDescription('Ulepsz swój sprzęt wędkarski (żyłka, kołowrotek, haczyk, przynęta)'),
+    new SlashCommandBuilder()
+        .setName('afk_wedkowanie')
+        .setDescription('Usiądź przy jeziorze i łów automatycznie (mniej zyskowne niż ręcznie)')
+        .addIntegerOption(opt =>
+            opt.setName('czas')
+                .setDescription('Jak długo chcesz siedzieć przy jeziorze?')
+                .setRequired(false)
+                .addChoices(
+                    { name: '15 minut',  value: 15  },
+                    { name: '30 minut',  value: 30  },
+                    { name: '1 godzina', value: 60  },
+                    { name: '2 godziny', value: 120 },
+                    { name: '4 godziny', value: 240 },
+                )
+        ),
+    new SlashCommandBuilder()
+        .setName('afk_stop')
+        .setDescription('Zakończ sesję AFK i odbierz podsumowanie połowów'),
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
@@ -78,7 +161,7 @@ async function registerCommands() {
     }
 }
 
-// ── KLUCZOWA FUNKCJA: Pobieranie/Tworzenie Profilu ──────────
+// ── Pobieranie/Tworzenie Profilu ─────────────────────────────
 async function getProfile(userId, username, roles = []) {
     try {
         let { data: profile } = await supabase
@@ -98,7 +181,7 @@ async function getProfile(userId, username, roles = []) {
                     level: 0,
                     money: 50,
                     bank: 0,
-                    discord_roles: roles
+                    discord_roles: roles,
                 }, { onConflict: 'id' })
                 .select()
                 .single();
@@ -109,10 +192,7 @@ async function getProfile(userId, username, roles = []) {
 
         const { data: updatedProfile } = await supabase
             .from('profiles')
-            .update({
-                username: username,
-                discord_roles: roles
-            })
+            .update({ username, discord_roles: roles })
             .eq('id', userId)
             .select()
             .single();
@@ -120,7 +200,7 @@ async function getProfile(userId, username, roles = []) {
         return updatedProfile || profile;
     } catch (err) {
         console.error('[DB ERROR] getProfile:', err.message);
-        return { id: userId, username: username, xp: 0, level: 0, money: 0, bank: 0, discord_roles: roles };
+        return { id: userId, username, xp: 0, level: 0, money: 0, bank: 0, discord_roles: roles };
     }
 }
 
@@ -136,20 +216,20 @@ async function updateDiscordStats() {
         const guild = client.guilds.cache.first();
         if (!guild) return;
 
-        const members = await guild.members.fetch();
-        const humans = members.filter(m => !m.user.bot).size;
-        const online = members.filter(m => m.presence?.status === 'online' || m.presence?.status === 'dnd').size;
+        const members  = await guild.members.fetch();
+        const humans   = members.filter(m => !m.user.bot).size;
+        const online   = members.filter(m => m.presence?.status === 'online' || m.presence?.status === 'dnd').size;
         const channels = guild.channels.cache.size;
 
         const currentDay = new Date().getDate();
         if (currentDay !== lastDay) { messagesTodayCount = 0; lastDay = currentDay; }
 
         await supabase.from('discord_stats').insert({
-            online_users: online || 0,
-            active_channels: channels || 0,
-            member_count: humans || 0,
-            messages_today: messagesTodayCount || 0,
-            recorded_at: new Date().toISOString()
+            online_users:    online    || 0,
+            active_channels: channels  || 0,
+            member_count:    humans    || 0,
+            messages_today:  messagesTodayCount || 0,
+            recorded_at:     new Date().toISOString(),
         });
     } catch (e) {
         console.error('[STATS] Błąd:', e.message);
@@ -158,13 +238,11 @@ async function updateDiscordStats() {
 
 // ── Interactions ─────────────────────────────────────────────
 client.on('interactionCreate', async interaction => {
-    // BLOKADA KANAŁU
     if (interaction.channelId !== ALLOWED_CHANNEL_ID) {
-        // Pozwalamy tylko jeśli to nie jest interakcja z botem (opcjonalne zabezpieczenie)
         if (interaction.isChatInputCommand() || interaction.isButton() || interaction.isStringSelectMenu()) {
             return interaction.reply({
                 content: `❌ Komend i funkcji bota można używać wyłącznie na kanale <#${ALLOWED_CHANNEL_ID}>!`,
-                ephemeral: true
+                flags: 1 << 6,
             });
         }
         return;
@@ -175,11 +253,15 @@ client.on('interactionCreate', async interaction => {
             await handleShopInteraction(interaction, supabase);
             return;
         }
+        if (interaction.customId === 'gear_upgrade_select' || interaction.customId === 'gear_refresh') {
+            await handleGearInteraction(interaction, supabase);
+            return;
+        }
     }
 
     if (!interaction.isChatInputCommand()) return;
 
-    const roles = interaction.member?.roles.cache.filter(r => r.name !== '@everyone').map(r => r.name) || [];
+    const roles   = interaction.member?.roles.cache.filter(r => r.name !== '@everyone').map(r => r.name) || [];
     const profile = await getProfile(interaction.user.id, interaction.user.username, roles);
 
     switch (interaction.commandName) {
@@ -189,12 +271,12 @@ client.on('interactionCreate', async interaction => {
             try {
                 const buffer = await createProfileCard({
                     username:  interaction.member?.displayName || interaction.user.username,
-                    level:     profile.level ?? 0,
-                    money:     profile.money ?? 0,
-                    xp:        profile.xp ?? 0,
-                    bank:      profile.bank ?? 0,
-                    roles:     roles,
-                    avatarURL: interaction.user.displayAvatarURL({ extension: 'png', size: 256 })
+                    level:     profile.level  ?? 0,
+                    money:     profile.money  ?? 0,
+                    xp:        profile.xp     ?? 0,
+                    bank:      profile.bank   ?? 0,
+                    roles,
+                    avatarURL: interaction.user.displayAvatarURL({ extension: 'png', size: 256 }),
                 });
                 const attachment = new AttachmentBuilder(buffer, { name: 'profile.png' });
                 await interaction.editReply({ files: [attachment] });
@@ -211,7 +293,7 @@ client.on('interactionCreate', async interaction => {
                 .setColor('#1bbdbd')
                 .addFields(
                     { name: '💵 Gotówka', value: `${profile.money ?? 0} ${COIN}`, inline: true },
-                    { name: '🏦 Bank',    value: `${profile.bank  ?? 0} ${COIN}`, inline: true }
+                    { name: '🏦 Bank',    value: `${profile.bank  ?? 0} ${COIN}`, inline: true },
                 )
                 .setTimestamp();
             await interaction.reply({ embeds: [embed] });
@@ -226,7 +308,7 @@ client.on('interactionCreate', async interaction => {
                 `**#${i + 1}** ${p.username} - **${p.money || 0} ${COIN}**`
             ).join('\n') || 'Brak danych.';
             await interaction.reply({ embeds: [
-                    new EmbedBuilder().setTitle('💰 Najbogatsi w Studiu').setColor('#22FF00').setDescription(list)
+                    new EmbedBuilder().setTitle('💰 Najbogatsi w Studiu').setColor('#22FF00').setDescription(list),
                 ]});
             break;
         }
@@ -239,22 +321,22 @@ client.on('interactionCreate', async interaction => {
                 `**#${i + 1}** ${p.username} - Lvl ${p.level || 0} (${p.xp || 0} XP) 🏆`
             ).join('\n') || 'Brak danych.';
             await interaction.reply({ embeds: [
-                    new EmbedBuilder().setTitle('🏆 Top Level w Studiu').setColor('#ffcB2f').setDescription(list)
+                    new EmbedBuilder().setTitle('🏆 Top Level w Studiu').setColor('#ffcB2f').setDescription(list),
                 ]});
             break;
         }
 
         case 'praca': {
             const lastWork = profile.last_work ? new Date(profile.last_work) : 0;
-            const diff = Date.now() - lastWork;
+            const diff     = Date.now() - lastWork;
             if (diff < 3600000) {
                 const minsLeft = Math.ceil((3600000 - diff) / 60000);
                 return interaction.reply(`⏳ Jesteś zmęczony! Odpocznij jeszcze **${minsLeft} min**.`);
             }
             const earnings = Math.floor(Math.random() * 80) + 20;
             await supabase.from('profiles').update({
-                money: (profile.money || 0) + earnings,
-                last_work: new Date().toISOString()
+                money:     (profile.money || 0) + earnings,
+                last_work: new Date().toISOString(),
             }).eq('id', profile.id);
             await interaction.reply(`⛏️ Zapracowałeś ciężko w Studiu i otrzymałeś **${earnings} ${COIN}!**`);
             break;
@@ -275,6 +357,18 @@ client.on('interactionCreate', async interaction => {
         case 'sklep':
             await handleShop(interaction, supabase, profile, COIN);
             break;
+
+        case 'wedka':
+            await handleWedka(interaction, supabase, profile);
+            break;
+
+        case 'afk_wedkowanie':
+            await handleAfkFishing(interaction, supabase, profile, COIN);
+            break;
+
+        case 'afk_stop':
+            await handleAfkStop(interaction, COIN);
+            break;
     }
 });
 
@@ -283,24 +377,27 @@ client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
     messagesTodayCount++;
     try {
-        const roles = message.member?.roles.cache.filter(r => r.name !== '@everyone').map(r => r.name) || [];
+        const roles   = message.member?.roles.cache.filter(r => r.name !== '@everyone').map(r => r.name) || [];
         const profile = await getProfile(message.author.id, message.author.username, roles);
-
         if (!profile) return;
 
-        const currentXP = profile.xp ?? 0;
         const currentLevel = profile.level ?? 0;
-        const newXp = currentXP + 2;
-        const newMoney = (profile.money ?? 0) + 1;
-        const newLevel = getLevelFromXP(newXp);
-
-        if (newLevel > currentLevel) {
-            await message.channel.send(`🎉 Gratulacje <@${message.author.id}>! Awans na poziom **${newLevel}**!`);
-        }
+        const newXp        = (profile.xp ?? 0) + 2;
+        const newMoney     = (profile.money ?? 0) + 1;
+        const newLevel     = getLevelFromXP(newXp);
 
         await supabase.from('profiles').update({
-            xp: newXp, money: newMoney, level: newLevel, updated_at: new Date().toISOString()
+            xp: newXp, money: newMoney, level: newLevel, updated_at: new Date().toISOString(),
         }).eq('id', profile.id);
+
+        if (newLevel > currentLevel) {
+            await message.channel.send(
+                `🎉 Gratulacje <@${message.author.id}>! Awans na poziom **${newLevel}**! 🏆`
+            );
+            if (message.member) {
+                await syncLevelRole(message.member, newLevel);
+            }
+        }
     } catch (e) {
         console.error('Text leveling error:', e.message);
     }
@@ -317,20 +414,26 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         if (startTime) {
             const minutes = Math.floor((Date.now() - startTime) / 60000);
             voiceSessions.delete(userId);
-            if (minutes > 0) syncVoiceRewards(userId, minutes, newState.member?.user.username || 'Unknown');
+            if (minutes > 0) syncVoiceRewards(userId, minutes, newState.member, newState.member?.user.username || 'Unknown');
         }
     }
 });
 
-async function syncVoiceRewards(userId, minutes, username) {
+async function syncVoiceRewards(userId, minutes, member, username) {
     try {
-        const profile = await getProfile(userId, username);
-        const newXp = (profile.xp || 0) + minutes * 3;
-        const newMoney = (profile.money || 0) + minutes * 2;
-        const newLevel = getLevelFromXP(newXp);
+        const profile      = await getProfile(userId, username);
+        const currentLevel = profile.level ?? 0;
+        const newXp        = (profile.xp    || 0) + minutes * 3;
+        const newMoney     = (profile.money || 0) + minutes * 2;
+        const newLevel     = getLevelFromXP(newXp);
+
         await supabase.from('profiles').update({
-            xp: newXp, money: newMoney, level: newLevel, updated_at: new Date().toISOString()
+            xp: newXp, money: newMoney, level: newLevel, updated_at: new Date().toISOString(),
         }).eq('id', profile.id);
+
+        if (newLevel > currentLevel && member) {
+            await syncLevelRole(member, newLevel);
+        }
     } catch (e) { console.error('[VC] Reward sync error:', e); }
 }
 
@@ -344,7 +447,7 @@ client.on('guildMemberAdd', member => {
                     .setDescription(`Witaj <@${member.id}>! Cieszymy się, że do nas dołączyłeś.`)
                     .setColor('#1bbdbd')
                     .setThumbnail(member.user.displayAvatarURL())
-                    .addFields({ name: 'Twoje ID', value: member.id })
+                    .addFields({ name: 'Twoje ID', value: member.id }),
             ]});
     }
 });
