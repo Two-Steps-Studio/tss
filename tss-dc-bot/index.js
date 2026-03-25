@@ -6,6 +6,7 @@ const { handleFishing, handleFishInventory, handleFishTop } = require('./fishing
 const { handleShop, handleShopInteraction } = require('./shop');
 const { handleWedka, handleGearInteraction } = require('./fishing/wedka');
 const { handleAfkFishing, handleAfkStop } = require('./fishing/afk_fishing');
+const { handleEventCreate, handleEventList, handleEventJoin, handleEventDelete } = require('./events/events');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -121,7 +122,7 @@ const commands = [
         .setName('ryby')
         .setDescription('Zobacz swoje ostatnie połowy i statystyki'),
     new SlashCommandBuilder()
-        .setName('fishtop')
+        .setName('topfish')
         .setDescription('Ranking najlepszych wędkarzy'),
     new SlashCommandBuilder()
         .setName('wedka')
@@ -144,6 +145,50 @@ const commands = [
     new SlashCommandBuilder()
         .setName('afk_stop')
         .setDescription('Zakończ sesję AFK i odbierz podsumowanie połowów'),
+
+    // ── Eventy ───────────────────────────────────────────────
+    new SlashCommandBuilder()
+        .setName('event_create')
+        .setDescription('Utwórz nowy event e-sportowy')
+        .addStringOption(opt =>
+            opt.setName('nazwa')
+                .setDescription('Nazwa eventu')
+                .setRequired(true)
+        )
+        .addStringOption(opt =>
+            opt.setName('data')
+                .setDescription('Data w formacie DD.MM.YYYY HH:MM, np. 25.12.2025 18:00')
+                .setRequired(true)
+        )
+        .addStringOption(opt =>
+            opt.setName('opis')
+                .setDescription('Opis eventu (opcjonalnie)')
+                .setRequired(false)
+        )
+        .addIntegerOption(opt =>
+            opt.setName('max_uczestnikow')
+                .setDescription('Maksymalna liczba uczestników (opcjonalnie)')
+                .setRequired(false)
+        ),
+    new SlashCommandBuilder()
+        .setName('event_list')
+        .setDescription('Lista nadchodzących eventów e-sportowych'),
+    new SlashCommandBuilder()
+        .setName('event_join')
+        .setDescription('Sprawdź szczegóły eventu i dołącz')
+        .addIntegerOption(opt =>
+            opt.setName('id')
+                .setDescription('ID eventu z /event_list')
+                .setRequired(true)
+        ),
+    new SlashCommandBuilder()
+        .setName('event_delete')
+        .setDescription('Usuń event (tylko admin)')
+        .addIntegerOption(opt =>
+            opt.setName('id')
+                .setDescription('ID eventu do usunięcia')
+                .setRequired(true)
+        ),
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
@@ -350,7 +395,7 @@ client.on('interactionCreate', async interaction => {
             await handleFishInventory(interaction, supabase, COIN);
             break;
 
-        case 'fishtop':
+        case 'topfish':
             await handleFishTop(interaction, supabase, COIN);
             break;
 
@@ -368,6 +413,23 @@ client.on('interactionCreate', async interaction => {
 
         case 'afk_stop':
             await handleAfkStop(interaction, COIN);
+            break;
+
+        // ── Eventy ───────────────────────────────────────────
+        case 'event_create':
+            await handleEventCreate(interaction, supabase);
+            break;
+
+        case 'event_list':
+            await handleEventList(interaction, supabase);
+            break;
+
+        case 'event_join':
+            await handleEventJoin(interaction, supabase);
+            break;
+
+        case 'event_delete':
+            await handleEventDelete(interaction, supabase);
             break;
     }
 });
