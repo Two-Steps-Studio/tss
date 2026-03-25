@@ -1,4 +1,4 @@
-// fishing/fishing.js – zintegrowane z Supabase + system sprzętu wędkarskiego
+// fishing/fishing.js – logika łowienia zintegrowana z Supabase
 const { EmbedBuilder } = require('discord.js');
 const { FISH, RARITY_STYLES, FISHING_COOLDOWN, TRASH_CHANCE } = require('./fish.config');
 const { getGearStats } = require('./gear.config');
@@ -7,6 +7,7 @@ const { fetchGearRow, rowToGearObj } = require('./wedka');
 const cooldowns = new Map();
 
 // ── Losowanie ryby z uwzględnieniem bonusu rzadkości ─────────
+
 function rollFish(rarityBonus = 0) {
     if (Math.random() * 100 < TRASH_CHANCE) {
         const trash = Object.values(FISH).filter(f => f.rarity === 'trash');
@@ -24,7 +25,7 @@ function rollFish(rarityBonus = 0) {
     }));
 
     const total = boostedPool.reduce((s, f) => s + f.chance, 0);
-    let roll    = Math.random() * total;
+    let roll = Math.random() * total;
 
     for (const fish of boostedPool) {
         roll -= fish.chance;
@@ -44,16 +45,23 @@ function calcValue(fish, weight, valueBonus = 0) {
     return Math.round(baseCalc * (1 + valueBonus));
 }
 
+// ── XP z bonusem zanęty ───────────────────────────────────────
+
+function calcXp(fish, xpBonus = 0) {
+    return Math.round(fish.xp * (1 + xpBonus));
+}
+
 function getLevelFromXP(xp) {
     if (xp < 100) return 0;
     return Math.floor(0.1 * Math.sqrt(xp));
 }
 
 // ── /lowienie ────────────────────────────────────────────────
+
 async function handleFishing(interaction, supabase, profile, COIN = '<:CoinTSS:1486049846132605042>') {
     const userId = interaction.user.id;
 
-    // 1. Cooldown z pamięci – błyskawiczne, przed defer
+    // 1. Cooldown z pamięci – przed defer, żeby nie blokować
     if (cooldowns.has(userId)) {
         const remaining = Math.ceil((cooldowns.get(userId) - Date.now()) / 1000);
         if (remaining > 0) {
@@ -64,18 +72,18 @@ async function handleFishing(interaction, supabase, profile, COIN = '<:CoinTSS:1
         }
     }
 
-    // 2. DEFER natychmiast – wszystkie operacje DB mogą teraz trwać ile chcą
+    // 2. Defer – wszystkie operacje DB mogą teraz trwać ile chcą
     await interaction.deferReply();
 
-    // 3. Pobierz sprzęt z Supabase (bezpiecznie po defer)
+    // 3. Pobierz sprzęt z Supabase
     const gearRow = await fetchGearRow(supabase, userId);
     const gearObj = rowToGearObj(gearRow);
-    const { valueBonus, cooldownReduction, rarityBonus, baitDiscount } = getGearStats(gearObj);
+    const { valueBonus, cooldownReduction, rarityBonus, baitDiscount, xpBonus } = getGearStats(gearObj);
 
     const effectiveCooldown = Math.max(5, FISHING_COOLDOWN - cooldownReduction);
     const BAIT_COST         = Math.max(0, 10 - baitDiscount);
 
-    // 4. Sprawdź kasę (po defer – editReply)
+    // 4. Sprawdź gotówkę
     if ((profile.money || 0) < BAIT_COST && BAIT_COST > 0) {
         return interaction.editReply({
             content: `❌ Nie stać Cię na przynętę! Potrzebujesz **${BAIT_COST} ${COIN}**.`,
@@ -93,11 +101,12 @@ async function handleFishing(interaction, supabase, profile, COIN = '<:CoinTSS:1
     const fish    = rollFish(rarityBonus);
     const weight  = rollWeight(fish);
     const value   = calcValue(fish, weight, valueBonus);
+    const xpGain  = calcXp(fish, fish.rarity === 'trash' ? 0 : xpBonus); // śmieci bez bonusu XP
     const style   = RARITY_STYLES[fish.rarity];
     const isTrash = fish.rarity === 'trash';
 
     const newMoney = Math.max(0, (profile.money || 0) - BAIT_COST + value);
-    const newXp    = (profile.xp || 0) + (isTrash ? 1 : fish.xp);
+    const newXp    = (profile.xp || 0) + xpGain;
     const newLevel = getLevelFromXP(newXp);
 
     // 7. Zapisz do DB
@@ -142,16 +151,18 @@ async function handleFishing(interaction, supabase, profile, COIN = '<:CoinTSS:1
 
     if (!isTrash) {
         embed.addFields(
-            { name: '✨ XP',      value: `+${fish.xp} XP`,      inline: true },
-            { name: '💵 Gotówka', value: `${newMoney} ${COIN}`,  inline: true },
+            { name: '✨ XP',      value: `+${xpGain} XP`,     inline: true },
+            { name: '💵 Gotówka', value: `${newMoney} ${COIN}`, inline: true },
         );
     }
 
+    // Aktywne bonusy w footerze
     const bonusLines = [];
     if (valueBonus > 0)        bonusLines.push(`🪢 Wartość +${Math.round(valueBonus * 100)}%`);
     if (cooldownReduction > 0) bonusLines.push(`🎡 Cooldown -${cooldownReduction}s`);
     if (rarityBonus > 0)       bonusLines.push(`🪝 Rzadkość +${Math.round(rarityBonus * 100)}%`);
     if (baitDiscount > 0)      bonusLines.push(`🪱 Przynęta -${baitDiscount}$`);
+    if (xpBonus > 0)           bonusLines.push(`🫙 XP +${Math.round(xpBonus * 100)}%`);
 
     embed.setFooter({
         text: `Cooldown: ${effectiveCooldown}s | Przynęta: ${BAIT_COST}$` +
@@ -162,6 +173,7 @@ async function handleFishing(interaction, supabase, profile, COIN = '<:CoinTSS:1
 }
 
 // ── /ryby ────────────────────────────────────────────────────
+
 async function handleFishInventory(interaction, supabase, COIN = '<:CoinTSS:1486049846132605042>') {
     const userId = interaction.user.id;
 
@@ -180,7 +192,7 @@ async function handleFishInventory(interaction, supabase, COIN = '<:CoinTSS:1486
     }
 
     const list = catches.map(c => {
-        const s = RARITY_STYLES[c.rarity || 'common'];
+        const s = RARITY_STYLES[c.rarity] || RARITY_STYLES.common;
         return `${s.emoji} **${c.fish_name}** – ${c.weight}kg – ${c.value} ${COIN}`;
     }).join('\n');
 
@@ -198,15 +210,16 @@ async function handleFishInventory(interaction, supabase, COIN = '<:CoinTSS:1486
         .setTitle(`🎣 Ostatnie połowy – ${interaction.user.username}`)
         .setDescription(list)
         .addFields(
-            { name: '🐟 Złapano',           value: `${totalCaught}`,                                             inline: true },
-            { name: '💰 Zarobiono łącznie', value: `${COIN} ${totalEarned}`,                                     inline: true },
-            { name: '🏆 Rekord',            value: biggest ? `${biggest.fish_name} (${biggest.weight}kg)` : '—', inline: true },
+            { name: '🐟 Złapano',           value: `${totalCaught}`,                                              inline: true },
+            { name: '💰 Zarobiono łącznie', value: `${totalEarned} ${COIN}`,                                      inline: true },
+            { name: '🏆 Rekord',            value: biggest ? `${biggest.fish_name} (${biggest.weight}kg)` : '—',  inline: true },
         );
 
-    interaction.reply({ embeds: [embed] });
+    return interaction.reply({ embeds: [embed] });
 }
 
 // ── /fishtop ─────────────────────────────────────────────────
+
 async function handleFishTop(interaction, supabase, COIN = '<:CoinTSS:1486049846132605042>') {
     const { data: rows } = await supabase
         .from('fishing_catches')
@@ -234,7 +247,7 @@ async function handleFishTop(interaction, supabase, COIN = '<:CoinTSS:1486049846
         .setTitle('🏆 Top Wędkarze')
         .setDescription(list);
 
-    interaction.reply({ embeds: [embed] });
+    return interaction.reply({ embeds: [embed] });
 }
 
 module.exports = { handleFishing, handleFishInventory, handleFishTop };
