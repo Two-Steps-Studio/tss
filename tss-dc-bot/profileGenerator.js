@@ -1,9 +1,37 @@
 const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
 const path = require('path');
+const fs = require('fs');
 
 // Register Space Grotesk font
 GlobalFonts.registerFromPath(path.join(__dirname, 'SpaceGrotesk-Bold.ttf'), 'Space Grotesk');
-const fs = require('fs');
+
+const BACKGROUND_DIR = path.join(__dirname, 'assets', 'discord', 'backgrounds');
+let availableBackgrounds = [];
+
+// Załaduj dostępne tła
+function loadAvailableBackgrounds() {
+    try {
+        const files = fs.readdirSync(BACKGROUND_DIR);
+        availableBackgrounds = files
+            .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file))
+            .map(file => path.parse(file).name);
+        console.log(`[BACKGROUNDS] Załadowano ${availableBackgrounds.length} teł:`, availableBackgrounds);
+        return availableBackgrounds;
+    } catch (err) {
+        console.error('[BACKGROUNDS] Błąd ładowania teł:', err.message);
+        availableBackgrounds = ['default']; // fallback
+        return availableBackgrounds;
+    }
+}
+
+// Odśwież listę tła co 30 minut
+setInterval(() => {
+    console.log('[BACKGROUNDS] Odświeżanie listy tła...');
+    loadAvailableBackgrounds();
+}, 30 * 60 * 1000);
+
+// Załaduj tła przy uruchomieniu
+loadAvailableBackgrounds();
 
 const ROLE_STYLES = {
     "〔 👑︱Owner 〕": { color: "#dc3545", label: "OWNER" },
@@ -87,6 +115,7 @@ const ROLE_ORDER = Object.keys(ROLE_STYLES);
  * @param {string} userData.username
  * @param {number} userData.level
  * @param {string} [userData.avatarURL]
+ * @param {string} [userData.background]
  */
 async function createProfileCard(userData) {
     const canvas = createCanvas(1000, 500);
@@ -107,9 +136,23 @@ async function createProfileCard(userData) {
         }
     }
 
-    // 1. Background (Vibrant Green)
-    ctx.fillStyle = '#22FF00';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Załaduj tło
+    let backgroundPath = path.join(BACKGROUND_DIR, 'default.png');
+    if (userData.background && availableBackgrounds.includes(userData.background)) {
+        const ext = ['.png', '.jpg', '.jpeg', '.gif'].find(e =>
+            fs.existsSync(path.join(BACKGROUND_DIR, userData.background + e))
+        );
+        if (ext) backgroundPath = path.join(BACKGROUND_DIR, userData.background + ext);
+    }
+
+    try {
+        const backgroundImage = await loadImage(backgroundPath);
+        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+    } catch (e) {
+        console.warn('[PROFILE] Nie znaleziono tła, użyto domyślnego koloru');
+        ctx.fillStyle = '#22FF00';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     function drawRoundedRect(x, y, w, h, r, fillStyle) {
         ctx.fillStyle = fillStyle;
@@ -119,8 +162,8 @@ async function createProfileCard(userData) {
     }
 
     // 2. Main Containers
-    drawRoundedRect(250, 190, 720, 85, 20, '#0F5400');  // Roles box
-    drawRoundedRect(20, 310, 960, 170, 25, '#0F5400');  // Bottom Section
+    drawRoundedRect(250, 190, 720, 85, 20, '#0F540080');  // Roles box (z przezroczystością)
+    drawRoundedRect(20, 310, 960, 170, 25, '#0F540080');  // Bottom Section (z przezroczystością)
 
     // 3. Avatar Section
     const avatarX = 135;
@@ -171,7 +214,7 @@ async function createProfileCard(userData) {
     }
 
     // 5. Texts
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = '#FFFFFF'; // Zmieniono kolor tekstu na biały dla lepszej widoczności
 
     // Nickname
     ctx.textAlign = 'left';
@@ -202,7 +245,7 @@ async function createProfileCard(userData) {
             ctx.fillText(style.label, currentX + badgeWidth / 2, 243);
 
             currentX += badgeWidth + 10;
-            ctx.fillStyle = '#000000';
+            ctx.fillStyle = '#FFFFFF';
             ctx.textAlign = 'left';
         });
     }
@@ -216,11 +259,11 @@ async function createProfileCard(userData) {
     // XP Text
     ctx.textAlign = 'right';
     ctx.font = 'bold 25px "Space Grotesk"';
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillText(`${userData.xp} XP`, 485, 385);
 
     // Progress Bar Background
-    drawRoundedRect(35, 415, 450, 45, 22, '#0F3400');
+    drawRoundedRect(35, 415, 450, 45, 22, '#0F340080');
 
     // Calculate Progress
     const currentLevelStartXP = Math.pow(userData.level / 0.1, 2);
@@ -243,13 +286,13 @@ async function createProfileCard(userData) {
 // Nagłówek MONEY
     ctx.textAlign = 'right';
     ctx.font = 'bold 70px "Space Grotesk"';
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillText('MONEY', 940, 385);
 
 // BANK: wartość [coin]
     ctx.textAlign = 'left';
     ctx.font = 'bold 35px "Space Grotesk"';
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = '#FFFFFF';
 
     ctx.fillText('BANK:', moneyX, 435);
     const bankValue = userData.bank || 0;
@@ -273,11 +316,9 @@ async function createProfileCard(userData) {
     return canvas.toBuffer('image/png');
 }
 
-module.exports = { createProfileCard };
-if (require.main === module) {
-    const test = async () => {
-        const buffer = await createProfileCard({ username: 'Nick', level: 5, xp: 2500, money: 150, bank: 500 });
-        fs.writeFileSync('profile_test.png', buffer);
-    };
-    test();
+// Eksportuj funkcję do odświeżania listy tła
+function refreshBackgrounds() {
+    return loadAvailableBackgrounds();
 }
+
+module.exports = { createProfileCard, availableBackgrounds, refreshBackgrounds };

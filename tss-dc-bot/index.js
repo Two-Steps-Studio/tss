@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, AttachmentBuilder, REST, Routes, SlashCommandBuilder, EmbedBuilder, Collection } = require('discord.js');
 const { createClient } = require('@supabase/supabase-js');
-const { createProfileCard } = require('./profileGenerator');
+const { createProfileCard, availableBackgrounds, refreshBackgrounds } = require('./profileGenerator');
 const { handleFishing, handleFishInventory, handleFishTop } = require('./fishing/fishing');
 const { handleShop, handleShopInteraction } = require('./shop');
 const { handleWedka, handleGearInteraction } = require('./fishing/wedka');
@@ -100,6 +100,23 @@ const commands = [
     new SlashCommandBuilder()
         .setName('profilowe')
         .setDescription('Twoja karta profilowa Two Steps Studio'),
+    new SlashCommandBuilder()
+        .setName('ustawienia')
+        .setDescription('Zarządzaj ustawieniami twojego profilu')
+        .addSubcommand(subcommand =>
+            subcommand
+                .setName('tlo')
+                .setDescription('Zmień tło swojej karty profilowej')
+                .addStringOption(option =>
+                    option.setName('nazwa')
+                        .setDescription('Nazwa tła (bez rozszerzenia)')
+                        .setRequired(true)
+                        .setAutocomplete(true)
+                )
+        ),
+    new SlashCommandBuilder()
+        .setName('tla')
+        .setDescription('Pokaż wszystkie dostępne tła'),
     new SlashCommandBuilder()
         .setName('bal')
         .setDescription('Sprawdź stan swojego konta i banku'),
@@ -227,6 +244,7 @@ async function getProfile(userId, username, roles = []) {
                     money: 50,
                     bank: 0,
                     discord_roles: roles,
+                    background: 'default'
                 }, { onConflict: 'id' })
                 .select()
                 .single();
@@ -245,7 +263,16 @@ async function getProfile(userId, username, roles = []) {
         return updatedProfile || profile;
     } catch (err) {
         console.error('[DB ERROR] getProfile:', err.message);
-        return { id: userId, username, xp: 0, level: 0, money: 0, bank: 0, discord_roles: roles };
+        return {
+            id: userId,
+            username,
+            xp: 0,
+            level: 0,
+            money: 0,
+            bank: 0,
+            discord_roles: roles,
+            background: 'default'
+        };
     }
 }
 
@@ -320,6 +347,7 @@ client.on('interactionCreate', async interaction => {
                     money:     profile.money  ?? 0,
                     xp:        profile.xp     ?? 0,
                     bank:      profile.bank   ?? 0,
+                    background: profile.background,
                     roles,
                     avatarURL: interaction.user.displayAvatarURL({ extension: 'png', size: 256 }),
                 });
@@ -329,6 +357,64 @@ client.on('interactionCreate', async interaction => {
                 console.error('[CC] Error:', error);
                 await interaction.editReply('Błąd generowania karty.');
             }
+            break;
+        }
+
+        case 'ustawienia': {
+            if (interaction.options.getSubcommand() === 'tlo') {
+                const backgroundName = interaction.options.getString('nazwa');
+
+                if (!availableBackgrounds.includes(backgroundName)) {
+                    return interaction.reply({
+                        content: `❌ Tło "${backgroundName}" nie istnieje. Dostępne tła: \`${availableBackgrounds.join(', ')}\``,
+                        ephemeral: true
+                    });
+                }
+
+                try {
+                    await supabase
+                        .from('profiles')
+                        .update({ background: backgroundName })
+                        .eq('id', interaction.user.id);
+
+                    await interaction.reply({
+                        content: `✅ Ustawiono tło profilu na: **${backgroundName}**`,
+                        ephemeral: true
+                    });
+                } catch (err) {
+                    console.error('[BACKGROUND] Błąd zapisu:', err.message);
+                    await interaction.reply({
+                        content: '❌ Wystąpił błąd podczas ustawiania tła.',
+                        ephemeral: true
+                    });
+                }
+            }
+            break;
+        }
+
+        case 'tla': {
+            // Odśwież listę tła przed wyświetleniem
+            const backgrounds = refreshBackgrounds();
+
+            // Formatowanie listy tła w postaci kolumn
+            const itemsPerRow = 4;
+            const rows = [];
+
+            for (let i = 0; i < backgrounds.length; i += itemsPerRow) {
+                const row = backgrounds.slice(i, i + itemsPerRow);
+                rows.push(row.join(' | '));
+            }
+
+            const embed = new EmbedBuilder()
+                .setTitle('🖼️ Dostępne tła')
+                .setDescription(`Możesz zmienić tło komendą \`/ustawienia tlo nazwa:<nazwa>\`\n\n${rows.join('\n')}`)
+                .setColor('#22FF00')
+                .addFields(
+                    { name: '📌 Instrukcja', value: 'Aby dodać nowe tło:\n1. Skopiuj plik do folderu `C:\\tss\\tss-dc-bot\\assets\\discord\\backgrounds`\n2. Zaczekaj 30 sekund lub użyj komendy `/tla` ponownie' }
+                )
+                .setFooter({ text: `Dostępnych tła: ${backgrounds.length}` });
+
+            await interaction.reply({ embeds: [embed] });
             break;
         }
 
