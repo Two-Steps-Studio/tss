@@ -339,6 +339,10 @@ async function updateDiscordStats() {
 client.on('interactionCreate', async interaction => {
     if (interaction.channelId !== ALLOWED_CHANNEL_ID) {
         if (interaction.isChatInputCommand() || interaction.isButton() || interaction.isStringSelectMenu()) {
+            // Check if interaction has already been replied to
+            if (interaction.replied || interaction.deferred) {
+                return;
+            }
             return interaction.reply({
                 content: `❌ Komend i funkcji bota można używać wyłącznie na kanale <#${ALLOWED_CHANNEL_ID}>!`,
                 flags: 1 << 6,
@@ -392,7 +396,20 @@ client.on('interactionCreate', async interaction => {
                 targetProfile = await getProfile(targetUser.id, targetUser.username, targetRoles);
             }
 
-            await interaction.deferReply();
+            // Check if interaction is already deferred or replied to
+            try {
+                if (!interaction.deferred && !interaction.replied) {
+                    await interaction.deferReply();
+                }
+            } catch (error) {
+                // If deferReply fails (e.g., unknown interaction), just continue
+                if (error.code === 10062) {
+                    console.warn('[INTERACTION] Interaction already processed, continuing...');
+                    // Don't throw the error, just continue with the command
+                } else {
+                    throw error; // Re-throw if it's a different error
+                }
+            }
             try {
                 const calculatedLevel = getLevelFromXP(targetProfile.xp ?? 0);
                 const buffer = await createProfileCard({

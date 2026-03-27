@@ -286,13 +286,13 @@ async function createProfileCard(userData) {
         const barWidth = Math.max(8, 450 * progressPercent);
         const dynamicRadius = Math.min(22, barWidth / 2);
 
-        drawRoundedRect(35, 415, barWidth, 45, dynamicRadius, '#22FF00');
+        drawRoundedRect(35, 415, barWidth, 45, 22, '#22FF00');
     }
 
-// ── MONEY Section (wyżej na karcie) ─────────────────────
+// ── MONEY Section (na dole karty) ────────────────────────
     const coinSize = 38;
     const moneyX  = 580;
-    const moneyY  = 240;  // Wyżej na karcie
+    const moneyY  = 370;  // Pod sekcją LEVEL
 
 // Nagłówek MONEY
     ctx.textAlign = 'right';
