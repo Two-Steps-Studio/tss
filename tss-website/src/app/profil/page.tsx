@@ -92,53 +92,92 @@ export default function ProfilePage() {
     const [weeklyXP, setWeeklyXP] = useState(0);
     const [authChecked, setAuthChecked] = useState(false);
 
-    // ── LOGIKA ŁĄCZENIA KONTA ──
     const linkDiscord = async () => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'discord',
-            options: { redirectTo: window.location.origin + '/profile' }
+            options: { redirectTo: `${window.location.origin}/profile` }
         });
         if (error) toast.error("Błąd: " + error.message);
     };
 
     useEffect(() => {
         let channel: any;
-        const load = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setAuthChecked(true);
-            if (!user) {
-                if (!window.location.search.includes("code=")) router.push("/login");
+
+        // Nasłuchuj zmian sesji (obsługuje OAuth callback automatycznie)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_OUT') {
+                router.push('/login');
                 return;
             }
-            setUser(user);
 
-            const discordId = user.user_metadata?.provider_id || user.id;
-            const { data: initialProfile } = await supabase.from("profiles").select("*").eq("id", discordId).maybeSingle();
-            setProfile(initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [] });
+            if (session?.user) {
+                const currentUser = session.user;
+                setUser(currentUser);
+                setAuthChecked(true);
 
-            channel = supabase.channel(`profile-${discordId}`)
-                .on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${discordId}` },
-                    (payload) => setProfile(payload.new)).subscribe();
+                // ── KLUCZ: zawsze używaj provider_id jako id profilu ──
+                const discordId = currentUser.user_metadata?.provider_id || currentUser.id;
 
-            const weekThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-            const { count } = await supabase.from("site_presence").select("session_id", { count: "exact", head: true })
-                .eq("user_id", user.id).gte("seen_at", weekThreshold);
-            setWeeklyXP(count || 0);
-            setLoading(false);
+                const { data: initialProfile } = await supabase
+                    .from("profiles")
+                    .select("*")
+                    .eq("id", discordId)
+                    .maybeSingle();
+
+                setProfile(initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [] });
+
+                // Realtime subscription
+                if (channel) supabase.removeChannel(channel);
+                channel = supabase.channel(`profile-${discordId}`)
+                    .on("postgres_changes", {
+                        event: "*",
+                        schema: "public",
+                        table: "profiles",
+                        filter: `id=eq.${discordId}`
+                    }, (payload) => setProfile(payload.new))
+                    .subscribe();
+
+                const weekThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+                const { count } = await supabase
+                    .from("site_presence")
+                    .select("session_id", { count: "exact", head: true })
+                    .eq("user_id", currentUser.id)
+                    .gte("seen_at", weekThreshold);
+
+                setWeeklyXP(count || 0);
+                setLoading(false);
+            } else if (event === 'INITIAL_SESSION' && !session) {
+                // Brak sesji i nie ma code= w URL → redirect do logowania
+                setAuthChecked(true);
+                if (!window.location.search.includes("code=")) {
+                    router.push("/login");
+                }
+            }
+        });
+
+        return () => {
+            subscription.unsubscribe();
+            if (channel) supabase.removeChannel(channel);
         };
-        load();
-        return () => { if (channel) supabase.removeChannel(channel); };
     }, [router]);
 
-    if (!authChecked || (loading && !user)) return <div className="p-20 text-center text-white italic">Wczytywanie...</div>;
+    if (!authChecked || (loading && !user)) {
+        return <div className="p-20 text-center text-white italic">Wczytywanie...</div>;
+    }
 
+    const discordId = user?.user_metadata?.provider_id || user?.id;
     const isDiscordLinked = user?.app_metadata?.provider === 'discord' || user?.identities?.some((id: any) => id.provider === 'discord');
     const roleInfo = DISCORD_ROLES_BADGE[profile?.rank] || { color: "var(--color-general)", label: `LEVEL ${profile?.level || 1}` };
     const discordName = user?.user_metadata?.global_name || user?.user_metadata?.full_name || user?.email?.split("@")[0];
     const xp = profile?.xp || 0;
     const level = profile?.level || 1;
-    const nextLevelXp = level * 1000;
-    const progress = Math.min((xp / nextLevelXp) * 100, 100);
+    // Taki sam system XP jak w bocie (profileGenerator.js)
+    const currentLevelStartXP = Math.pow(level / 0.1, 2);
+    const nextLevelStartXP = Math.pow((level + 1) / 0.1, 2);
+    const neededXP = nextLevelStartXP - currentLevelStartXP;
+    const currentProgressXP = xp - currentLevelStartXP;
+    const progress = Math.min(Math.max((currentProgressXP / neededXP) * 100, 0), 100);
+    const nextLevelXp = Math.round(nextLevelStartXP);
     const discordRoles = Array.isArray(profile?.discord_roles) ? profile.discord_roles : [];
 
     return (
@@ -213,7 +252,15 @@ export default function ProfilePage() {
                 <div className="lg:col-span-8">
                     <Card className="rounded-[2.5rem] border border-white/10 bg-black/40 backdrop-blur-xl shadow-xl">
                         <CardHeader className="border-b border-white/5 text-white font-bold italic"><Bell className="mr-2 text-[var(--color-general)]" /> Ustawienia</CardHeader>
-                        <CardContent className="p-8"><ProfileForm user={user} profile={profile} onUpdated={(p) => setProfile({ ...profile, ...p })} /></CardContent>
+                        <CardContent className="p-8">
+                            {/* Przekazujemy discordId zamiast user.id */}
+                            <ProfileForm
+                                user={user}
+                                discordId={discordId}
+                                profile={profile}
+                                onUpdated={(p) => setProfile({ ...profile, ...p })}
+                            />
+                        </CardContent>
                     </Card>
                 </div>
             </div>

@@ -87,6 +87,7 @@ const client = new Client({
 });
 
 const voiceSessions = new Collection();
+const cooldowns = new Map();
 let messagesTodayCount = 0;
 let lastDay = new Date().getDate();
 
@@ -95,24 +96,32 @@ function getLevelFromXP(xp) {
     return Math.floor(0.1 * Math.sqrt(xp));
 }
 
+// Constants
+const DEFAULT_STARTING_MONEY = 50;
+const MESSAGE_XP_REWARD = 2;
+const MESSAGE_MONEY_REWARD = 1;
+const VOICE_XP_REWARD = 3;
+const VOICE_MONEY_REWARD = 2;
+
 // ── Slash Commands Definition ────────────────────────────────
 const commands = [
     new SlashCommandBuilder()
         .setName('profilowe')
-        .setDescription('Twoja karta profilowa Two Steps Studio'),
+        .setDescription('Wyświetl kartę profilową Two Steps Studio')
+        .addUserOption(option =>
+            option
+                .setName('uzytkownik')
+                .setDescription('Użytkownik do wyświetlenia (opcjonalnie, domyślnie twój profil)')
+                .setRequired(false)
+        ),
     new SlashCommandBuilder()
         .setName('ustawienia')
         .setDescription('Zarządzaj ustawieniami twojego profilu')
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName('tlo')
+        .addStringOption(option =>
+            option.setName('tlo')
                 .setDescription('Zmień tło swojej karty profilowej')
-                .addStringOption(option =>
-                    option.setName('nazwa')
-                        .setDescription('Nazwa tła (bez rozszerzenia)')
-                        .setRequired(true)
-                        .setAutocomplete(true)
-                )
+                .setRequired(false)
+                .setAutocomplete(true)
         ),
     new SlashCommandBuilder()
         .setName('tla')
@@ -120,6 +129,24 @@ const commands = [
     new SlashCommandBuilder()
         .setName('bal')
         .setDescription('Sprawdź stan swojego konta i banku'),
+    new SlashCommandBuilder()
+        .setName('wplac')
+        .setDescription('Wpłać monety do banku')
+        .addIntegerOption(option =>
+            option.setName('ilosc')
+                .setDescription('Ile monet chcesz wpłacić (0 = wszystko)')
+                .setRequired(true)
+                .setMinValue(0)
+        ),
+    new SlashCommandBuilder()
+        .setName('wyplac')
+        .setDescription('Wypłać monety z banku')
+        .addIntegerOption(option =>
+            option.setName('ilosc')
+                .setDescription('Ile monet chcesz wypłacić (0 = wszystko)')
+                .setRequired(true)
+                .setMinValue(0)
+        ),
     new SlashCommandBuilder()
         .setName('topmoney')
         .setDescription('Ranking najbogatszych graczy'),
@@ -331,6 +358,19 @@ client.on('interactionCreate', async interaction => {
         }
     }
 
+    if (interaction.isAutocomplete()) {
+        // Autocomplete dla tła w /ustawienia
+        if (interaction.commandName === 'ustawienia') {
+            const focused = interaction.options.getFocused();
+            const choices = availableBackgrounds
+                .filter(bg => bg.toLowerCase().includes(focused.toLowerCase()))
+                .slice(0, 25)
+                .map(bg => ({ name: bg, value: bg }));
+            return interaction.respond(choices);
+        }
+        return;
+    }
+
     if (!interaction.isChatInputCommand()) return;
 
     const roles   = interaction.member?.roles.cache.filter(r => r.name !== '@everyone').map(r => r.name) || [];
@@ -339,17 +379,31 @@ client.on('interactionCreate', async interaction => {
     switch (interaction.commandName) {
 
         case 'profilowe': {
+            // Pobierz opcjonalnego użytkownika (domyślnie autor komendy)
+            const targetUser = interaction.options.getUser('uzytkownik') || interaction.user;
+            const isOtherUser = targetUser.id !== interaction.user.id;
+
+            // Jeśli sprawdzamy innego użytkownika, pobierz jego profile i role
+            let targetProfile = profile;
+            let targetRoles = roles;
+            if (isOtherUser) {
+                const member = await interaction.guild?.members.fetch(targetUser.id).catch(() => null);
+                targetRoles = member?.roles.cache.filter(r => r.name !== '@everyone').map(r => r.name) || [];
+                targetProfile = await getProfile(targetUser.id, targetUser.username, targetRoles);
+            }
+
             await interaction.deferReply();
             try {
+                const calculatedLevel = getLevelFromXP(targetProfile.xp ?? 0);
                 const buffer = await createProfileCard({
-                    username:  interaction.member?.displayName || interaction.user.username,
-                    level:     profile.level  ?? 0,
-                    money:     profile.money  ?? 0,
-                    xp:        profile.xp     ?? 0,
-                    bank:      profile.bank   ?? 0,
-                    background: profile.background,
-                    roles,
-                    avatarURL: interaction.user.displayAvatarURL({ extension: 'png', size: 256 }),
+                    username:  interaction.guild?.members.cache.get(targetUser.id)?.displayName || targetUser.username,
+                    level:     calculatedLevel,
+                    money:     targetProfile.money  ?? 0,
+                    xp:        targetProfile.xp     ?? 0,
+                    bank:      targetProfile.bank   ?? 0,
+                    background: targetProfile.background,
+                    roles:     targetRoles,
+                    avatarURL: targetUser.displayAvatarURL({ extension: 'png', size: 256 }),
                 });
                 const attachment = new AttachmentBuilder(buffer, { name: 'profile.png' });
                 await interaction.editReply({ files: [attachment] });
@@ -361,33 +415,39 @@ client.on('interactionCreate', async interaction => {
         }
 
         case 'ustawienia': {
-            if (interaction.options.getSubcommand() === 'tlo') {
-                const backgroundName = interaction.options.getString('nazwa');
+            const backgroundName = interaction.options.getString('tlo');
 
-                if (!availableBackgrounds.includes(backgroundName)) {
-                    return interaction.reply({
-                        content: `❌ Tło "${backgroundName}" nie istnieje. Dostępne tła: \`${availableBackgrounds.join(', ')}\``,
-                        ephemeral: true
-                    });
-                }
+            if (!backgroundName) {
+                // Jeśli nie podano żadnych ustawień, pokaż obecne
+                return interaction.reply({
+                    content: `📋 Twoje ustawienia:\n• Tło profilu: \`${profile.background || 'default'}\`\n\nUżyj \`/ustawienia tlo:bg_nazwa\` aby zmienić tło.`,
+                    ephemeral: true
+                });
+            }
 
-                try {
-                    await supabase
-                        .from('profiles')
-                        .update({ background: backgroundName })
-                        .eq('id', interaction.user.id);
+            if (!availableBackgrounds.includes(backgroundName)) {
+                return interaction.reply({
+                    content: `❌ Tło "${backgroundName}" nie istnieje. Dostępne tła: \`${availableBackgrounds.join(', ')}\``,
+                    ephemeral: true
+                });
+            }
 
-                    await interaction.reply({
-                        content: `✅ Ustawiono tło profilu na: **${backgroundName}**`,
-                        ephemeral: true
-                    });
-                } catch (err) {
-                    console.error('[BACKGROUND] Błąd zapisu:', err.message);
-                    await interaction.reply({
-                        content: '❌ Wystąpił błąd podczas ustawiania tła.',
-                        ephemeral: true
-                    });
-                }
+            try {
+                await supabase
+                    .from('profiles')
+                    .update({ background: backgroundName })
+                    .eq('id', interaction.user.id);
+
+                await interaction.reply({
+                    content: `✅ Ustawiono tło profilu na: **${backgroundName}**`,
+                    ephemeral: true
+                });
+            } catch (err) {
+                console.error('[BACKGROUND] Błąd zapisu:', err.message);
+                await interaction.reply({
+                    content: '❌ Wystąpił błąd podczas ustawiania tła.',
+                    ephemeral: true
+                });
             }
             break;
         }
@@ -407,7 +467,7 @@ client.on('interactionCreate', async interaction => {
 
             const embed = new EmbedBuilder()
                 .setTitle('🖼️ Dostępne tła')
-                .setDescription(`Możesz zmienić tło komendą \`/ustawienia tlo nazwa:<nazwa>\`\n\n${rows.join('\n')}`)
+                .setDescription(`Możesz zmienić tło komendą \`/ustawienia tlo:<nazwa>\`\n\n${rows.join('\n')}`)
                 .setColor('#22FF00')
                 .addFields(
                     { name: '📌 Instrukcja', value: 'Aby dodać nowe tło:\n1. Skopiuj plik do folderu `C:\\tss\\tss-dc-bot\\assets\\discord\\backgrounds`\n2. Zaczekaj 30 sekund lub użyj komendy `/tla` ponownie' }
@@ -428,6 +488,54 @@ client.on('interactionCreate', async interaction => {
                 )
                 .setTimestamp();
             await interaction.reply({ embeds: [embed] });
+            break;
+        }
+
+        case 'wplac': {
+            let amountInput = interaction.options.getInteger('ilosc');
+            const currentMoney = profile.money ?? 0;
+            const amount = amountInput === 0 ? currentMoney : amountInput;
+
+            if (amount <= 0 || currentMoney <= 0) {
+                return interaction.reply({ content: '❌ Nie masz monet do wpłaty.', ephemeral: true });
+            }
+            if (currentMoney < amount) {
+                return interaction.reply({ content: `❌ Masz tylko **${currentMoney}** ${COIN} w portfelu.`, ephemeral: true });
+            }
+
+            const newMoney = currentMoney - amount;
+            const newBank = (profile.bank ?? 0) + amount;
+
+            await supabase.from('profiles').update({ money: newMoney, bank: newBank }).eq('id', profile.id);
+
+            await interaction.reply({
+                content: `✅ Wpłaciłeś **${amount}** ${COIN} do banku!\n💵 Portfel: **${newMoney}** ${COIN}\n🏦 Bank: **${newBank}** ${COIN}`,
+                ephemeral: true
+            });
+            break;
+        }
+
+        case 'wyplac': {
+            let amountInput = interaction.options.getInteger('ilosc');
+            const currentBank = profile.bank ?? 0;
+            const amount = amountInput === 0 ? currentBank : amountInput;
+
+            if (amount <= 0 || currentBank <= 0) {
+                return interaction.reply({ content: '❌ Nie masz monet w banku do wypłaty.', ephemeral: true });
+            }
+            if (currentBank < amount) {
+                return interaction.reply({ content: `❌ Masz tylko **${currentBank}** ${COIN} w banku.`, ephemeral: true });
+            }
+
+            const newBank = currentBank - amount;
+            const newMoney = (profile.money ?? 0) + amount;
+
+            await supabase.from('profiles').update({ money: newMoney, bank: newBank }).eq('id', profile.id);
+
+            await interaction.reply({
+                content: `✅ Wypłaciłeś **${amount}** ${COIN} z banku!\n💵 Portfel: **${newMoney}** ${COIN}\n🏦 Bank: **${newBank}** ${COIN}`,
+                ephemeral: true
+            });
             break;
         }
 
@@ -524,19 +632,33 @@ client.on('interactionCreate', async interaction => {
 client.on('messageCreate', async (message) => {
     if (message.author.bot || !message.guild) return;
     messagesTodayCount++;
+
+    // Rate limiting per user (3 seconds)
+    const userCooldownKey = `msg_${message.author.id}`;
+    if (cooldowns.has(userCooldownKey)) {
+        const remaining = cooldowns.get(userCooldownKey) - Date.now();
+        if (remaining > 0) return;
+    }
+    cooldowns.set(userCooldownKey, Date.now() + 3000);
+
     try {
         const roles   = message.member?.roles.cache.filter(r => r.name !== '@everyone').map(r => r.name) || [];
         const profile = await getProfile(message.author.id, message.author.username, roles);
         if (!profile) return;
 
         const currentLevel = profile.level ?? 0;
-        const newXp        = (profile.xp ?? 0) + 2;
-        const newMoney     = (profile.money ?? 0) + 1;
+        const newXp        = (profile.xp ?? 0) + MESSAGE_XP_REWARD;
+        const newMoney     = (profile.money ?? 0) + MESSAGE_MONEY_REWARD;
         const newLevel     = getLevelFromXP(newXp);
 
-        await supabase.from('profiles').update({
+        const { error: updateError } = await supabase.from('profiles').update({
             xp: newXp, money: newMoney, level: newLevel, updated_at: new Date().toISOString(),
         }).eq('id', profile.id);
+
+        if (updateError) {
+            console.error('[DB ERROR] Failed to update profile:', updateError.message);
+            return;
+        }
 
         if (newLevel > currentLevel) {
             await message.channel.send(
@@ -547,7 +669,7 @@ client.on('messageCreate', async (message) => {
             }
         }
     } catch (e) {
-        console.error('Text leveling error:', e.message);
+        console.error('[LEVELING] Text leveling error:', e.message);
     }
 });
 

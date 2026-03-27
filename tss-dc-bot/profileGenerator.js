@@ -6,6 +6,7 @@ const fs = require('fs');
 GlobalFonts.registerFromPath(path.join(__dirname, 'SpaceGrotesk-Bold.ttf'), 'Space Grotesk');
 
 const BACKGROUND_DIR = path.join(__dirname, 'assets', 'discord', 'backgrounds');
+const ASSETS_DIR = path.join(__dirname, 'assets', 'discord');
 let availableBackgrounds = [];
 
 // Załaduj dostępne tła
@@ -124,9 +125,9 @@ async function createProfileCard(userData) {
     // Załaduj monetę (coin)
     let coinImage = null;
     try {
-        coinImage = await loadImage(path.join(__dirname, 'assets', 'discord', 'Coin_TSS.png'));
+        coinImage = await loadImage(path.join(ASSETS_DIR, 'Coin_TSS.png'));
     } catch (e) {
-        console.warn('[PROFILE] Nie znaleziono Coin_TSS.png w assets/', e.message);
+        console.warn('[PROFILE] Coin image not found:', e.message);
     }
 
     // Helper do rysowania monety obok tekstu
@@ -162,8 +163,8 @@ async function createProfileCard(userData) {
     }
 
     // 2. Main Containers
-    drawRoundedRect(250, 190, 720, 85, 20, '#0F540080');  // Roles box (z przezroczystością)
-    drawRoundedRect(20, 310, 960, 170, 25, '#0F540080');  // Bottom Section (z przezroczystością)
+    drawRoundedRect(250, 190, 720, 85, 20, '#0A0A0A80');  // Roles box (czarne przezroczyste)
+    drawRoundedRect(20, 310, 960, 170, 25, '#0A0A0A80');  // Bottom Section (czarne przezroczyste)
 
     // 3. Avatar Section
     const avatarX = 135;
@@ -216,9 +217,18 @@ async function createProfileCard(userData) {
     // 5. Texts
     ctx.fillStyle = '#FFFFFF'; // Zmieniono kolor tekstu na biały dla lepszej widoczności
 
-    // Nickname
+    // Nickname - skalowanie dla długich nazw
     ctx.textAlign = 'left';
-    ctx.font = 'bold 85px "Space Grotesk"';
+    const maxNicknameWidth = 680;
+    let fontSize = 85;
+    ctx.font = `bold ${fontSize}px "Space Grotesk"`;
+    let nickWidth = ctx.measureText(userData.username).width;
+
+    while (nickWidth > maxNicknameWidth && fontSize > 40) {
+        fontSize -= 5;
+        ctx.font = `bold ${fontSize}px "Space Grotesk"`;
+        nickWidth = ctx.measureText(userData.username).width;
+    }
     ctx.fillText(userData.username, 265, 170);
 
     // Roles Label
@@ -279,39 +289,39 @@ async function createProfileCard(userData) {
         drawRoundedRect(35, 415, barWidth, 45, dynamicRadius, '#22FF00');
     }
 
-// ── MONEY Section ────────────────────────────────────────
+// ── MONEY Section (wyżej na karcie) ─────────────────────
     const coinSize = 38;
     const moneyX  = 580;
+    const moneyY  = 240;  // Wyżej na karcie
 
 // Nagłówek MONEY
     ctx.textAlign = 'right';
     ctx.font = 'bold 70px "Space Grotesk"';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText('MONEY', 940, 385);
+    ctx.fillText('MONEY', 940, moneyY);
 
 // BANK: wartość [coin]
     ctx.textAlign = 'left';
     ctx.font = 'bold 35px "Space Grotesk"';
     ctx.fillStyle = '#FFFFFF';
 
-    ctx.fillText('BANK:', moneyX, 435);
+    ctx.fillText('BANK:', moneyX, moneyY + 50);
     const bankValue = userData.bank || 0;
     const bankText  = `${bankValue}`;
     const bankLabelWidth = ctx.measureText('BANK: ').width;
-    ctx.fillText(bankText, moneyX + bankLabelWidth, 435);
+    ctx.fillText(bankText, moneyX + bankLabelWidth, moneyY + 50);
     const bankTextWidth = ctx.measureText(bankText).width;
-    drawCoin(moneyX + bankLabelWidth + bankTextWidth + 5, 435, coinSize);
+    drawCoin(moneyX + bankLabelWidth + bankTextWidth + 5, moneyY + 50, coinSize);
 
+// WALLET: wartość [coin]
+    ctx.fillText('WALLET:', moneyX, moneyY + 87);
 
-// WALET: wartość [coin]
-    ctx.fillText('WALET:', moneyX, 472);
-
-    const waletValue = userData.money || 0;
-    const waletText  = `${waletValue}`;
-    const waletLabelWidth = ctx.measureText('WALET: ').width;
-    ctx.fillText(waletText, moneyX + waletLabelWidth, 472);
-    const waletTextWidth = ctx.measureText(waletText).width;
-    drawCoin(moneyX + waletLabelWidth + waletTextWidth + 5, 472, coinSize);
+    const walletValue = userData.money || 0;
+    const walletText  = `${walletValue}`;
+    const walletLabelWidth = ctx.measureText('WALLET: ').width;
+    ctx.fillText(walletText, moneyX + walletLabelWidth, moneyY + 87);
+    const walletTextWidth = ctx.measureText(walletText).width;
+    drawCoin(moneyX + walletLabelWidth + walletTextWidth + 5, moneyY + 87, coinSize);
 
     return canvas.toBuffer('image/png');
 }
