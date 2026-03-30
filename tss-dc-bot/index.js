@@ -161,7 +161,7 @@ const commands = [
         .setDescription('Kup ozdoby, rangi i dodatki'),
     new SlashCommandBuilder()
         .setName('lowienie')
-        .setDescription('Zarzuć wędkę i złap coś cennego! (koszt: 10 monet)'),
+        .setDescription('Zarzuć wędkę i złap coś cennego!'),
     new SlashCommandBuilder()
         .setName('ryby')
         .setDescription('Zobacz swoje ostatnie połowy i statystyki'),
