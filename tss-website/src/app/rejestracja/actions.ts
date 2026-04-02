@@ -10,7 +10,7 @@ const registerSchema = z.object({
   fullName: z.string().min(2, "Imię i nazwisko jest wymagane"),
 });
 
-export async function registerUser(formData: { email: string; password: string; fullName: string }) {
+export default async function registerUser(formData: { email: string; password: string; fullName: string }) {
   const validated = registerSchema.safeParse(formData);
   
   if (!validated.success) {
