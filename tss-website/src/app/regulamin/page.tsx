@@ -35,49 +35,92 @@ export default function RegulaminPage() {
         </CardHeader>
         <CardContent className="relative z-10 space-y-8">
           <div className="prose prose-zinc max-w-none text-zinc-600 dark:text-zinc-400 font-[family-name:var(--font-outfit)] leading-relaxed">
+            <h1 className="text-2xl font-bold text-center mb-6">REGULAMIN TWO STEPS STUDIO</h1>
+
             <section className="scroll-mt-16">
-              <h2 className="text-xl font-bold text-[var(--text)] mb-4 flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--color-general)] text-white">1</span>
-                Cel Regulaminu
-              </h2>
-              <p className="text-sm leading-relaxed">
-                Regulamin ma na celu zapewnienie bezpiecznego i przyjemnego doświadczenia dla wszystkich użytkowników Two Steps Studio.
-              </p>
+              <h2 className="text-xl font-bold text-[var(--text)] mb-4">§ 1 — Postanowienia ogólne</h2>
+              <ol className="list-decimal list-inside space-y-2 text-sm">
+                <li>Regulamin określa zasady korzystania ze strony internetowej oraz oficjalnego serwera Discord Two Steps Studio.</li>
+                <li>Korzystając ze strony lub serwera Discord, akceptujesz poniższe zasady.</li>
+                <li>Administracja ma prawo do aktualizacji regulaminu w dowolnym momencie.</li>
+                <li>Nieznajomość regulaminu nie zwalnia z jego przestrzegania.</li>
+              </ol>
             </section>
 
             <section className="scroll-mt-16">
-              <h2 className="text-xl font-bold text-[var(--text)] mb-4 flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--color-general)] text-white">2</span>
-                Zakazane Działania
-              </h2>
-              <ul className="list-disc list-inside space-y-2 text-sm">
-                <li>Społeczne i agresywne zachowania</li>
-                <li>Podawanie fałszywych danych</li>
-                <li>Używanie programów pomocniczych do oszukiwania w grach</li>
-                <li>Podważanie wiarygodności Two Steps Studio</li>
-                <li>Naruszenie praw autorskich</li>
+              <h2 className="text-xl font-bold text-[var(--text)] mb-4">§ 2 — Zasady ogólne</h2>
+              <ol className="list-decimal list-inside space-y-2 text-sm">
+                <li>Zakaz działań niezgodnych z prawem.</li>
+                <li>Zakaz prób uzyskania nieautoryzowanego dostępu do kont, panelu administracyjnego, baz danych lub innych zasobów Two Steps Studio.</li>
+                <li>Zakaz spamowania formularzy, komentarzy, wiadomości i systemów Two Steps Studio.</li>
+                <li>Użytkownik odpowiada za bezpieczeństwo swojego konta i danych logowania.</li>
+                <li>Zakaz podszywania się pod administrację, twórców lub innych użytkowników.</li>
+                <li>Błędy techniczne należy zgłaszać administracji - nie wolno wykorzystywać ich dla własnych korzyści.</li>
+                <li>Zakaz publikowania treści zawierających:
+                  <ul className="list-disc list-inside mt-1 space-y-1">
+                    <li>mowę nienawiści</li>
+                    <li>treści obraźliwe lub NSFW</li>
+                    <li>reklamy bez zgody administracji</li>
+                    <li>linki phishingowe</li>
+                    <li>wirusy lub szkodliwe oprogramowanie</li>
+                  </ul>
+                </li>
+              </ol>
+            </section>
+
+            <section className="scroll-mt-16">
+              <h2 className="text-xl font-bold text-[var(--text)] mb-4">§ 3 — Zasady społeczności Discord</h2>
+              <ol className="list-decimal list-inside space-y-2 text-sm">
+                <li>Szanuj wszystkich członków społeczności.</li>
+                <li>Zakaz wyzywania, obrażania, nękania i prowokowania.</li>
+                <li>Zakaz spamu, floodu, nadmiernego pingowania i nadużywania emoji.</li>
+                <li>Zakaz reklamowania innych serwerów, stron i projektów bez zgody administracji.</li>
+                <li>Zakaz treści NSFW, brutalnych lub nieodpowiednich.</li>
+                <li>Zakaz udostępniania danych prywatnych swoich lub innych osób.</li>
+                <li>Zakaz używania cheatów, exploitów i botów do nieuczciwego zdobywania nagród, poziomów lub waluty serwerowej.</li>
+                <li>Zakaz obchodzenia kar poprzez multikonta.</li>
+                <li>Na kanałach głosowych obowiązuje kultura — bez głośnych dźwięków, trollowania i przeszkadzania innym.</li>
+                <li>Administracja ma prawo usuwać wiadomości, wyciszać lub banować użytkowników łamiących regulamin.</li>
+              </ol>
+            </section>
+
+            <section className="scroll-mt-16">
+              <h2 className="text-xl font-bold text-[var(--text)] mb-4">§ 4 — System kont, poziomów i ekonomii</h2>
+              <ol className="list-decimal list-inside space-y-2 text-sm">
+                <li>Punkty, poziomy, osiągnięcia i waluta Two Steps Studio są elementem rozrywki.</li>
+                <li>Zakaz wykorzystywania bugów systemu do zdobywania przewagi.</li>
+                <li>Administracja może resetować poziomy, saldo lub osiągnięcia w przypadku nadużyć.</li>
+                <li>Zakupione przedmioty cyfrowe, rangi i dodatki są przypisane do konta użytkownika.</li>
+                <li>Próby oszustwa przy płatnościach skutkują permanentną blokadą.</li>
+              </ol>
+            </section>
+
+            <section className="scroll-mt-16">
+              <h2 className="text-xl font-bold text-[var(--text)] mb-4">§ 5 — Kary</h2>
+              <p className="text-sm mb-3">Rodzaj kary zależy od skali naruszenia:</p>
+              <ul className="space-y-2 text-sm">
+                <li>⬜ - Upomnienie</li>
+                <li>🟨 - Ostrzeżenie</li>
+                <li>🟧 - Mute / Timeout</li>
+                <li>🟧 - Blokada funkcji</li>
+                <li>🟧 - Reset postępów</li>
+                <li>🟥 - Ban czasowy</li>
+                <li>⛔ - Ban permanentny</li>
               </ul>
             </section>
 
             <section className="scroll-mt-16">
-              <h2 className="text-xl font-bold text-[var(--text)] mb-4 flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--color-general)] text-white">3</span>
-                Współpraca z Discordem
-              </h2>
-              <p className="text-sm leading-relaxed">
-                Do korzystania z pełnej funkcjonalności Two Steps Studio, musisz połączyć swoje konto z Discordem.
-                Zabezpieczamy Twoje dane i never share them with third parties.
-              </p>
+              <h2 className="text-xl font-bold text-[var(--text)] mb-4">§ 6 — Prawa administracji</h2>
+              <ol className="list-decimal list-inside space-y-2 text-sm">
+                <li>Administracja ma ostateczne zdanie w sprawach spornych.</li>
+                <li>Administracja może usuwać treści szkodliwe dla społeczności lub projektu.</li>
+                <li>W wyjątkowych sytuacjach administracja może podjąć decyzję poza regulaminem dla dobra Two Steps Studio.</li>
+              </ol>
             </section>
 
             <section className="scroll-mt-16">
-              <h2 className="text-xl font-bold text-[var(--text)] mb-4 flex items-center gap-2">
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--color-general)] text-white">4</span>
-                Naruszenie
-              </h2>
-              <p className="text-sm leading-relaxed">
-                Naruszenie regulaminu może prowadzić do zakazania dostępu do serwisu i usunięcia konta.
-              </p>
+              <h2 className="text-xl font-bold text-[var(--text)] mb-4">§ 7 — Kontakt</h2>
+              <p className="text-sm">W sprawach odwołań, zgłoszeń błędów lub pytań skontaktuj się z administracją Two Steps Studio przez dostępne kanały kontaktowe na serwerze.</p>
             </section>
           </div>
 

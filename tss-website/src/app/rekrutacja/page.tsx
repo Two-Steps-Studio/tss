@@ -75,7 +75,7 @@ export default function RekrutacjaPage() {
               <div className="flex items-start gap-3">
                 <User className="w-5 h-5 mt-0.5 text-[var(--color-general)] flex-shrink-0" />
                 <div>
-                  <h3 className="font-bold text-[var(--text)] mb-1">{t.rekrutacja.sectionName.email}</h3>
+                  <h3 className="font-bold text-[var(--text)] mb-1">{t.rekrutacja.email}</h3>
                   <input
                     type="email"
                     placeholder={t.rekrutacja.emailPlaceholder}
@@ -86,7 +86,7 @@ export default function RekrutacjaPage() {
               <div className="flex items-start gap-3">
                 <User className="w-5 h-5 mt-0.5 text-[var(--color-general)] flex-shrink-0" />
                 <div>
-                  <h3 className="font-bold text-[var(--text)] mb-1">{t.rekrutacja.sectionName.name}</h3>
+                  <h3 className="font-bold text-[var(--text)] mb-1">{t.rekrutacja.name}</h3>
                   <input
                     type="text"
                     placeholder={t.rekrutacja.namePlaceholder}
