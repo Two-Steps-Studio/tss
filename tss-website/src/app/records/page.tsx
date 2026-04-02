@@ -5,7 +5,11 @@ import { Music, Mic2, Calendar } from "lucide-react";
 
 export default async function RecordsPage() {
   const supabase = await createClient();
-  const { data: records } = await supabase.from("records").select("*").order("upload_date", { ascending: false });
+  const { data: records, error } = await supabase.from("records").select("*").order("upload_date", { ascending: false });
+
+  if (error) {
+    console.error('[RECORDS] Error fetching data:', error.message);
+  }
 
   return (
     <div className="container mx-auto p-6 mt-20 max-w-7xl">

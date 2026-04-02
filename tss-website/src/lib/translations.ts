@@ -122,6 +122,22 @@ export const translations = {
       dangerZone: "Strefa Niebezpieczna",
       logout: "Wyloguj Się",
       logoutDesc: "Bezpiecznie wyloguj się z konta."
+    },
+    regulamin: {
+      title: "Regulamin Two Steps Studio",
+      subtitle: "Przeczytaj uważnie przed rejestracją konta.",
+      accepted: "Regulamin zaakceptowany!",
+      acceptError: "Błąd akceptacji regulaminu"
+    },
+    rekrutacja: {
+      title: "Rekrutacja do Studia",
+      subtitle: "Dołącz do naszego zespołu!",
+      email: "Email",
+      name: "Imię i Nazwisko",
+      emailPlaceholder: "twój@email.com",
+      namePlaceholder: "Twój nick",
+      discordRoles: "Wymagane role na Discordzie:",
+      backToHome: "Wróć na stronę główną"
     }
   },
   en: {
@@ -247,6 +263,22 @@ export const translations = {
       dangerZone: "Danger Zone",
       logout: "Log Out",
       logoutDesc: "Safely sign out of your account."
+    },
+    regulamin: {
+      title: "Regulations",
+      subtitle: "Read carefully before registering.",
+      accepted: "Regulations accepted!",
+      acceptError: "Error accepting regulations"
+    },
+    rekrutacja: {
+      title: "Studio Recruitment",
+      subtitle: "Join our team!",
+      email: "Email",
+      name: "Name",
+      emailPlaceholder: "your@email.com",
+      namePlaceholder: "Your name",
+      discordRoles: "Required Discord roles:",
+      backToHome: "Back to home"
     }
   }
 };

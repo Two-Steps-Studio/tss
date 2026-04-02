@@ -263,6 +263,7 @@ export function HomeClient() {
             </motion.div>
         </div>
       </section>
+
     </div>
   );
 }

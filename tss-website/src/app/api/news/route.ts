@@ -1,30 +1,37 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  published_at: string;
+  author?: string;
+}
+
 export async function GET() {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: 'Brak autoryzacji' }, { status: 401 });
-    }
-
-    const { data, error } = await supabase
+    // Pobieranie newsów z bazy
+    const { data: news, error } = await supabase
       .from('news')
       .select('*')
       .order('published_at', { ascending: false })
-      .limit(6);
+      .limit(10);
 
     if (error) {
       console.error('Supabase error:', error);
+      // Zwracamy puste dane w przypadku błędu
       return NextResponse.json([]);
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(news || []);
   } catch (err: any) {
     console.error('Unexpected news error:', err);
     return NextResponse.json([]);
   }
 }
-

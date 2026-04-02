@@ -163,7 +163,7 @@ async function createProfileCard(userData) {
     }
 
     // 2. Main Containers
-    drawRoundedRect(250, 190, 720, 85, 20, '#0A0A0A80');  // Roles box (czarne przezroczyste)
+    drawRoundedRect(250, 190, 730, 85, 20, '#0A0A0A80');  // Roles box (czarne przezroczyste)
     drawRoundedRect(20, 310, 960, 170, 25, '#0A0A0A80');  // Bottom Section (czarne przezroczyste)
 
     // 3. Avatar Section
@@ -198,20 +198,20 @@ async function createProfileCard(userData) {
         ctx.fill();
     }
 
-    // 4. Badges (Top right)
-    const badgeRadius = 24;
-    const startX = 720;
+    // 4. Badges (Top right) - 5 odznak w jednej linii poziomo, lekko mniejsze
+    const badgeRadius = 35; // lekko zmniejszone z 38
+    const startX = 625; // pozycja startowa
+    const gapX = 80; // odległość pozioma między odznakami
     const startY = 55;
-    const gapX = 70;
-    const gapY = 70;
 
+    // rysowanie tylko 5 odznak w jednej linii
     ctx.fillStyle = '#FFFFFF';
-    for (let r = 0; r < 2; r++) {
-        for (let c = 0; c < 4; c++) {
-            ctx.beginPath();
-            ctx.arc(startX + c * gapX, startY + r * gapY, badgeRadius, 0, Math.PI * 2);
-            ctx.fill();
-        }
+    const maxBadges = 5;
+
+    for (let c = 0; c < maxBadges; c++) {
+        ctx.beginPath();
+        ctx.arc(startX + c * gapX, startY, badgeRadius, 0, Math.PI * 2);
+        ctx.fill();
     }
 
     // 5. Texts
@@ -233,7 +233,7 @@ async function createProfileCard(userData) {
 
     // Roles Label
     ctx.font = 'bold 35px "Space Grotesk"';
-    ctx.fillText('ROLES:', 265, 248);
+    ctx.fillText('ROLES:', 265, 245);
 
     // Draw Role Badges
     if (userData.roles && userData.roles.length > 0) {

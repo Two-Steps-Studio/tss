@@ -13,6 +13,7 @@ import { NoiseOverlay } from "../components/ui/noise-overlay";
 import ServiceWorkerRegister from "../components/ServiceWorkerRegister";
 import InstallPrompt from "../components/InstallPrompt";
 import { PresencePing } from "../components/presence-ping";
+import { Footer } from "../components/Footer";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -58,9 +59,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased overflow-x-hidden" suppressHydrationWarning>
         <NoiseOverlay />
-        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-40">
-          <div className="absolute top-[-15%] left-[-5%] w-[60%] h-[60%] bg-[var(--color-general)]/15 blur-[160px] rounded-full animate-pulse" />
-          <div className="absolute bottom-[-15%] right-[-5%] w-[60%] h-[60%] bg-[var(--color-records)]/15 blur-[160px] rounded-full animate-pulse" style={{ animationDelay: "3s" }} />
+        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-5">
+          <div className="absolute top-[-15%] left-[-5%] w-[60%] h-[60%] bg-[var(--color-general)]/5 blur-[160px] rounded-full animate-pulse" />
+          <div className="absolute bottom-[-15%] right-[-5%] w-[60%] h-[60%] bg-[var(--color-records)]/5 blur-[160px] rounded-full animate-pulse" style={{ animationDelay: "3s" }} />
         </div>
         <Script
           id="orchids-browser-logs"
@@ -85,10 +86,11 @@ export default function RootLayout({
             <Sidebar />
             <div className="flex-1 lg:ml-[240px] flex flex-col pt-[60px] transition-[margin] duration-300">
               <TopBar />
-              <main className="p-4 md:p-8 pt-8 md:pt-12 max-w-[1400px] mx-auto w-full">
+              <main className="p-4 md:p-8 pt-8 md:pt-12 max-w-[1400px] mx-auto w-full flex-1 flex flex-col">
                 <PageTransition>
                   {children}
                 </PageTransition>
+                <Footer />
               </main>
             </div>
           </div>

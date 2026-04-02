@@ -6,11 +6,15 @@ import { Trophy, Calendar, Users } from "lucide-react";
 
 export default async function ESportPage() {
   const supabase = await createClient();
-  const { data: teams } = await supabase.from("teams").select("*");
-  const { data: events } = await supabase
+  const { data: events, error: eventsError } = await supabase
     .from("e_sport_events")
     .select("*")
     .order("event_date", { ascending: true });
+
+  // Placeholder drużyn - tablica pustych obiektów
+  const teams = [];
+
+  if (eventsError) console.error('[E-SPORT] Error fetching events:', eventsError.message);
 
   return (
     <div className="container mx-auto p-6 mt-20 max-w-7xl">

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/hooks/use-language";
-import { registerUser } from "./actions";
+import registerUser from "./register-actions";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ export default function RegisterPage() {
     fullName: "",
     email: "",
     password: "",
+    termsAccepted: false,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,6 +31,14 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
+
+    if (!formData.termsAccepted) {
+      toast.error("Musisz zaakceptować regulamin", {
+        description: "Bez akceptacji regulaminu nie można założyć konta.",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -121,6 +130,18 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 className="rounded-2xl border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[var(--text)] placeholder:text-zinc-500 focus:border-[var(--color-general)] focus:ring-[var(--color-general)]/20 transition-all duration-300 h-12"
               />
+            </div>
+            <div className="flex items-start gap-2 py-2">
+              <input
+                id="terms"
+                type="checkbox"
+                checked={formData.termsAccepted}
+                onChange={(e) => setFormData({ ...formData, termsAccepted: e.target.checked })}
+                className="mt-1 h-4 w-4 rounded border-zinc-400 text-[var(--color-general)] focus:ring-[var(--color-general)]"
+              />
+              <Label htmlFor="terms" className="text-xs text-zinc-400 font-[family-name:var(--font-outfit)] leading-tight cursor-pointer">
+                Akceptuję <a href="/regulamin" target="_blank" className="text-[var(--color-general)] hover:underline">regulamin</a> i politykę prywatności
+              </Label>
             </div>
             <Button
               type="submit"

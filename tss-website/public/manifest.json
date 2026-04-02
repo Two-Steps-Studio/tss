@@ -1,11 +1,12 @@
 {
   "name": "Two Steps Studio",
-  "short_name": "TwoSteps",
-  "description": "Two Steps Studio - Creative Hub",
+  "short_name": "TSS",
+  "description": "Witaj w Two Steps Studio",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#1bbdbd",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "/assets/Logo/Glowne/Two Steps Studio Bez Tła.png",
@@ -18,6 +19,14 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "categories": ["gaming", "social", "entertainment"],
+  "screenshots": [
+    {
+      "src": "/assets/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png"
     }
   ]
 }

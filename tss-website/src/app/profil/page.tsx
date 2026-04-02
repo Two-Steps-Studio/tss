@@ -95,13 +95,46 @@ export default function ProfilePage() {
     const linkDiscord = async () => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'discord',
-            options: { redirectTo: `${window.location.origin}/profile` }
+            options: { redirectTo: `${window.location.origin}/profil` }
         });
         if (error) toast.error("Błąd: " + error.message);
     };
 
     useEffect(() => {
         let channel: any;
+
+        const fetchProfileData = async (currentUser: any) => {
+            const discordId = currentUser.user_metadata?.provider_id || currentUser.id;
+
+            const { data: initialProfile } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", discordId)
+                .maybeSingle();
+
+            setProfile(initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [] });
+
+            // Realtime subscription
+            if (channel) supabase.removeChannel(channel);
+            channel = supabase.channel(`profile-${discordId}`)
+                .on("postgres_changes", {
+                    event: "*",
+                    schema: "public",
+                    table: "profiles",
+                    filter: `id=eq.${discordId}`
+                }, (payload) => setProfile(payload.new))
+                .subscribe();
+
+            const weekThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            const { count } = await supabase
+                .from("site_presence")
+                .select("session_id", { count: "exact", head: true })
+                .eq("user_id", discordId)
+                .gte("seen_at", weekThreshold);
+
+            setWeeklyXP(count || 0);
+            setLoading(false);
+        };
 
         // Nasłuchuj zmian sesji (obsługuje OAuth callback automatycznie)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -114,40 +147,8 @@ export default function ProfilePage() {
                 const currentUser = session.user;
                 setUser(currentUser);
                 setAuthChecked(true);
-
-                // ── KLUCZ: zawsze używaj provider_id jako id profilu ──
-                const discordId = currentUser.user_metadata?.provider_id || currentUser.id;
-
-                const { data: initialProfile } = await supabase
-                    .from("profiles")
-                    .select("*")
-                    .eq("id", discordId)
-                    .maybeSingle();
-
-                setProfile(initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [] });
-
-                // Realtime subscription
-                if (channel) supabase.removeChannel(channel);
-                channel = supabase.channel(`profile-${discordId}`)
-                    .on("postgres_changes", {
-                        event: "*",
-                        schema: "public",
-                        table: "profiles",
-                        filter: `id=eq.${discordId}`
-                    }, (payload) => setProfile(payload.new))
-                    .subscribe();
-
-                const weekThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-                const { count } = await supabase
-                    .from("site_presence")
-                    .select("session_id", { count: "exact", head: true })
-                    .eq("user_id", currentUser.id)
-                    .gte("seen_at", weekThreshold);
-
-                setWeeklyXP(count || 0);
-                setLoading(false);
+                await fetchProfileData(currentUser);
             } else if (event === 'INITIAL_SESSION' && !session) {
-                // Brak sesji i nie ma code= w URL → redirect do logowania
                 setAuthChecked(true);
                 if (!window.location.search.includes("code=")) {
                     router.push("/login");
@@ -171,7 +172,6 @@ export default function ProfilePage() {
     const discordName = user?.user_metadata?.global_name || user?.user_metadata?.full_name || user?.email?.split("@")[0];
     const xp = profile?.xp || 0;
     const level = profile?.level || 1;
-    // Taki sam system XP jak w bocie (profileGenerator.js)
     const currentLevelStartXP = Math.pow(level / 0.1, 2);
     const nextLevelStartXP = Math.pow((level + 1) / 0.1, 2);
     const neededXP = nextLevelStartXP - currentLevelStartXP;
@@ -253,7 +253,6 @@ export default function ProfilePage() {
                     <Card className="rounded-[2.5rem] border border-white/10 bg-black/40 backdrop-blur-xl shadow-xl">
                         <CardHeader className="border-b border-white/5 text-white font-bold italic"><Bell className="mr-2 text-[var(--color-general)]" /> Ustawienia</CardHeader>
                         <CardContent className="p-8">
-                            {/* Przekazujemy discordId zamiast user.id */}
                             <ProfileForm
                                 user={user}
                                 discordId={discordId}

@@ -5,7 +5,11 @@ import { Gamepad2, Calendar } from "lucide-react";
 
 export default async function GamesPage() {
   const supabase = await createClient();
-  const { data: games } = await supabase.from("games").select("*");
+  const { data: games, error } = await supabase.from("games").select("*");
+
+  if (error) {
+    console.error('[GAMES] Error fetching data:', error.message);
+  }
 
   return (
     <div className="container mx-auto p-6 mt-20 max-w-7xl">

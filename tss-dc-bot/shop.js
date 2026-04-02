@@ -9,45 +9,45 @@ const {
 // ── Definicja przedmiotów sklepu ─────────────────────────────
 const SHOP_ITEMS = [
     {
-        name: 'MVIP',
-        label: '🥤 MVIP',
-        price: 100,
-        description: 'MVIP',
-        roleId:1448017207501000908,
-    },
-    {
-        name: 'SVIP',
-        label: '🐄 ︱ SVIP',
-        price: 1000,
-        description: 'SVIP',
-        type: 'role',
-        roleId: 1448017195790635099,
-    },
-    {
         name: 'VIP',
-        label: '🐨 ︱ VIP',
-        price: 1000,
+        label: '〔 🐨 ︱ VIP 〕',
+        price: 1500,
         description: 'VIP',
         type: 'role',
         roleId: 1448013683526467756,
     },
     {
-        name: 'X3',
-        label: '✖️ ︱X3',
-        price: 2000,
-        description: 'X3',
+        name: 'SVIP',
+        label: '〔 🐄 ︱ SVIP 〕',
+        price: 3000,
+        description: 'SVIP',
         type: 'role',
-        roleId: 1362307473804886168,
+        roleId: 1448017195790635099,
+    },
+    {
+        name: 'MVIP',
+        label: '〔 🦣 ︱ MVIP 〕',
+        price: 6000,
+        description: 'MVIP',
+        type: 'role',
+        roleId: 1448017207501000908,
     },
     {
         name: 'X2',
-        label: '✖️ ︱X2',
-        price: 2500,
+        label: '〔 ✖️ ︱ X2 〕',
+        price: 6000,
         description: 'X2',
         type: 'role',
         roleId: 1362307366372114582,
     },
-
+    {
+        name: 'X3',
+        label: '〔 ✖️ ︱ X3 〕',
+        price: 10000,
+        description: 'X3',
+        type: 'role',
+        roleId: 1362307473804886168,
+    },
 ];
 
 const ITEMS_PER_PAGE = 10;
@@ -83,7 +83,6 @@ function buildShopComponents(page, money) {
     const start = page * ITEMS_PER_PAGE;
     const pageItems = SHOP_ITEMS.slice(start, start + ITEMS_PER_PAGE);
 
-    // Dropdown z przedmiotami aktualnej strony
     const select = new StringSelectMenuBuilder()
         .setCustomId(`shop_buy_${page}`)
         .setPlaceholder('Kup przedmiot')
@@ -96,7 +95,6 @@ function buildShopComponents(page, money) {
             }))
         );
 
-    // Przyciski paginacji
     const prevBtn = new ButtonBuilder()
         .setCustomId(`shop_page_${page - 1}`)
         .setLabel('◀ Poprzednia Strona')
@@ -116,13 +114,14 @@ function buildShopComponents(page, money) {
 }
 
 // ── Handler komendy /sklep ───────────────────────────────────
+// UWAGA: index.js już wywołuje deferReply() przed tą funkcją,
+// więc tutaj używamy tylko editReply()
 async function handleShop(interaction, supabase, profile, COIN_EMOJI) {
-    await interaction.deferReply({ ephemeral: false });
-
     const money = profile?.money || 0;
     const embed = buildShopEmbed(0, money);
     const components = buildShopComponents(0, money);
 
+    // interaction jest już zdeferowane przez index.js
     await interaction.editReply({ embeds: [embed], components });
 }
 
@@ -154,7 +153,7 @@ async function handleShopInteraction(interaction, supabase) {
         if (!itemName) return;
 
         const item = SHOP_ITEMS.find(i => i.name === itemName);
-        if (!item) return interaction.reply({ content: '❌ Nie znaleziono przedmiotu.', ephemeral: true });
+        if (!item) return interaction.reply({ content: '❌ Nie znaleziono przedmiotu.', flags: 1 << 6 });
 
         const userId = interaction.user.id;
         const { data: profile } = await supabase
@@ -163,21 +162,19 @@ async function handleShopInteraction(interaction, supabase) {
             .or(`id.eq."${userId}",discord_id.eq."${userId}"`)
             .maybeSingle();
 
-        if (!profile) return interaction.reply({ content: '❌ Nie masz profilu.', ephemeral: true });
+        if (!profile) return interaction.reply({ content: '❌ Nie masz profilu.', flags: 1 << 6 });
 
         const money = profile.money || 0;
         if (money < item.price) {
             return interaction.reply({
                 content: `❌ Nie masz wystarczająco monet! Potrzebujesz **${item.price.toLocaleString('pl-PL')} ${COIN}**, masz **${money} ${COIN}**.`,
-                ephemeral: true,
+                flags: 1 << 6,
             });
         }
 
-        // Odejmij monety
         const newMoney = money - item.price;
         await supabase.from('profiles').update({ money: newMoney }).eq('id', profile.id);
 
-        // Nadaj rolę jeśli to rola
         if (item.type === 'role' && item.roleId) {
             try {
                 const member = await interaction.guild.members.fetch(userId);
@@ -189,7 +186,7 @@ async function handleShopInteraction(interaction, supabase) {
 
         return interaction.reply({
             content: `✅ Kupiłeś **${item.label}** za **${item.price.toLocaleString('pl-PL')} ${COIN}**! Pozostało: **${newMoney} ${COIN}**.`,
-            ephemeral: true,
+            flags: 1 << 6,
         });
     }
 }

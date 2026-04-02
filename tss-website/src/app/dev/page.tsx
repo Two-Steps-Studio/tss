@@ -1,4 +1,7 @@
 import DevPage from "./dev";
+import KanbanBoard from "./kanban";
 
-export default DevPage;
+export default function DevPage() {
+  return <KanbanBoard />;
+}
 

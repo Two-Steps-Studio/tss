@@ -45,8 +45,8 @@ export default function LoginPage() {
         });
       } else {
         toast.success(t.auth.loginSuccess);
-        router.push("/profil");
-        router.refresh();
+        // Force hard refresh to ensure session is fully loaded
+        window.location.href = "/profil";
       }
     } catch (err: any) {
       const isFetchError = err.message?.includes("fetch");
@@ -184,7 +184,7 @@ export default function LoginPage() {
           <div className="text-center text-sm">
             <p className="text-zinc-500">
               {t.auth.noAccount}{" "}
-              <Link href="/register" className="text-[var(--text)] hover:text-[var(--color-general)] font-black hover:underline transition-colors">
+              <Link href="/rejestracja" className="text-[var(--text)] hover:text-[var(--color-general)] font-black hover:underline transition-colors">
                 {t.auth.registerLink}
               </Link>
             </p>

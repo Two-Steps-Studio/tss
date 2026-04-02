@@ -172,23 +172,28 @@ const commands = [
         .setName('wedka')
         .setDescription('Ulepsz swój sprzęt wędkarski (żyłka, kołowrotek, haczyk, przynęta)'),
     new SlashCommandBuilder()
-        .setName('afk_wedkowanie')
-        .setDescription('Usiądź przy jeziorze i łów automatycznie (mniej zyskowne niż ręcznie)')
-        .addIntegerOption(opt =>
-            opt.setName('czas')
-                .setDescription('Jak długo chcesz siedzieć przy jeziorze?')
-                .setRequired(false)
-                .addChoices(
-                    { name: '15 minut',  value: 15  },
-                    { name: '30 minut',  value: 30  },
-                    { name: '1 godzina', value: 60  },
-                    { name: '2 godziny', value: 120 },
-                    { name: '4 godziny', value: 240 },
+        .setName('afk')
+        .setDescription('Zarządzaj sesją AFK - zacznij lub zakończ wędkowanie')
+        .addSubcommand(sub =>
+            sub.setName('start')
+                .setDescription('Rozpocznij sesję AFK przy jeziorze')
+                .addIntegerOption(opt =>
+                    opt.setName('czas')
+                        .setDescription('Jak długo chcesz siedzieć przy jeziorze?')
+                        .setRequired(false)
+                        .addChoices(
+                            { name: '15 minut',  value: 15  },
+                            { name: '30 minut',  value: 30  },
+                            { name: '1 godzina', value: 60  },
+                            { name: '2 godziny', value: 120 },
+                            { name: '4 godziny', value: 240 },
+                        )
                 )
+        )
+        .addSubcommand(sub =>
+            sub.setName('stop')
+                .setDescription('Zakończ sesję AFK i odbierz podsumowanie połowów')
         ),
-    new SlashCommandBuilder()
-        .setName('afk_stop')
-        .setDescription('Zakończ sesję AFK i odbierz podsumowanie połowów'),
 
     // ── Eventy ───────────────────────────────────────────────
     new SlashCommandBuilder()
@@ -303,7 +308,16 @@ async function getProfile(userId, username, roles = []) {
     }
 }
 
-client.once('ready', async () => {
+// ── Globalna obsługa błędów ───────────────────────────────────
+client.on('error', (error) => {
+    console.error('[CLIENT ERROR]', error.message);
+});
+
+process.on('unhandledRejection', (error) => {
+    console.error('[UNHANDLED REJECTION]', error?.message || error);
+});
+
+client.once('clientReady', async () => {
     console.log(`Bot ${client.user.tag} stands ready!`);
     await registerCommands();
     updateDiscordStats();
@@ -335,14 +349,25 @@ async function updateDiscordStats() {
     }
 }
 
+// ── Pomocnik do bezpiecznej odpowiedzi ───────────────────────
+// Używa editReply jeśli już zdeferowane, reply w przeciwnym razie
+async function safeReply(interaction, options) {
+    try {
+        if (interaction.deferred || interaction.replied) {
+            return await interaction.editReply(options);
+        }
+        return await interaction.reply(options);
+    } catch (e) {
+        console.error('[SAFE REPLY] Błąd odpowiedzi:', e.message);
+    }
+}
+
 // ── Interactions ─────────────────────────────────────────────
 client.on('interactionCreate', async interaction => {
+    // Blokada kanału
     if (interaction.channelId !== ALLOWED_CHANNEL_ID) {
         if (interaction.isChatInputCommand() || interaction.isButton() || interaction.isStringSelectMenu()) {
-            // Check if interaction has already been replied to
-            if (interaction.replied || interaction.deferred) {
-                return;
-            }
+            if (interaction.replied || interaction.deferred) return;
             return interaction.reply({
                 content: `❌ Komend i funkcji bota można używać wyłącznie na kanale <#${ALLOWED_CHANNEL_ID}>!`,
                 flags: 1 << 6,
@@ -351,6 +376,7 @@ client.on('interactionCreate', async interaction => {
         return;
     }
 
+    // Przyciski i select menu
     if (interaction.isButton() || interaction.isStringSelectMenu()) {
         if (interaction.customId.startsWith('shop_page_') || interaction.customId.startsWith('shop_buy_')) {
             await handleShopInteraction(interaction, supabase);
@@ -362,8 +388,8 @@ client.on('interactionCreate', async interaction => {
         }
     }
 
+    // Autocomplete
     if (interaction.isAutocomplete()) {
-        // Autocomplete dla tła w /ustawienia
         if (interaction.commandName === 'ustawienia') {
             const focused = interaction.options.getFocused();
             const choices = availableBackgrounds
@@ -373,6 +399,22 @@ client.on('interactionCreate', async interaction => {
             return interaction.respond(choices);
         }
         return;
+    }
+
+    if (!interaction.isChatInputCommand()) return;
+
+    // ── NATYCHMIASTOWY DEFER ─────────────────────────────────
+    // Komendy które NIE potrzebują defer (odpowiadają natychmiastowo prostym tekstem)
+    const NO_DEFER_COMMANDS = [];
+
+    if (!NO_DEFER_COMMANDS.includes(interaction.commandName)) {
+        try {
+            await interaction.deferReply();
+        } catch (e) {
+            // Interakcja wygasła zanim zdążyliśmy odpowiedzieć — porzuć
+            console.error('[DEFER] Nie udało się zdeferować interakcji:', e.message);
+            return;
+        }
     }
 
     if (!interaction.isChatInputCommand()) return;
@@ -396,20 +438,6 @@ client.on('interactionCreate', async interaction => {
                 targetProfile = await getProfile(targetUser.id, targetUser.username, targetRoles);
             }
 
-            // Check if interaction is already deferred or replied to
-            try {
-                if (!interaction.deferred && !interaction.replied) {
-                    await interaction.deferReply();
-                }
-            } catch (error) {
-                // If deferReply fails (e.g., unknown interaction), just continue
-                if (error.code === 10062) {
-                    console.warn('[INTERACTION] Interaction already processed, continuing...');
-                    // Don't throw the error, just continue with the command
-                } else {
-                    throw error; // Re-throw if it's a different error
-                }
-            }
             try {
                 const calculatedLevel = getLevelFromXP(targetProfile.xp ?? 0);
                 const buffer = await createProfileCard({
@@ -436,14 +464,14 @@ client.on('interactionCreate', async interaction => {
 
             if (!backgroundName) {
                 // Jeśli nie podano żadnych ustawień, pokaż obecne
-                return interaction.reply({
+                return await interaction.editReply({
                     content: `📋 Twoje ustawienia:\n• Tło profilu: \`${profile.background || 'default'}\`\n\nUżyj \`/ustawienia tlo:bg_nazwa\` aby zmienić tło.`,
                     ephemeral: true
                 });
             }
 
             if (!availableBackgrounds.includes(backgroundName)) {
-                return interaction.reply({
+                return await interaction.editReply({
                     content: `❌ Tło "${backgroundName}" nie istnieje. Dostępne tła: \`${availableBackgrounds.join(', ')}\``,
                     ephemeral: true
                 });
@@ -455,13 +483,13 @@ client.on('interactionCreate', async interaction => {
                     .update({ background: backgroundName })
                     .eq('id', interaction.user.id);
 
-                await interaction.reply({
+                await interaction.editReply({
                     content: `✅ Ustawiono tło profilu na: **${backgroundName}**`,
                     ephemeral: true
                 });
             } catch (err) {
                 console.error('[BACKGROUND] Błąd zapisu:', err.message);
-                await interaction.reply({
+                await interaction.editReply({
                     content: '❌ Wystąpił błąd podczas ustawiania tła.',
                     ephemeral: true
                 });
@@ -491,7 +519,7 @@ client.on('interactionCreate', async interaction => {
                 )
                 .setFooter({ text: `Dostępnych tła: ${backgrounds.length}` });
 
-            await interaction.reply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
             break;
         }
 
@@ -504,7 +532,7 @@ client.on('interactionCreate', async interaction => {
                     { name: '🏦 Bank',    value: `${profile.bank  ?? 0} ${COIN}`, inline: true },
                 )
                 .setTimestamp();
-            await interaction.reply({ embeds: [embed] });
+            await interaction.editReply({ embeds: [embed] });
             break;
         }
 
@@ -514,10 +542,10 @@ client.on('interactionCreate', async interaction => {
             const amount = amountInput === 0 ? currentMoney : amountInput;
 
             if (amount <= 0 || currentMoney <= 0) {
-                return interaction.reply({ content: '❌ Nie masz monet do wpłaty.', ephemeral: true });
+                return await interaction.editReply({ content: '❌ Nie masz monet do wpłaty.', ephemeral: true });
             }
             if (currentMoney < amount) {
-                return interaction.reply({ content: `❌ Masz tylko **${currentMoney}** ${COIN} w portfelu.`, ephemeral: true });
+                return await interaction.editReply({ content: `❌ Masz tylko **${currentMoney}** ${COIN} w portfelu.`, ephemeral: true });
             }
 
             const newMoney = currentMoney - amount;
@@ -525,7 +553,7 @@ client.on('interactionCreate', async interaction => {
 
             await supabase.from('profiles').update({ money: newMoney, bank: newBank }).eq('id', profile.id);
 
-            await interaction.reply({
+            await interaction.editReply({
                 content: `✅ Wpłaciłeś **${amount}** ${COIN} do banku!\n💵 Portfel: **${newMoney}** ${COIN}\n🏦 Bank: **${newBank}** ${COIN}`,
                 ephemeral: true
             });
@@ -538,10 +566,10 @@ client.on('interactionCreate', async interaction => {
             const amount = amountInput === 0 ? currentBank : amountInput;
 
             if (amount <= 0 || currentBank <= 0) {
-                return interaction.reply({ content: '❌ Nie masz monet w banku do wypłaty.', ephemeral: true });
+                return await interaction.editReply({ content: '❌ Nie masz monet w banku do wypłaty.', ephemeral: true });
             }
             if (currentBank < amount) {
-                return interaction.reply({ content: `❌ Masz tylko **${currentBank}** ${COIN} w banku.`, ephemeral: true });
+                return await interaction.editReply({ content: `❌ Masz tylko **${currentBank}** ${COIN} w banku.`, ephemeral: true });
             }
 
             const newBank = currentBank - amount;
@@ -549,7 +577,7 @@ client.on('interactionCreate', async interaction => {
 
             await supabase.from('profiles').update({ money: newMoney, bank: newBank }).eq('id', profile.id);
 
-            await interaction.reply({
+            await interaction.editReply({
                 content: `✅ Wypłaciłeś **${amount}** ${COIN} z banku!\n💵 Portfel: **${newMoney}** ${COIN}\n🏦 Bank: **${newBank}** ${COIN}`,
                 ephemeral: true
             });
@@ -563,7 +591,7 @@ client.on('interactionCreate', async interaction => {
             const list = top?.map((p, i) =>
                 `**#${i + 1}** ${p.username} - **${p.money || 0} ${COIN}**`
             ).join('\n') || 'Brak danych.';
-            await interaction.reply({ embeds: [
+            await interaction.editReply({ embeds: [
                     new EmbedBuilder().setTitle('💰 Najbogatsi w Studiu').setColor('#22FF00').setDescription(list),
                 ]});
             break;
@@ -576,7 +604,7 @@ client.on('interactionCreate', async interaction => {
             const list = top?.map((p, i) =>
                 `**#${i + 1}** ${p.username} - Lvl ${p.level || 0} (${p.xp || 0} XP) 🏆`
             ).join('\n') || 'Brak danych.';
-            await interaction.reply({ embeds: [
+            await interaction.editReply({ embeds: [
                     new EmbedBuilder().setTitle('🏆 Top Level w Studiu').setColor('#ffcB2f').setDescription(list),
                 ]});
             break;
@@ -587,14 +615,14 @@ client.on('interactionCreate', async interaction => {
             const diff     = Date.now() - lastWork;
             if (diff < 3600000) {
                 const minsLeft = Math.ceil((3600000 - diff) / 60000);
-                return interaction.reply(`⏳ Jesteś zmęczony! Odpocznij jeszcze **${minsLeft} min**.`);
+                return await interaction.editReply(`⏳ Jesteś zmęczony! Odpocznij jeszcze **${minsLeft} min**.`);
             }
             const earnings = Math.floor(Math.random() * 80) + 20;
             await supabase.from('profiles').update({
                 money:     (profile.money || 0) + earnings,
                 last_work: new Date().toISOString(),
             }).eq('id', profile.id);
-            await interaction.reply(`⛏️ Zapracowałeś ciężko w Studiu i otrzymałeś **${earnings} ${COIN}!**`);
+            await interaction.editReply(`⛏️ Zapracowałeś ciężko w Studiu i otrzymałeś **${earnings} ${COIN}!**`);
             break;
         }
 
@@ -618,13 +646,15 @@ client.on('interactionCreate', async interaction => {
             await handleWedka(interaction, supabase, profile);
             break;
 
-        case 'afk_wedkowanie':
-            await handleAfkFishing(interaction, supabase, profile, COIN);
+        case 'afk': {
+            const subcommand = interaction.options.getSubcommand();
+            if (subcommand === 'start') {
+                await handleAfkFishing(interaction, supabase, profile, COIN);
+            } else if (subcommand === 'stop') {
+                await handleAfkStop(interaction, COIN);
+            }
             break;
-
-        case 'afk_stop':
-            await handleAfkStop(interaction, COIN);
-            break;
+        }
 
         // ── Eventy ───────────────────────────────────────────
         case 'event_create':
@@ -644,6 +674,23 @@ client.on('interactionCreate', async interaction => {
             break;
     }
 });
+
+// Wrapper do obsługi błędów komend
+async function handleCommandWithErrors(interaction, fn) {
+    try {
+        await fn();
+    } catch (e) {
+        console.error(`[COMMAND ERROR] /${interaction.commandName}:`, e.message);
+        try {
+            const errMsg = { content: '❌ Wystąpił błąd podczas wykonywania komendy.' };
+            if (interaction.deferred || interaction.replied) {
+                await interaction.editReply(errMsg);
+            } else {
+                await interaction.reply({ ...errMsg, flags: 1 << 6 });
+            }
+        } catch (_) { /* ignoruj jeśli nie można odpowiedzieć */ }
+    }
+}
 
 // ── Text Leveling ────────────────────────────────────────────
 client.on('messageCreate', async (message) => {

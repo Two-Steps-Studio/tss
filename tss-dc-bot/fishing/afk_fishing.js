@@ -130,14 +130,14 @@ function stopSession(userId) {
     activeSessions.delete(userId);
 }
 
-// ── /afk_wedkowanie – start ───────────────────────────────────
+// ── /afk start – start ───────────────────────────────────
 async function handleAfkFishing(interaction, supabase, profile, COIN = '<:CoinTSS:1486049846132605042>') {
     const userId = interaction.user.id;
 
     // Sprawdź czy już ma aktywną sesję
     if (activeSessions.has(userId)) {
         return interaction.reply({
-            content: '🪑 Już siedzisz przy jeziorze! Użyj `/afk_stop` żeby zakończyć sesję wcześniej.',
+            content: '🪑 Już siedzisz przy jeziorze! Użyj `/afk stop` żeby zakończyć sesję wcześniej.',
             flags: 1 << 6,
         });
     }
@@ -149,8 +149,8 @@ async function handleAfkFishing(interaction, supabase, profile, COIN = '<:CoinTS
     const gearStats = getGearStats(gearObj);
     const baitCost  = Math.max(0, AFK_BAIT_COST - gearStats.baitDiscount);
 
-    // Pobierz wybrany czas z opcji (domyślnie 60 minut)
-    const minutesRaw = interaction.options.getInteger('czas') ?? 60;
+    // Pobierz wybrany czas z subkomendy (domyślnie 60 minut)
+    const minutesRaw = interaction.options.getInteger('czas', false) ?? 60;
     const option     = SESSION_OPTIONS.find(o => o.minutes === minutesRaw) || SESSION_OPTIONS[2];
     const durationMs = option.minutes * 60 * 1000;
     const catches    = option.minutes; // ile połowów maksymalnie (1/min)
@@ -227,14 +227,14 @@ async function handleAfkFishing(interaction, supabase, profile, COIN = '<:CoinTS
     activeSessions.set(userId, sessionData);
 }
 
-// ── /afk_stop – wcześniejsze zakończenie ─────────────────────
+// ── /afk stop – wcześniejsze zakończenie ─────────────────────
 async function handleAfkStop(interaction, COIN = '<:CoinTSS:1486049846132605042>') {
     const userId = interaction.user.id;
     const session = activeSessions.get(userId);
 
     if (!session) {
-        return interaction.reply({
-            content: '❌ Nie masz aktywnej sesji AFK. Użyj `/afk_wedkowanie` żeby zacząć.',
+        return await interaction.reply({
+            content: '❌ Nie masz aktywnej sesji AFK. Użyj `/afk start` żeby zacząć.',
             flags: 1 << 6,
         });
     }

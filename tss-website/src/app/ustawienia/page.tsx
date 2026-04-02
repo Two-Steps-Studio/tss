@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Sun, Moon, MonitorSmartphone, Languages, Check } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 
 type Prefs = {
   animations: boolean;
@@ -34,7 +33,6 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    // 1. Ładowanie lokalne błyskawiczne
     const p = {
       animations: localStorage.getItem("ui-animations") !== "off",
       sounds: localStorage.getItem("ui-sounds") === "on",
@@ -45,7 +43,6 @@ export default function SettingsPage() {
     };
     setPrefs(p);
 
-    // 2. Synchronizacja z chmurą / botem
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         supabase.from("profiles").select("settings").eq("id", user.id).single().then(({ data }) => {
@@ -59,8 +56,6 @@ export default function SettingsPage() {
               notif_esport: s.notif_esport ?? prev.notif_esport,
               notif_dev: s.notif_dev ?? prev.notif_dev,
             }));
-            
-            // Re-sync local storage w oparciu o chmurę
             if (s.animations !== undefined) localStorage.setItem("ui-animations", s.animations ? "on" : "off");
             if (s.sounds !== undefined) localStorage.setItem("ui-sounds", s.sounds ? "on" : "off");
             if (s.quality !== undefined) localStorage.setItem("ui-quality", s.quality ? "high" : "low");
@@ -82,7 +77,6 @@ export default function SettingsPage() {
     if (key === "notif_esport") localStorage.setItem("notif-esport", value ? "on" : "off");
     if (key === "notif_dev") localStorage.setItem("notif-dev", value ? "on" : "off");
 
-    // Wysyłanie ustawień bezpośrednio do bazy danych, by Discord i strona były zsynchronizowane
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data } = await supabase.from("profiles").select("settings").eq("id", user.id).single();
