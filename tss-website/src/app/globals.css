@@ -30,6 +30,15 @@
   --transition-timing: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* Domyślne wartości trybu jasnego dla wszystkich motywów */
+:root.theme-general {
+  --bg: #e6e6e6;
+  --text: #0F172A;
+  --sidebar-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --border-color: rgba(0, 0, 0, 0.08);
+}
+
 .dark {
   --color-dark: #000000; /* Tryb Ciemny: Prawdziwy czarny */
   --bg: #000000;
@@ -46,6 +55,11 @@
 .theme-ocean {
   --color-general-current: #1bbdbd;
   --color-general-rgb: 27, 189, 189;
+  --bg: #e6e6e6;
+  --text: #0F172A;
+  --sidebar-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --border-color: rgba(0, 0, 0, 0.08);
 }
 
 /* Crimson (Games) */
@@ -55,6 +69,10 @@
 }
 :root.theme-crimson {
   --bg: #FFF1F2;
+  --text: #332228;
+  --sidebar-bg: rgba(255, 241, 242, 0.9);
+  --card-bg: rgba(255, 241, 242, 0.75);
+  --border-color: rgba(51, 34, 40, 0.08);
 }
 .dark.theme-crimson {
   --bg: #000000; /* Zmienione na czarny */
@@ -68,6 +86,10 @@
 }
 :root.theme-emerald {
   --bg: #F0FDF4;
+  --text: #064E03;
+  --sidebar-bg: rgba(240, 253, 244, 0.9);
+  --card-bg: rgba(240, 253, 244, 0.75);
+  --border-color: rgba(6, 78, 3, 0.08);
 }
 .dark.theme-emerald {
   --bg: #000000; /* Zmienione na czarny */
@@ -81,6 +103,10 @@
 }
 :root.theme-violet {
   --bg: #F5F3FF;
+  --text: #2E1065;
+  --sidebar-bg: rgba(245, 243, 255, 0.9);
+  --card-bg: rgba(245, 243, 255, 0.75);
+  --border-color: rgba(46, 16, 101, 0.08);
 }
 .dark.theme-violet {
   --bg: #000000; /* Zmienione na czarny */
@@ -94,10 +120,23 @@
 }
 :root.theme-amber {
   --bg: #FFFBEB;
+  --text: #422006;
+  --sidebar-bg: rgba(255, 251, 235, 0.9);
+  --card-bg: rgba(255, 251, 235, 0.75);
+  --border-color: rgba(66, 32, 6, 0.08);
 }
 .dark.theme-amber {
   --bg: #000000; /* Zmienione na czarny */
   --card-bg: rgba(28, 15, 5, 0.7);
+}
+
+/* Domyślne tryb jasny (jeśli nie ma klasy .dark ani specjalnego motywu) */
+.theme-general {
+  --bg: #e6e6e6;
+  --text: #0F172A;
+  --sidebar-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --border-color: rgba(0, 0, 0, 0.08);
 }
 
 /* Base Styles */

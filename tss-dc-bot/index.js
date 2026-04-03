@@ -7,6 +7,21 @@ const { handleShop, handleShopInteraction } = require('./shop');
 const { handleWedka, handleGearInteraction } = require('./fishing/wedka');
 const { handleAfkFishing, handleAfkStop } = require('./fishing/afk_fishing');
 const { handleEventCreate, handleEventList, handleEventJoin, handleEventDelete } = require('./events/events');
+const {
+    getRpgProfile,
+    calculateStats,
+    handleEquipment,
+    handleInventory,
+    handleMine,
+    handleStaw,
+    handleDungeon,
+    handleDungeonButton,
+    handleCity,
+    handleCityShop,
+    handleCityHeal,
+    handleCityForge,
+    handleCityButton,
+} = require('./rpg');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -238,6 +253,41 @@ const commands = [
                 .setDescription('ID eventu do usunięcia')
                 .setRequired(true)
         ),
+    new SlashCommandBuilder()
+        .setName('go')
+        .setDescription('Przejdź do lokacji')
+        .addStringOption(option =>
+            option.setName('lokacja')
+                .setDescription('Do jakiej lokacji chcesz pójść?')
+                .setRequired(true)
+                .addChoices(
+                    { name: 'Kopalnia', value: 'kopalnia' },
+                    { name: 'Staw', value: 'staw' },
+                    { name: 'Dungeon', value: 'dungeon' },
+                    { name: 'Miasto', value: 'miasto' },
+                )
+        ),
+    new SlashCommandBuilder()
+        .setName('profile')
+        .setDescription('Pokaż statystyki swojej postaci'),
+    new SlashCommandBuilder()
+        .setName('equipment')
+        .setDescription('Pokaż swój ekwipunek'),
+    new SlashCommandBuilder()
+        .setName('inventory')
+        .setDescription('Pokaż swój inwentarz'),
+    new SlashCommandBuilder()
+        .setName('sell')
+        .setDescription('Sprzedaj przedmioty'),
+    new SlashCommandBuilder()
+        .setName('heal')
+        .setDescription('Wylecz postać'),
+    new SlashCommandBuilder()
+        .setName('upgrade')
+        .setDescription('Ulepsz przedmioty'),
+    new SlashCommandBuilder()
+        .setName('sklep')
+        .setDescription('Otwórz sklep z przedmiotami RPG'),
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
@@ -384,6 +434,16 @@ client.on('interactionCreate', async interaction => {
         }
         if (interaction.customId === 'gear_upgrade_select' || interaction.customId === 'gear_refresh') {
             await handleGearInteraction(interaction, supabase);
+            return;
+        }
+        if (interaction.customId.startsWith('dungeon_')) {
+            const profile = await getRpgProfile(interaction.user.id, supabase);
+            const level = profile.level || 1;
+            await handleDungeonButton(interaction, supabase, profile, level);
+            return;
+        }
+        if (interaction.customId === 'city_shop' || interaction.customId.startsWith('shop_') || interaction.customId === 'city_heal' || interaction.customId === 'city_forge' || interaction.customId === 'city_bank') {
+            await handleCityButton(interaction, supabase, profile);
             return;
         }
     }
@@ -672,6 +732,119 @@ client.on('interactionCreate', async interaction => {
         case 'event_delete':
             await handleEventDelete(interaction, supabase);
             break;
+
+        case 'go': {
+            const location = interaction.options.getString('lokacja');
+            const profile = await getRpgProfile(interaction.user.id, supabase);
+
+            if (location === 'kopalnia') {
+                await handleMine(interaction, supabase, profile);
+            } else if (location === 'staw') {
+                await handleStaw(interaction, supabase, profile);
+            } else if (location === 'dungeon') {
+                const stats = calculateStats(profile);
+                const level = profile.level || 1;
+                await handleDungeon(interaction, supabase, profile, level);
+            } else if (location === 'miasto') {
+                await handleCity(interaction, supabase, profile);
+            } else {
+                return interaction.reply({ content: '❌ Nieznana lokacja. Użyj: /go lokacja:kopalnia|staw|dungeon|miasto', ephemeral: true });
+            }
+            break;
+        }
+
+        case 'profile': {
+            const stats = calculateStats(profile);
+            const level = profile.level || 1;
+
+            const embed = new EmbedBuilder()
+                .setTitle(`📊 Profil: ${profile.username}`)
+                .setColor('#22FF00')
+                .setDescription(
+                    `**Poziom:** ${level}\n` +
+                    `**XP:** ${profile.xp || 0}\n\n` +
+                    `**Lokalizacja:** ${profile.rpg?.location || 'Miasto'}`
+                )
+                .addFields(
+                    { name: '🩸 HP', value: `${stats?.hp || profile.rpg?.hp || 120}`, inline: true },
+                    { name: '⚔️ ATK', value: `${stats?.atk || profile.rpg?.atk || 12}`, inline: true },
+                    { name: '🛡️ DEF', value: `${stats?.def || profile.rpg?.def || 10}`, inline: true },
+                    { name: '🎯 CRIT', value: `${stats?.crit || profile.rpg?.crit || 5}%`, inline: true },
+                    { name: '🍀 LUCK', value: `${stats?.luck || profile.rpg?.luck || 10}`, inline: true },
+                    { name: '💰 Money', value: `${profile.money || 0} ${COIN}`, inline: true },
+                    { name: '🏦 Bank', value: `${profile.bank || 0} ${COIN}`, inline: true },
+                );
+
+            if (profile.rpg?.equipment) {
+                const eq = profile.rpg.equipment;
+                const equipped = [];
+                if (eq.weapon) equipped.push(`⚔️ Bron: ${eq.weapon}`);
+                if (eq.helmet) equipped.push(`🪖 Hełm: ${eq.helmet}`);
+                if (eq.chest) equipped.push(`🧥 Zbroja: ${eq.chest}`);
+                if (eq.pants) equipped.push(`👖 Spodnie: ${eq.pants}`);
+                if (eq.boots) equipped.push(`👢 Buty: ${eq.boots}`);
+                if (eq.shield) equipped.push(`🛡️ Tarcza: ${eq.shield}`);
+                if (eq.ring) equipped.push(`💍 Pierścień: ${eq.ring}`);
+
+                if (equipped.length > 0) {
+                    embed.addFields({ name: '🛡️ Ekwipunek:', value: equipped.join('\n'), inline: false });
+                }
+            }
+
+            await interaction.reply({ embeds: [embed] });
+            break;
+        }
+
+        case 'equipment':
+            await handleEquipment(interaction, supabase, profile);
+            break;
+
+        case 'inventory':
+            await handleInventory(interaction, supabase, profile);
+            break;
+
+        case 'sell': {
+            const money = profile.money || 0;
+            const items = profile.rpg?.ore || [];
+
+            const embed = new EmbedBuilder()
+                .setTitle('💰 Skup przedmiotów')
+                .setColor('#1bbdbd')
+                .setDescription(
+                    `**Znaleziono rud:** ${items.length}\n\n` +
+                    `Domyślna cena: 100 ${COIN}/rudy\n\n` +
+                    `Otrzymasz za sprzedaż:`
+                );
+
+            const totalValue = items.reduce((sum, item) => sum + (item.value || 100), 0);
+            embed.addFields({ name: '💰 Łączna wartość', value: `${totalValue} ${COIN}`, inline: false });
+
+            if (items.length > 0) {
+                embed.addFields({ name: '📦 Lista:', value: items.map(i => `${i.emoji || '•'} **${i.name}**`).join('\n'), inline: false });
+            }
+
+            await interaction.reply({ embeds: [embed] });
+            break;
+        }
+
+        case 'heal': {
+            const stats = calculateStats(profile);
+
+            if (!stats) return interaction.reply({ content: '❌ Nie udało się pobrać statystyk.', ephemeral: true });
+
+            await handleCityHeal(interaction, supabase, profile);
+            break;
+        }
+
+        case 'upgrade': {
+            await handleCityForge(interaction, supabase, profile);
+            break;
+        }
+
+        case 'sklep': {
+            await handleCityShop(interaction, supabase, profile);
+            break;
+        }
     }
 });
 

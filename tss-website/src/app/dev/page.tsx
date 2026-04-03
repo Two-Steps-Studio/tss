@@ -1,5 +1,4 @@
-import DevPage from "./dev";
-import KanbanBoard from "./kanban";
+import KanbanBoard from "./dev";
 
 export default function DevPage() {
   return <KanbanBoard />;

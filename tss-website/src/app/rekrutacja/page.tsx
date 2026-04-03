@@ -10,6 +10,28 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, Mail, User, Shield, Users, TrendingUp } from "lucide-react";
 
+const useDarkMode = () => {
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('darkMode');
+    if (saved !== null) {
+      setDarkMode(JSON.parse(saved));
+    } else if (typeof window !== 'undefined' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      setDarkMode(mediaQuery.matches);
+
+      const handler = (e: MediaQueryListEvent) => setDarkMode(e.matches);
+      mediaQuery.addEventListener('change', handler);
+      return () => mediaQuery.removeEventListener('change', handler);
+    }
+  }, []);
+
+  return { darkMode };
+};
+
+const { darkMode } = useDarkMode();
+
 export default function RekrutacjaPage() {
   const { t } = useLanguage();
   const router = useRouter();
@@ -61,16 +83,17 @@ export default function RekrutacjaPage() {
   return (
     <div className="flex min-h-[calc(100vh-200px)] w-full items-center justify-center p-4">
       <Card className="w-full max-w-2xl glass rounded-[2.5rem] shadow-2xl overflow-hidden relative border-black/10 dark:border-white/5">
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-general)]/10 via-transparent to-transparent opacity-50" />
+        <div className={`absolute inset-0 bg-gradient-to-br from-[var(--color-general)]/10 via-transparent to-transparent opacity-50 transition-colors ${!darkMode ? 'bg-gradient-to-br from-[var(--bg)]/10 via-transparent to-transparent' : ''}`}>
+        </div>
         <CardHeader className="text-center space-y-4 relative z-10">
           <Users className="w-16 h-16 mx-auto text-[var(--color-general)] opacity-80" />
           <CardTitle className="text-3xl font-bold text-center">{t.rekrutacja.title}</CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center relative z-10 transition-colors">
             {t.rekrutacja.subtitle}
           </CardDescription>
         </CardHeader>
         <CardContent className="relative z-10 space-y-6">
-          <div className="bg-black/5 dark:bg-white/5 rounded-2xl p-6 border border-white/10">
+          <div className={`bg-gradient-to-r from-[var(--bg)] via-[var(--bg)] to-[var(--bg)] rounded-2xl p-6 border border-[var(--border-color)] transition-colors`}>
             <div className="space-y-4 font-[family-name:var(--font-outfit)]">
               <div className="flex items-start gap-3">
                 <User className="w-5 h-5 mt-0.5 text-[var(--color-general)] flex-shrink-0" />
@@ -79,7 +102,7 @@ export default function RekrutacjaPage() {
                   <input
                     type="email"
                     placeholder={t.rekrutacja.emailPlaceholder}
-                    className="w-full bg-transparent border border-white/10 rounded-xl px-3 py-2 text-sm text-[var(--text)] placeholder:text-zinc-500 focus:border-[var(--color-general)] focus:outline-none transition-colors"
+                    className="w-full bg-transparent border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text)] placeholder:text-neutral-400 focus:border-[var(--color-general)] focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -90,7 +113,7 @@ export default function RekrutacjaPage() {
                   <input
                     type="text"
                     placeholder={t.rekrutacja.namePlaceholder}
-                    className="w-full bg-transparent border border-white/10 rounded-xl px-3 py-2 text-sm text-[var(--text)] placeholder:text-zinc-500 focus:border-[var(--color-general)] focus:outline-none transition-colors"
+                    className="w-full bg-transparent border border-[var(--border-color)] rounded-xl px-3 py-2 text-sm text-[var(--text)] placeholder:text-neutral-400 focus:border-[var(--color-general)] focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -101,7 +124,7 @@ export default function RekrutacjaPage() {
                     {discordData.roles.map((role: string) => (
                       <Badge
                         key={role}
-                        className="bg-[var(--color-general)]/20 text-[var(--color-general)] border border-[var(--color-general)]/30 text-xs px-2 py-1"
+                        className="bg-[var(--color-general)]/10 text-[var(--color-general)] border border-[var(--color-general)]/20 text-xs px-2 py-1"
                       >
                         {role}
                       </Badge>
@@ -133,13 +156,13 @@ export default function RekrutacjaPage() {
             <Button
               variant="outline"
               onClick={() => router.push("/")}
-              className="w-full h-12 rounded-2xl border-black/10 dark:border-white/10 font-bold"
+              className={`w-full h-12 rounded-2xl font-bold transition-colors ${!darkMode ? 'border-neutral-300 hover:border-neutral-400' : 'border-white/10 hover:border-white/20'}`}
             >
               {t.rekrutacja.backToHome}
             </Button>
           </div>
 
-          <div className="text-center text-xs text-zinc-500 pt-4 border-t border-white/5">
+          <div className={`text-center text-xs pt-4 border-t transition-colors ${!darkMode ? 'text-neutral-500 border-neutral-200' : 'text-neutral-400 border-white/5'}`}>
             <p>
               Potrzebujesz pomocy? <Link href="/kontakt" className="text-[var(--color-general)] hover:underline">Kontakt</Link>
             </p>

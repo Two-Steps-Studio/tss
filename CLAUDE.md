@@ -135,6 +135,63 @@ Both projects use the same Supabase instance:
 - `CLIENT_ID`
 - `GUILD_ID`
 
+## Database Schema Notes
+
+### Profiles table - każdy użytkownik ma własny balans w PLN
+```sql
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS pln_balance DECIMAL(10,2) DEFAULT 0.00,  -- Balans w polskich złotych
+ADD COLUMN IF NOT EXISTS vip_status BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS svip_status BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS mvip_status BOOLEAN DEFAULT FALSE;
+```
+
+**Kurs wymiany:** 0,01 PLN = 10000 coinów (1 PLN = 10000000 coinów)
+
+### Transactions log
+```sql
+CREATE TABLE IF NOT EXISTS pln_transactions (
+    id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    amount DECIMAL(10,2) NOT NULL,
+    coin_amount BIGINT NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Fishing gear progress
+```sql
+CREATE TABLE IF NOT EXISTS fishing_gear (
+    user_id TEXT PRIMARY KEY REFERENCES profiles(discord_id),
+    zylka INTEGER DEFAULT 0,
+    kolowrotek INTEGER DEFAULT 0,
+    haczyk INTEGER DEFAULT 0,
+    przynet INTEGER DEFAULT 0,
+    wedka INTEGER DEFAULT 0,
+    zaneta INTEGER DEFAULT 0,
+    lodz INTEGER DEFAULT 0,
+    skrzynka INTEGER DEFAULT 0,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Voice XP tracking
+```sql
+CREATE TABLE IF NOT EXISTS voice_sessions (
+    user_id TEXT PRIMARY KEY REFERENCES profiles(discord_id),
+    guild_id TEXT NOT NULL,
+    joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    xp_earned INTEGER DEFAULT 0
+);
+```
+
+### PLN Currency Info
+- **Pole w bazie:** `pln_balance DECIMAL(10,2)`
+- **Kurs:** 0,01 PLN = 10000 coinów
+- **Zastosowanie:** Saldo produktów sklepu, nagrody realno-pieniężne
+
 ## Notes
 
 - The website can run in two modes: web (`npm run dev`) or desktop (`npm run electron:dev`)

@@ -112,7 +112,7 @@ export default function ProfilePage() {
                 .eq("id", discordId)
                 .maybeSingle();
 
-            setProfile(initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [] });
+            setProfile(initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [], pln_balance: 0, vip_status: false, svip_status: false, mvip_status: false });
 
             // Realtime subscription
             if (channel) supabase.removeChannel(channel);
@@ -244,6 +244,10 @@ export default function ProfilePage() {
                             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
                                 <span className="text-sm font-bold opacity-60 text-white">Bank</span>
                                 <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-records)]">{profile?.bank || 0}</span><Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} className="opacity-80" /></div>
+                            </div>
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
+                                <span className="text-sm font-bold opacity-60 text-white">Saldo PLN</span>
+                                <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-general)]">{profile?.pln_balance?.toFixed(2) || "0.00"} PLN</span></div>
                             </div>
                         </CardContent>
                     </Card>

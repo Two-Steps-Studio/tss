@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 
-interface Params {
-  status: string;
+interface RouteParams {
+  params: Promise<{ status: string }>;
 }
 
-export async function GET(
-  request: Request,
-  { status }: Params
-) {
+export async function GET(request: Request, { params }: RouteParams) {
+  const { status } = await params;
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -24,10 +22,8 @@ export async function GET(
   return NextResponse.json(data);
 }
 
-export async function POST(
-  request: Request,
-  { status }: Params
-) {
+export async function POST(request: Request, { params }: RouteParams) {
+  const { status } = await params;
   const supabase = await createClient();
   const { title, description, priority = "medium", estimated_hours, created_by } = await request.json();
 
@@ -37,7 +33,6 @@ export async function POST(
       title,
       description,
       status: status,
-      column: status,
       priority,
       estimated_hours,
       created_by,
@@ -52,10 +47,8 @@ export async function POST(
   return NextResponse.json(data, { status: 201 });
 }
 
-export async function DELETE(
-  request: Request,
-  { status }: Params
-) {
+export async function DELETE(request: Request, { params }: RouteParams) {
+  const { status } = await params;
   const supabase = await createClient();
 
   const { searchParams } = new URL(request.url);
@@ -68,7 +61,7 @@ export async function DELETE(
   const { error } = await supabase
     .from("dev_tasks")
     .delete()
-    .eq("id", id)
+    .eq("id", Number(id))
     .eq("status", status);
 
   if (error) {

@@ -124,7 +124,7 @@ export default function RegulaminPage() {
             </section>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 border-t border-white/10">
+          <div className={`flex flex-col sm:flex-row gap-4 justify-center pt-4 border-t ${!darkMode ? 'border-neutral-200' : 'border-white/10'}`}>
             <Button
               onClick={handleAccept}
               className="gap-2 bg-[var(--color-general)] hover:bg-[var(--color-general)]/80 text-white font-bold h-12 rounded-2xl"
@@ -135,13 +135,13 @@ export default function RegulaminPage() {
             <Button
               variant="outline"
               onClick={() => router.push("/rejestracja")}
-              className="h-12 rounded-2xl border-black/10 dark:border-white/10 font-bold"
+              className={`h-12 rounded-2xl font-bold transition-colors ${!darkMode ? 'border-neutral-300 hover:border-neutral-400' : 'border-white/10 hover:border-white/20'}`}
             >
               Powrót do rejestracji
             </Button>
           </div>
         </CardContent>
-        <div className="text-center text-xs text-zinc-500 px-4 pb-4 font-mono opacity-50">
+        <div className="text-center text-xs px-4 pb-4 font-mono transition-colors ${!darkMode ? 'text-neutral-500' : 'text-neutral-400'}">
           Last updated: 2026-04-02
         </div>
       </Card>
