@@ -268,26 +268,26 @@ const commands = [
                 )
         ),
     new SlashCommandBuilder()
-        .setName('profile')
-        .setDescription('Pokaż statystyki swojej postaci'),
+        .setName('rpg_profile')
+        .setDescription('Pokaż statystyki RPG'),
     new SlashCommandBuilder()
-        .setName('equipment')
-        .setDescription('Pokaż swój ekwipunek'),
+        .setName('rpg_equipment')
+        .setDescription('Pokaż ekwipunek RPG'),
     new SlashCommandBuilder()
-        .setName('inventory')
-        .setDescription('Pokaż swój inwentarz'),
+        .setName('rpg_inventory')
+        .setDescription('Pokaż inwentarz RPG'),
     new SlashCommandBuilder()
-        .setName('sell')
-        .setDescription('Sprzedaj przedmioty'),
+        .setName('rpg_sell')
+        .setDescription('Sprzedaj przedmioty RPG'),
     new SlashCommandBuilder()
-        .setName('heal')
-        .setDescription('Wylecz postać'),
+        .setName('rpg_heal')
+        .setDescription('Wylecz postać w RPG'),
     new SlashCommandBuilder()
-        .setName('upgrade')
-        .setDescription('Ulepsz przedmioty'),
+        .setName('rpg_upgrade')
+        .setDescription('Ulepsz przedmioty w kowalu'),
     new SlashCommandBuilder()
-        .setName('sklep')
-        .setDescription('Otwórz sklep z przedmiotami RPG'),
+        .setName('rpg_shop')
+        .setDescription('Sklep z przedmiotami RPG'),
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
@@ -753,12 +753,12 @@ client.on('interactionCreate', async interaction => {
             break;
         }
 
-        case 'profile': {
+        case 'rpg_profile': {
             const stats = calculateStats(profile);
             const level = profile.level || 1;
 
             const embed = new EmbedBuilder()
-                .setTitle(`📊 Profil: ${profile.username}`)
+                .setTitle(`📊 Profil RPG: ${profile.username}`)
                 .setColor('#22FF00')
                 .setDescription(
                     `**Poziom:** ${level}\n` +
@@ -795,20 +795,20 @@ client.on('interactionCreate', async interaction => {
             break;
         }
 
-        case 'equipment':
+        case 'rpg_equipment':
             await handleEquipment(interaction, supabase, profile);
             break;
 
-        case 'inventory':
+        case 'rpg_inventory':
             await handleInventory(interaction, supabase, profile);
             break;
 
-        case 'sell': {
+        case 'rpg_sell': {
             const money = profile.money || 0;
             const items = profile.rpg?.ore || [];
 
             const embed = new EmbedBuilder()
-                .setTitle('💰 Skup przedmiotów')
+                .setTitle('💰 Skup przedmiotów RPG')
                 .setColor('#1bbdbd')
                 .setDescription(
                     `**Znaleziono rud:** ${items.length}\n\n` +
@@ -827,7 +827,7 @@ client.on('interactionCreate', async interaction => {
             break;
         }
 
-        case 'heal': {
+        case 'rpg_heal': {
             const stats = calculateStats(profile);
 
             if (!stats) return interaction.reply({ content: '❌ Nie udało się pobrać statystyk.', ephemeral: true });
@@ -836,12 +836,12 @@ client.on('interactionCreate', async interaction => {
             break;
         }
 
-        case 'upgrade': {
+        case 'rpg_upgrade': {
             await handleCityForge(interaction, supabase, profile);
             break;
         }
 
-        case 'sklep': {
+        case 'rpg_shop': {
             await handleCityShop(interaction, supabase, profile);
             break;
         }
