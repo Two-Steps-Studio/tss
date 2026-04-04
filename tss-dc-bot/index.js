@@ -258,8 +258,8 @@ const commands = [
         .setDescription('Pokaż mapę serwera RPG i wybierz lokalizację')
         .addStringOption(option =>
             option.setName('lokalizacja')
-                .setDescription('Wybierz, gdzie chcesz pójść (kliknij w menu rozwijającym)')
-                .setRequired(true)
+                .setDescription('Wybierz, gdzie chcesz pójść')
+                .setRequired(false)
                 .addChoices(
                     { name: '⛏️ Kopalnia', value: 'kopalnia' },
                     { name: '🎣 Staw', value: 'staw' },
@@ -268,26 +268,33 @@ const commands = [
                 )
         ),
     new SlashCommandBuilder()
-        .setName('rpg_profile')
-        .setDescription('Pokaż statystyki RPG'),
+        .setName('postac')
+        .setDescription('Zarządzaj swoją postacią RPG')
+        .addSubcommand(sub =>
+            sub.setName('profil')
+                .setDescription('Pokaż statystyki i profil postaci')
+                .addStringOption(option =>
+                    option.setName('dzialanie')
+                        .setDescription('Co chcesz zrobić?')
+                        .setRequired(true)
+                        .addChoices(
+                            { name: 'Profil', value: 'profil' },
+                            { name: 'Ekwipunek', value: 'ekwipunek' },
+                            { name: 'Inwentarz', value: 'inwentarz' },
+                            { name: 'Prodam', value: 'sell' },
+                            { name: 'Lek', value: 'heal' },
+                            { name: 'Ulepsz', value: 'forge' },
+                            { name: 'Sklep', value: 'shop' },
+                            { name: 'Kopia', value: 'copy' },
+                        )
+                )
+        ),
     new SlashCommandBuilder()
-        .setName('rpg_equipment')
-        .setDescription('Pokaż ekwipunek RPG'),
-    new SlashCommandBuilder()
-        .setName('rpg_inventory')
-        .setDescription('Pokaż inwentarz RPG'),
+        .setName('rpg')
+        .setDescription('Komenda do zarządzania postacią RPG (alias do /postac)'),
     new SlashCommandBuilder()
         .setName('rpg_sell')
         .setDescription('Sprzedaj przedmioty RPG'),
-    new SlashCommandBuilder()
-        .setName('rpg_heal')
-        .setDescription('Wylecz postać w RPG'),
-    new SlashCommandBuilder()
-        .setName('rpg_upgrade')
-        .setDescription('Ulepsz przedmioty w kowalu'),
-    new SlashCommandBuilder()
-        .setName('rpg_shop')
-        .setDescription('Sklep z przedmiotami RPG'),
     new SlashCommandBuilder()
         .setName('pay')
         .setDescription('Przelej monety innemu użytkownikowi')
@@ -448,6 +455,123 @@ client.on('interactionCreate', async interaction => {
         }
         if (interaction.customId === 'gear_upgrade_select' || interaction.customId === 'gear_refresh') {
             await handleGearInteraction(interaction, supabase);
+            return;
+        }
+        if (interaction.customId.startsWith('postac_')) {
+            const action = interaction.customId.replace('postac_', '');
+            const profile = await getRpgProfile(interaction.user.id, supabase);
+            if (action === 'profil') {
+                await interaction.deferUpdate();
+            } else if (action === 'ekwipunek') {
+                await handleEquipment(interaction, supabase, profile);
+            } else if (action === 'inwentarz') {
+                await handleInventory(interaction, supabase, profile);
+            } else if (action === 'sell') {
+                const sellItems = [
+                    { name: 'Eksperymentalny napój siły', emoji: '🧪', price: 100, effect: 'atk +20' },
+                    { name: 'Eksperymentalny napój życia', emoji: '💉', price: 80, effect: 'Heal 100 HP' },
+                    { name: 'Eksperymentalny napój magii', emoji: '🔮', price: 120, effect: 'Crit +10%' },
+                ];
+                const money = profile.money || 0;
+                const embed = new EmbedBuilder()
+                    .setTitle('🎒 Sklep z przedmiotami RPG')
+                    .setColor('#1bbdbd')
+                    .setDescription(`Portfel: **${money.toLocaleString('pl-PL')} ${COIN}**\n\n${sellItems.map((item, i) => `${i + 1}. ${item.emoji} **${item.name}** - ${item.price} ${COIN} | ${item.effect}`).join('\n')}`);
+                const btns = sellItems.map((item, i) => {
+                    const btn = new ButtonBuilder()
+                        .setCustomId(`sell_click_${i}`)
+                        .setLabel(`${item.name}`)
+                        .setEmoji(item.emoji)
+                        .setStyle(ButtonStyle.Secondary);
+                    if (money < item.price) {
+                        btn.setDisabled(true);
+                        btn.setEmoji('❌');
+                    }
+                    return btn;
+                });
+                const rows = [];
+                for (let i = 0; i < btns.length; i += 2) {
+                    rows.push(new ActionRowBuilder().addComponents(btns[i], btns[i + 1]));
+                }
+                await interaction.editReply({ embeds: [embed], components: rows });
+            } else if (action === 'heal') {
+                if (profile.rpg?.hp >= 100) {
+                    return interaction.reply({
+                        content: '🩺 Twoja postać jest już w pełni wyleczona!',
+                        ephemeral: true,
+                    });
+                }
+                const healCost = 50;
+                if (profile.money < healCost) {
+                    return interaction.reply({
+                        content: `❌ Nie masz wystarczająco monet! Potrzebujesz **${healCost} ${COIN}**`,
+                        ephemeral: true,
+                    });
+                }
+                const newMoney = profile.money - healCost;
+                await supabase.from('profiles').update({ money: newMoney }).eq('id', profile.id);
+                return interaction.reply({
+                    content: `🏥 **Szpital**\n\n✅ Wyleczono! HP: ${profile.rpg?.hp || 120} → 100\n💰 Koszt: ${healCost} ${COIN}\n💵 Pozostało: ${newMoney} ${COIN}`,
+                    ephemeral: true,
+                });
+            } else if (action === 'forge') {
+                const upgrades = [
+                    { name: 'Ulepsz broń', price: 100, desc: '+5 ATK' },
+                    { name: 'Ulepsz hełm', price: 100, desc: '+3 DEF' },
+                    { name: 'Ulepsz zbroję', price: 200, desc: '+10 DEF' },
+                    { name: 'Ulepsz spodenie', price: 150, desc: '+7 DEF' },
+                    { name: 'Ulepsz buty', price: 150, desc: '+7 DEF' },
+                    { name: 'Ulepsz tarczę', price: 150, desc: '+10 DEF' },
+                    { name: 'Ulepsz pierścionek', price: 100, desc: '+5 stat' },
+                ];
+                const embed = new EmbedBuilder()
+                    .setTitle('🔨 Kowal')
+                    .setColor('#f6b41e')
+                    .setDescription(`Portfel: **${(profile.money || 0).toLocaleString('pl-PL')} ${COIN}**\n\n${upgrades.map((u, i) => `${i + 1}. ${u.emoji} **${u.name}** - ${u.price} ${COIN} | ${u.desc}`).join('\n')}`);
+                const btns = upgrades.map((upgrade, i) => {
+                    const btn = new ButtonBuilder()
+                        .setCustomId(`forge_click_${i}`)
+                        .setLabel(upgrade.name)
+                        .setEmoji(upgrade.emoji)
+                        .setStyle(ButtonStyle.Secondary);
+                    if (profile.money < upgrade.price) {
+                        btn.setDisabled(true);
+                        btn.setEmoji('❌');
+                    }
+                    return btn;
+                });
+                const rows = [];
+                for (let i = 0; i < btns.length; i += 2) {
+                    rows.push(new ActionRowBuilder().addComponents(btns[i], btns[i + 1]));
+                }
+                await interaction.editReply({ embeds: [embed], components: rows });
+            } else if (action === 'shop') {
+                await handleShop(interaction, supabase, profile, COIN);
+            }
+            return;
+        }
+        if (interaction.customId === 'shop_click_') {
+            await handleShopInteraction(interaction, supabase);
+            return;
+        }
+        if (interaction.customId === 'gear_upgrade_select' || interaction.customId === 'gear_refresh') {
+            await handleGearInteraction(interaction, supabase);
+            return;
+        }
+        if (interaction.customId === 'mapa_select') {
+            const location = interaction.values[0];
+            const profile = await getRpgProfile(interaction.user.id, supabase);
+            if (location === 'kopalnia') {
+                await handleMine(interaction, supabase, profile);
+            } else if (location === 'staw') {
+                await handleStaw(interaction, supabase, profile);
+            } else if (location === 'dungeon') {
+                const stats = calculateStats(profile);
+                const level = profile.level || 1;
+                await handleDungeon(interaction, supabase, profile, level);
+            } else if (location === 'miasto') {
+                await handleCity(interaction, supabase, profile);
+            }
             return;
         }
         if (interaction.customId.startsWith('dungeon_')) {
@@ -825,53 +949,205 @@ client.on('interactionCreate', async interaction => {
                 dungeon: { title: '🏰 DUNGEON', desc: '🏠 Start\n👹 Przeciwnik\n💰 Skrzynia z lootem\n🔑 Klucze' },
                 miasto: { title: '🏙️ MIASTO', desc: '🛒 Sklep\n🏥 Szpital\n🔨 Kowal\n🏦 Bank\n🎪 Eventy' },
             };
-            const data = locationNames[location] || locationNames.miasto;
 
+            // Pokaż mapę z dropdownem od razu (nie ma potrzeby wyboru lokalizacji opcjonalnie)
             const embed = new EmbedBuilder()
-                .setTitle(`${data.title}`)
+                .setTitle('📍 Mapa Serwera RPG - Two Steps Studio')
                 .setColor('#1bbdbd')
                 .setThumbnail(
-                    location === 'kopalnia'
-                    ? 'https://cdn-icons-png.flaticon.com/512/3132/3132166.png'
-                    : location === 'staw'
-                    ? 'https://cdn-icons-png.flaticon.com/512/859/859999.png'
-                    : location === 'dungeon'
-                    ? 'https://cdn-icons-png.flaticon.com/512/2939/2939948.png'
-                    : 'https://cdn-icons-png.flaticon.com/512/1112/1112159.png'
+                    'https://cdn-icons-png.flaticon.com/512/650/650872.png'
                 )
                 .setDescription(
-                    '📍 Mapa serwera RPG\n\n' +
-                    '**Lokacje:**\n' +
+                    '**Lokacje:**\n\n' +
                     `• **${locationNames.kopalnia.title}** - Kopalnia rud i klejnotów\n` +
                     `• **${locationNames.staw.title}** - Staw do wędkowania\n` +
                     `• **${locationNames.dungeon.title}** - Dungeon z bossami\n` +
                     `• **${locationNames.miasto.title}** - Miejsce handlu i naprawy\n\n` +
-                    `**Obecna lokalizacja:** ${location.toUpperCase()}\n\n` +
-                    '**Wybierz z menu dropdownu!'
+                    '**Wybierz lokalizację z menu poniżej! ⬇️**\n\n` /mapa [lokalizacja]` (opcjonalnie)'
                 )
-                .setFooter({ text: 'Mini RPG Server' })
+                .setFooter({ text: 'Mini RPG Server - Two Steps Studio' })
                 .setTimestamp();
 
-            if (location === 'kopalnia') {
+            const row = new ActionRowBuilder()
+                .addComponents(
+                    new StringSelectMenuBuilder()
+                        .setCustomId('mapa_select')
+                        .setPlaceholder('Wybierz lokację...')
+                        .addOptions([
+                            { label: '⛏️ Kopalnia', value: 'kopalnia' },
+                            { label: '🎣 Staw', value: 'staw' },
+                            { label: '🏰 Dungeon', value: 'dungeon' },
+                            { label: '🏙️ Miasto', value: 'miasto' },
+                        ])
+                );
+
+            // Jeśli wybrano lokalizację opcjonalnie, przejdź do niej
+            if (location) {
                 await handleMine(interaction, supabase, profile);
-            } else if (location === 'staw') {
-                await handleStaw(interaction, supabase, profile);
-            } else if (location === 'dungeon') {
-                const stats = calculateStats(profile);
-                const level = profile.level || 1;
-                await handleDungeon(interaction, supabase, profile, level);
-            } else if (location === 'miasto') {
-                await handleCity(interaction, supabase, profile);
+            } else {
+                await interaction.reply({ embeds: [embed], components: [row] });
             }
             break;
         }
 
-        case 'rpg_profile': {
+        case 'postac': {
+            const subcommand = interaction.options.getSubcommand();
+            const action = interaction.options.getString('dzialanie') || 'profil';
+
+            if (subcommand === 'profil') {
+                const stats = calculateStats(profile);
+                const level = profile.level || 1;
+
+                const embed = new EmbedBuilder()
+                    .setTitle(`📊 Profil RPG: ${profile.username} (Lvl ${level})`)
+                    .setColor('#22FF00')
+                    .setDescription(
+                        `**Poziom:** ${level}\n` +
+                        `**XP:** ${profile.xp || 0} / ${(level * 1000).toFixed(0)}\n\n` +
+                        `**MOC POSTACI:** ${stats?.power || 0}\n` +
+                        `**Lokalizacja:** ${profile.rpg?.location || 'Miasto'}\n\n` +
+                        `**Statystyki:**\n` +
+                        `🩸 HP: **${stats?.hp || profile.rpg?.hp || 120}**\n` +
+                        `⚔️ ATK: **${stats?.atk || profile.rpg?.atk || 12}**\n` +
+                        `🛡️ DEF: **${stats?.def || profile.rpg?.def || 10}**\n` +
+                        `🎯 CRIT: **${stats?.crit || profile.rpg?.crit || 5}%**\n` +
+                        `🍀 LUCK: **${stats?.luck || profile.rpg?.luck || 10}**\n\n` +
+                        `💰 Money: **${profile.money || 0}** ${COIN}\n` +
+                        `🏦 Bank: **${profile.bank || 0}** ${COIN}\n\n` +
+                        `**Inwentarz:** ${profile.rpg?.inventory?.length || 0} przedmiotów | ${profile.rpg?.ore?.length || 0} rud | ${profile.rpg?.fish?.length || 0} ryb | ${profile.rpg?.keys?.length || 0} kluczy | ${profile.rpg?.potions?.length || 0} napoi`
+                    );
+
+                if (profile.rpg?.equipment) {
+                    const eq = profile.rpg.equipment;
+                    const equipped = [];
+                    if (eq.weapon) equipped.push(`⚔️ **${eq.weapon}**`);
+                    if (eq.helmet) equipped.push(`🪖 **${eq.helmet}**`);
+                    if (eq.chest) equipped.push(`🧥 **${eq.chest}**`);
+                    if (eq.pants) equipped.push(`👖 **${eq.pants}**`);
+                    if (eq.boots) equipped.push(`👢 **${eq.boots}**`);
+                    if (eq.shield) equipped.push(`🛡️ **${eq.shield}**`);
+                    if (eq.ring) equipped.push(`💍 **${eq.ring}**`);
+
+                    if (equipped.length > 0) {
+                        embed.addFields({ name: '🛡️ Założony ekwipunek:', value: equipped.join('\n'), inline: false });
+                    }
+                }
+
+                // Dodaj przyciski do wyboru dziaćania
+                const rows = [];
+                const btnProfil = new ButtonBuilder().setCustomId('postac_profil').setLabel('📊 Profil').setStyle(ButtonStyle.Secondary).setEmoji('📊');
+                const btnEkwipunek = new ButtonBuilder().setCustomId('postac_ekwipunek').setLabel('🛡️ Ekwipunek').setStyle(ButtonStyle.Secondary).setEmoji('🛡️');
+                const btnInwentarz = new ButtonBuilder().setCustomId('postac_inwentarz').setLabel('🎒 Inwentarz').setStyle(ButtonStyle.Secondary).setEmoji('🎒');
+
+                rows.push(new ActionRowBuilder().addComponents(btnProfil, btnEkwipunek));
+                rows.push(new ActionRowBuilder().addComponents(btnInwentarz));
+
+                await interaction.reply({ embeds: [embed], components: rows });
+            } else if (action === 'ekwipunek') {
+                await handleEquipment(interaction, supabase, profile);
+            } else if (action === 'inwentarz') {
+                await handleInventory(interaction, supabase, profile);
+            } else if (action === 'sell') {
+                // Sprzedaj przedmioty
+                const money = profile.money || 0;
+                const sellItems = [
+                    { name: 'Eksperymentalny napój siły', emoji: '🧪', price: 100, effect: 'atk +20' },
+                    { name: 'Eksperymentalny napój życia', emoji: '💉', price: 80, effect: 'Heal 100 HP' },
+                    { name: 'Eksperymentalny napój magii', emoji: '🔮', price: 120, effect: 'Crit +10%' },
+                ];
+                const embed = new EmbedBuilder()
+                    .setTitle('🎒 Sklep z przedmiotami RPG')
+                    .setColor('#1bbdbd')
+                    .setDescription(`Portfel: **${money.toLocaleString('pl-PL')} ${COIN}**\n\n${sellItems.map((item, i) => `${i + 1}. ${item.emoji} **${item.name}** - ${item.price} ${COIN} | ${item.effect}`).join('\n')}`);
+                const btns = sellItems.map((item, i) => {
+                    const btn = new ButtonBuilder()
+                        .setCustomId(`shop_${i}`)
+                        .setLabel(`${item.name}`)
+                        .setEmoji(item.emoji)
+                        .setStyle(ButtonStyle.Success);
+                    if (money < item.price) {
+                        btn.setDisabled(true);
+                        btn.setEmoji('❌');
+                    }
+                    return btn;
+                });
+                const rows = [];
+                for (let i = 0; i < btns.length; i += 2) {
+                    rows.push(new ActionRowBuilder().addComponents(btns[i], btns[i + 1]));
+                }
+                await interaction.reply({ embeds: [embed], components: rows });
+            } else if (action === 'heal') {
+                // Wylecz postać
+                if (profile.rpg?.hp >= 100) {
+                    return interaction.reply({
+                        content: '🩺 Twoja postać jest już w pełni wyleczona!',
+                        ephemeral: true,
+                    });
+                }
+                const healCost = 50;
+                if (profile.money < healCost) {
+                    return interaction.reply({
+                        content: `❌ Nie masz wystarczająco monet! Potrzebujesz **${healCost} ${COIN}**`,
+                        ephemeral: true,
+                    });
+                }
+                const newMoney = profile.money - healCost;
+                await supabase.from('profiles').update({ money: newMoney }).eq('id', profile.id);
+                await supabase.from('profiles').update({ xp: profile.rpg?.hp }).eq('id', profile.id);
+                return interaction.reply({
+                    content: `🏥 **Szpital**\n\n✅ Wyleczono! HP: ${profile.rpg?.hp || 120} → 100\n💰 Koszt: ${healCost} ${COIN}\n💵 Pozostało: ${newMoney} ${COIN}`,
+                    ephemeral: true,
+                });
+            } else if (action === 'forge') {
+                // Ulepsz przedmioty
+                const upgrades = [
+                    { name: 'Ulepsz broń', price: 100, desc: '+5 ATK' },
+                    { name: 'Ulepsz hełm', price: 100, desc: '+3 DEF' },
+                    { name: 'Ulepsz zbroję', price: 200, desc: '+10 DEF' },
+                    { name: 'Ulepsz spodenie', price: 150, desc: '+7 DEF' },
+                    { name: 'Ulepsz buty', price: 150, desc: '+7 DEF' },
+                    { name: 'Ulepsz tarczę', price: 150, desc: '+10 DEF' },
+                    { name: 'Ulepsz pierścionek', price: 100, desc: '+5 stat' },
+                ];
+                const embed = new EmbedBuilder()
+                    .setTitle('🔨 Kowal')
+                    .setColor('#f6b41e')
+                    .setDescription(`Portfel: **${(profile.money || 0).toLocaleString('pl-PL')} ${COIN}**\n\n${upgrades.map((u, i) => `${i + 1}. ${u.emoji} **${u.name}** - ${u.price} ${COIN} | ${u.desc}`).join('\n')}`);
+                const btns = upgrades.map((upgrade, i) => {
+                    const btn = new ButtonBuilder()
+                        .setCustomId(`forge_${i}`)
+                        .setLabel(upgrade.name)
+                        .setEmoji(upgrade.emoji)
+                        .setStyle(ButtonStyle.Success);
+                    if (profile.money < upgrade.price) {
+                        btn.setDisabled(true);
+                        btn.setEmoji('❌');
+                    }
+                    return btn;
+                });
+                const rows = [];
+                for (let i = 0; i < btns.length; i += 2) {
+                    rows.push(new ActionRowBuilder().addComponents(btns[i], btns[i + 1]));
+                }
+                await interaction.reply({ embeds: [embed], components: rows });
+            } else if (action === 'shop') {
+                // Sklep
+                await handleShop(interaction, supabase, profile, COIN);
+            } else if (action === 'copy') {
+                // Kopia (np. kopia postaci)
+                return interaction.reply({
+                    content: '📋 **Kopia postaci** - Ta funkcja jest w rozwoju. Wróć później!',
+                    ephemeral: true,
+                });
+            }
+            break;
+        }
+        case 'rpg': {
+            // Alias do /postac - pokaż menu
             const stats = calculateStats(profile);
             const level = profile.level || 1;
-
             const embed = new EmbedBuilder()
-                .setTitle(`📊 Profil RPG: ${profile.username}`)
+                .setTitle('📊 Postać RPG: ' + profile.username + ' (Lvl ' + level + ')')
                 .setColor('#22FF00')
                 .setDescription(
                     `**Poziom:** ${level}\n` +
@@ -887,34 +1163,23 @@ client.on('interactionCreate', async interaction => {
                     { name: '💰 Money', value: `${profile.money || 0} ${COIN}`, inline: true },
                     { name: '🏦 Bank', value: `${profile.bank || 0} ${COIN}`, inline: true },
                 );
+            const rows = [];
+            const btnProfil = new ButtonBuilder().setCustomId('postac_profil').setLabel('📊 Profil').setStyle(ButtonStyle.Secondary).setEmoji('📊');
+            const btnEkwipunek = new ButtonBuilder().setCustomId('postac_ekwipunek').setLabel('🛡️ Ekwipunek').setStyle(ButtonStyle.Secondary).setEmoji('🛡️');
+            const btnInwentarz = new ButtonBuilder().setCustomId('postac_inwentarz').setLabel('🎒 Inwentarz').setStyle(ButtonStyle.Secondary).setEmoji('🎒');
+            const btnSell = new ButtonBuilder().setCustomId('postac_sell').setLabel('🎒 Sprzedaj').setStyle(ButtonStyle.Secondary).setEmoji('🎒');
+            const btnHeal = new ButtonBuilder().setCustomId('postac_heal').setLabel('🏥 Wylecz').setStyle(ButtonStyle.Secondary).setEmoji('🏥');
+            const btnForge = new ButtonBuilder().setCustomId('postac_forge').setLabel('🔨 Ulepsz').setStyle(ButtonStyle.Secondary).setEmoji('🔨');
+            const btnShop = new ButtonBuilder().setCustomId('postac_shop').setLabel('🛒 Sklep').setStyle(ButtonStyle.Secondary).setEmoji('🛒');
 
-            if (profile.rpg?.equipment) {
-                const eq = profile.rpg.equipment;
-                const equipped = [];
-                if (eq.weapon) equipped.push(`⚔️ Bron: ${eq.weapon}`);
-                if (eq.helmet) equipped.push(`🪖 Hełm: ${eq.helmet}`);
-                if (eq.chest) equipped.push(`🧥 Zbroja: ${eq.chest}`);
-                if (eq.pants) equipped.push(`👖 Spodnie: ${eq.pants}`);
-                if (eq.boots) equipped.push(`👢 Buty: ${eq.boots}`);
-                if (eq.shield) equipped.push(`🛡️ Tarcza: ${eq.shield}`);
-                if (eq.ring) equipped.push(`💍 Pierścień: ${eq.ring}`);
+            rows.push(new ActionRowBuilder().addComponents(btnProfil, btnEkwipunek));
+            rows.push(new ActionRowBuilder().addComponents(btnInwentarz, btnSell));
+            rows.push(new ActionRowBuilder().addComponents(btnHeal, btnForge));
+            rows.push(new ActionRowBuilder().addComponents(btnShop));
 
-                if (equipped.length > 0) {
-                    embed.addFields({ name: '🛡️ Ekwipunek:', value: equipped.join('\n'), inline: false });
-                }
-            }
-
-            await interaction.reply({ embeds: [embed] });
+            await interaction.reply({ embeds: [embed], components: rows });
             break;
         }
-
-        case 'rpg_equipment':
-            await handleEquipment(interaction, supabase, profile);
-            break;
-
-        case 'rpg_inventory':
-            await handleInventory(interaction, supabase, profile);
-            break;
 
         case 'rpg_sell': {
             const money = profile.money || 0;
