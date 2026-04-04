@@ -108,10 +108,10 @@ export default function SettingsPage() {
     </button>
   );
 
-  const ColorChip = ({ value, label, className }: { value: "ocean" | "crimson" | "emerald" | "violet" | "amber"; label: string; className: string }) => (
+  const ColorChip = ({ value, label }: { value: "ocean" | "crimson" | "emerald" | "violet" | "amber"; label: string }) => (
     <button
       onClick={() => setColorTheme(value)}
-      className={`${colorTheme === value ? "bg-[var(--color-general)]/10 border-[var(--color-general)]" : (!darkMode ? "bg-neutral-100/80 border-neutral-200" : "bg-[var(--bg)]/50 border-[var(--border-color)]")}`}
+      className={`${colorTheme === value ? "bg-[var(--color-general)]/10 border-[var(--color-general)]" : (darkMode ? "bg-[var(--bg)]/50 border-[var(--border-color)]" : "bg-neutral-100/80 border-neutral-200")}`}
     >
       <span className="w-6 h-6 shrink-0 rounded-full" style={{ background: "currentColor" }} />
       <div className="text-left overflow-hidden">
