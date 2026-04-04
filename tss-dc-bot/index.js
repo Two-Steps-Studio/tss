@@ -255,30 +255,16 @@ const commands = [
         ),
     new SlashCommandBuilder()
         .setName('mapa')
-        .setDescription('Pokaż mapę serwera RPG')
+        .setDescription('Pokaż mapę serwera RPG i wybierz lokalizację')
         .addStringOption(option =>
             option.setName('lokalizacja')
-                .setDescription('Z jakiej lokacji chcesz zobaczyć mapę?')
-                .setRequired(false)
-                .addChoices(
-                    { name: 'Kopalnia', value: 'kopalnia' },
-                    { name: 'Staw', value: 'staw' },
-                    { name: 'Dungeon', value: 'dungeon' },
-                    { name: 'Miasto', value: 'miasto' },
-                )
-        ),
-    new SlashCommandBuilder()
-        .setName('go')
-        .setDescription('Przejdź do lokacji')
-        .addStringOption(option =>
-            option.setName('lokacja')
-                .setDescription('Do jakiej lokacji chcesz pójść?')
+                .setDescription('Wybierz, gdzie chcesz pójść (kliknij w menu rozwijającym)')
                 .setRequired(true)
                 .addChoices(
-                    { name: 'Kopalnia', value: 'kopalnia' },
-                    { name: 'Staw', value: 'staw' },
-                    { name: 'Dungeon', value: 'dungeon' },
-                    { name: 'Miasto', value: 'miasto' },
+                    { name: '⛏️ Kopalnia', value: 'kopalnia' },
+                    { name: '🎣 Staw', value: 'staw' },
+                    { name: '🏰 Dungeon', value: 'dungeon' },
+                    { name: '🏙️ Miasto', value: 'miasto' },
                 )
         ),
     new SlashCommandBuilder()
@@ -762,7 +748,9 @@ client.on('interactionCreate', async interaction => {
             break;
 
         case 'mapa': {
-            const location = interaction.options.getString('lokalizacja') || 'miasto';
+            const location = interaction.options.getString('lokalizacja');
+            const profile = await getRpgProfile(interaction.user.id, supabase);
+
             const locationNames = {
                 kopalnia: { title: '⛏️ KOPALNIA', desc: '🏠 Start\n🪨 Rudnik\n📦 Skrzynia\n🔒 Klatka' },
                 staw: { title: '🎣 STAW', desc: '🏠 Start\n🎣 Miejsce do łowienia ryb\n🪝 Miejsce do wędkowania\n🌊 Woda' },
@@ -791,27 +779,10 @@ client.on('interactionCreate', async interaction => {
                     `• **${locationNames.dungeon.title}** - Dungeon z bossami\n` +
                     `• **${locationNames.miasto.title}** - Miejsce handlu i naprawy\n\n` +
                     `**Obecna lokalizacja:** ${location.toUpperCase()}\n\n` +
-                    '**Użyj komendy:**\n' +
-                    '`/go lokacja:kopalnia|staw|dungeon|miasto`'
+                    '**Wybierz z menu dropdownu!'`
                 )
                 .setFooter({ text: 'Mini RPG Server' })
                 .setTimestamp();
-
-            // Prawdziwa mapa serwera
-            const mapFile = Buffer.from(
-                'iVBORw0KGgoAABANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAhklEQVQ4y2NgYGD4z0wADQ4O/wQDAwMDA3QADw8PDAwMDK0MDIwMDAwM0AE8gAcEABwQAfAEAA==',
-                'base64'
-            );
-
-            await interaction.reply({ embeds: [embed], files: [mapFile] });
-            break;
-        }
-            break;
-        }
-
-        case 'go': {
-            const location = interaction.options.getString('lokacja');
-            const profile = await getRpgProfile(interaction.user.id, supabase);
 
             if (location === 'kopalnia') {
                 await handleMine(interaction, supabase, profile);
@@ -823,8 +794,6 @@ client.on('interactionCreate', async interaction => {
                 await handleDungeon(interaction, supabase, profile, level);
             } else if (location === 'miasto') {
                 await handleCity(interaction, supabase, profile);
-            } else {
-                return interaction.reply({ content: '❌ Nieznana lokacja. Użyj: /go lokacja:kopalnia|staw|dungeon|miasto', ephemeral: true });
             }
             break;
         }
