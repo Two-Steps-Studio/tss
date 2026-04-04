@@ -108,12 +108,12 @@ export default function SettingsPage() {
     </button>
   );
 
-  const ColorChip = ({ value, label }: { value: "ocean" | "crimson" | "emerald" | "violet" | "amber"; label: string }) => {
+  const ColorChip = ({ value, label, className }: { value: "ocean" | "crimson" | "emerald" | "violet" | "amber"; label: string; className?: string }) => {
     const isDark = resolvedTheme === "dark";
     return (
       <button
         onClick={() => setColorTheme(value)}
-        className={`${colorTheme === value ? "bg-[var(--color-general)]/10 border-[var(--color-general)]" : (isDark ? "bg-[var(--bg)]/50 border-[var(--border-color)]" : "bg-neutral-100/80 border-neutral-200")}`}
+        className={`${className} ${colorTheme === value ? "bg-[var(--color-general)]/10 border-[var(--color-general)]" : (isDark ? "bg-[var(--bg)]/50 border-[var(--border-color)]" : "bg-neutral-100/80 border-neutral-200")}`}
       >
         <span className="w-6 h-6 shrink-0 rounded-full" style={{ background: "currentColor" }} />
         <div className="text-left overflow-hidden">
@@ -183,11 +183,11 @@ export default function SettingsPage() {
             <CardTitle className="text-[var(--text)]">{t.settings.colorTheme}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <ColorChip value="ocean" label={t.settings.themes.default} className="text-[#1bbdbd]" />
-            <ColorChip value="crimson" label="Cyberpunk" className="text-[#dc3545]" />
-            <ColorChip value="emerald" label="Nature" className="text-[#06e402]" />
-            <ColorChip value="violet" label="Midnight" className="text-[#ad83f8]" />
-            <ColorChip value="amber" label="Gold" className="text-[#ffcB2f]" />
+            <ColorChip value="ocean" label={t.settings.themes.default} />
+            <ColorChip value="crimson" label="Cyberpunk" />
+            <ColorChip value="emerald" label="Nature" />
+            <ColorChip value="violet" label="Midnight" />
+            <ColorChip value="amber" label="Gold" />
           </CardContent>
         </Card>
       </div>
