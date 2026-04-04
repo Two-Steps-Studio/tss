@@ -113,7 +113,7 @@ export default function SettingsPage() {
     return (
       <button
         onClick={() => setColorTheme(value)}
-        className={`${className} ${colorTheme === value ? "bg-[var(--color-general)]/10 border-[var(--color-general)]" : (isDark ? "bg-[var(--bg)]/50 border-[var(--border-color)]" : "bg-neutral-100/80 border-neutral-200")}`}
+        className={`${className || ""} ${colorTheme === value ? "bg-[var(--color-general)]/10 border-[var(--color-general)]" : (isDark ? "bg-[var(--bg)]/50 border-[var(--border-color)]" : "bg-neutral-100/80 border-neutral-200")}`}
       >
         <span className="w-6 h-6 shrink-0 rounded-full" style={{ background: "currentColor" }} />
         <div className="text-left overflow-hidden">
