@@ -108,18 +108,21 @@ export default function SettingsPage() {
     </button>
   );
 
-  const ColorChip = ({ value, label }: { value: "ocean" | "crimson" | "emerald" | "violet" | "amber"; label: string }) => (
-    <button
-      onClick={() => setColorTheme(value)}
-      className={`${colorTheme === value ? "bg-[var(--color-general)]/10 border-[var(--color-general)]" : (darkMode ? "bg-[var(--bg)]/50 border-[var(--border-color)]" : "bg-neutral-100/80 border-neutral-200")}`}
-    >
-      <span className="w-6 h-6 shrink-0 rounded-full" style={{ background: "currentColor" }} />
-      <div className="text-left overflow-hidden">
-        <div className="text-sm font-bold truncate">{label}</div>
-      </div>
-      {colorTheme === value && <Check size={16} className="ml-auto text-[var(--color-general)] shrink-0" />}
-    </button>
-  );
+  const ColorChip = ({ value, label }: { value: "ocean" | "crimson" | "emerald" | "violet" | "amber"; label: string }) => {
+    const isDark = resolvedTheme === "dark";
+    return (
+      <button
+        onClick={() => setColorTheme(value)}
+        className={`${colorTheme === value ? "bg-[var(--color-general)]/10 border-[var(--color-general)]" : (isDark ? "bg-[var(--bg)]/50 border-[var(--border-color)]" : "bg-neutral-100/80 border-neutral-200")}`}
+      >
+        <span className="w-6 h-6 shrink-0 rounded-full" style={{ background: "currentColor" }} />
+        <div className="text-left overflow-hidden">
+          <div className="text-sm font-bold truncate">{label}</div>
+        </div>
+        {colorTheme === value && <Check size={16} className="ml-auto text-[var(--color-general)] shrink-0" />}
+      </button>
+    );
+  };
 
   return (
     <div className={`container mx-auto p-6 mt-20 max-w-7xl transition-colors ${!darkMode ? 'bg-[var(--bg)]' : ''}`}>
