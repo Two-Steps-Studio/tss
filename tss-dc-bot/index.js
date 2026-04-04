@@ -288,6 +288,20 @@ const commands = [
     new SlashCommandBuilder()
         .setName('rpg_shop')
         .setDescription('Sklep z przedmiotami RPG'),
+    new SlashCommandBuilder()
+        .setName('pay')
+        .setDescription('Przelej monety innemu użytkownikowi')
+        .addUserOption(option =>
+            option.setName('uzytkownik')
+                .setDescription('Użytkownik, który otrzyma przelew')
+                .setRequired(true)
+        )
+        .addIntegerOption(option =>
+            option.setName('ilosc')
+                .setDescription('Ile monet chcesz przelać')
+                .setRequired(true)
+                .setMinValue(1)
+        ),
 ].map(cmd => cmd.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
@@ -658,6 +672,60 @@ client.on('interactionCreate', async interaction => {
             break;
         }
 
+        case 'pay': {
+            const targetUser = interaction.options.getUser('uzytkownik');
+            const amount = interaction.options.getInteger('ilosc');
+
+            if (targetUser.id === interaction.user.id) {
+                return await interaction.editReply({ content: '❌ Nie możesz przelać monet samemu sobie.', ephemeral: true });
+            }
+
+            const currentMoney = profile.money ?? 0;
+            if (amount <= 0 || currentMoney < amount) {
+                return await interaction.editReply({
+                    content: `❌ Nie masz wystarczająco monet! Potrzebujesz **${amount}** ${COIN}, a masz **${currentMoney}** ${COIN}.`,
+                    ephemeral: true
+                });
+            }
+
+            // Pobierz profil odbiorcy
+            const targetMember = await interaction.guild?.members.fetch(targetUser.id).catch(() => null);
+            if (!targetMember) {
+                return await interaction.editReply({ content: `❌ Nie znaleziono użytkownika: ${targetUser.username}`, ephemeral: true });
+            }
+
+            const targetRoles = targetMember.roles.cache.filter(r => r.name !== '@everyone').map(r => r.name) || [];
+            const targetProfile = await getProfile(targetUser.id, targetUser.username, targetRoles);
+
+            if (!targetProfile) {
+                return await interaction.editReply({ content: `❌ Nie znaleziono profilu dla: ${targetUser.username}`, ephemeral: true });
+            }
+
+            // Wykonaj przelew
+            const newSenderMoney = currentMoney - amount;
+            const newTargetMoney = (targetProfile.money ?? 0) + amount;
+
+            await supabase.from('profiles').update({ money: newSenderMoney }).eq('id', profile.id);
+            await supabase.from('profiles').update({ money: newTargetMoney }).eq('id', targetProfile.id);
+
+            const embed = new EmbedBuilder()
+                .setTitle('💸 Przelew monet')
+                .setColor('#1bbdbd')
+                .addFields(
+                    { name: '📤 Nadawca', value: `${interaction.user.username}`, inline: true },
+                    { name: '📥 Odbiorca', value: `${targetUser.username}`, inline: true },
+                    { name: '💰 Kwota', value: `**${amount}** ${COIN}`, inline: true },
+                )
+                .addFields(
+                    { name: '💵 Portfel nadawcy', value: `**${newSenderMoney}** ${COIN}`, inline: true },
+                    { name: '💵 Portfel odbiorcy', value: `**${newTargetMoney}** ${COIN}`, inline: true },
+                )
+                .setTimestamp();
+
+            await interaction.editReply({ embeds: [embed] });
+            break;
+        }
+
         case 'topmoney': {
             const { data: top } = await supabase
                 .from('profiles').select('*')
@@ -779,7 +847,7 @@ client.on('interactionCreate', async interaction => {
                     `• **${locationNames.dungeon.title}** - Dungeon z bossami\n` +
                     `• **${locationNames.miasto.title}** - Miejsce handlu i naprawy\n\n` +
                     `**Obecna lokalizacja:** ${location.toUpperCase()}\n\n` +
-                    '**Wybierz z menu dropdownu!'`
+                    '**Wybierz z menu dropdownu!'
                 )
                 .setFooter({ text: 'Mini RPG Server' })
                 .setTimestamp();

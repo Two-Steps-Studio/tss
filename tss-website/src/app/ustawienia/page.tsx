@@ -22,7 +22,8 @@ type Prefs = {
 
 export default function SettingsPage() {
   const { t, language, setLanguage } = useLanguage();
-  const { theme: appearance, setTheme } = useTheme();
+  const { theme: appearance, setTheme, resolvedTheme } = useTheme();
+  const darkMode = resolvedTheme === "dark";
   const { theme: colorTheme, setTheme: setColorTheme } = useColorTheme();
   const [prefs, setPrefs] = useState<Prefs>({
     animations: true,
