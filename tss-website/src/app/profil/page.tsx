@@ -246,7 +246,7 @@ export default function ProfilePage() {
                             </div>
                             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
                                 <span className="text-sm font-bold opacity-60 text-white">Saldo PLN</span>
-                                <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-general)]">{profile?.pln_balance?.toFixed(2) || "0.00"} PLN</span></div>
+                                <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-general)]">{profile?.pln_balance?.toFixed(2) || "0.00"} zł</span></div>
                             </div>
                         </CardContent>
                     </Card>
