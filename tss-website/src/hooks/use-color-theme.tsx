@@ -17,7 +17,7 @@ export function ColorThemeProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     let savedTheme = localStorage.getItem("color-theme") as string;
     if (savedTheme === "default") savedTheme = "ocean";
-    
+
     if (savedTheme && ["ocean", "crimson", "emerald", "violet", "amber"].includes(savedTheme)) {
       setThemeState(savedTheme as ColorTheme);
       applyThemeToElement(savedTheme as ColorTheme);
@@ -31,11 +31,17 @@ export function ColorThemeProvider({ children }: { children: React.ReactNode }) 
     // Remove all possible theme classes
     const themes: ColorTheme[] = ["ocean", "crimson", "emerald", "violet", "amber"];
     themes.forEach(t => root.classList.remove(`theme-${t}`));
-    
+
     root.classList.add(`theme-${newTheme}`);
-    
-    // We no longer want useSectionTheme to override colors, so we don't need to manage --color-general-current here
-    // The CSS classes in globals.css will handle --color-general-current
+
+    // ocean and amber are light mode themes, others are dark
+    if (newTheme === "ocean" || newTheme === "amber") {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    } else {
+      root.classList.remove('light');
+      root.classList.add('dark');
+    }
   };
 
   const setTheme = (newTheme: ColorTheme) => {

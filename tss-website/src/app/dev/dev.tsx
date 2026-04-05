@@ -4,28 +4,6 @@ import React, { useEffect, useState, DragEvent, FormEvent } from "react";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-const useDarkMode = () => {
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('darkMode');
-    if (saved !== null) {
-      setDarkMode(JSON.parse(saved));
-    } else if (typeof window !== 'undefined' && window.matchMedia) {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      setDarkMode(mediaQuery.matches);
-
-      const handler = (e: MediaQueryListEvent) => setDarkMode(e.matches);
-      mediaQuery.addEventListener('change', handler);
-      return () => mediaQuery.removeEventListener('change', handler);
-    }
-  }, []);
-
-  return { darkMode };
-};
-
-const { darkMode } = useDarkMode();
-
 type ColumnType = "pending" | "todo" | "in_progress" | "completed";
 
 type CardType = {
@@ -108,6 +86,22 @@ export default function KanbanBoard() {
     in_progress: "",
     completed: "",
   });
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Ustawienie trybu ciemnego
+  useEffect(() => {
+    const saved = localStorage.getItem('darkMode');
+    if (saved !== null) {
+      setDarkMode(JSON.parse(saved));
+    } else if (typeof window !== 'undefined' && window.matchMedia) {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      setDarkMode(mediaQuery.matches);
+
+      const handler = (e: MediaQueryListEvent) => setDarkMode(e.matches);
+      mediaQuery.addEventListener('change', handler);
+      return () => mediaQuery.removeEventListener('change', handler);
+    }
+  }, []);
 
   useEffect(() => {
     fetchCards();
@@ -193,7 +187,7 @@ export default function KanbanBoard() {
       {loading ? (
         <LoadingState />
       ) : errors.length ? (
-        <ErrorState errors={errors} onRetry={fetchCards} />
+        <ErrorState errors={errors} onRetry={fetchCards} darkMode={darkMode} />
       ) : (
         <Board
           cards={cards}
@@ -240,13 +234,14 @@ const Board = ({
           setAdding={(adding: boolean) => setAddingColumn(adding ? column : null)}
           newTitle={newTitles[column]}
           setNewTitle={(value: string) => setNewTitles(column, value)}
+          darkMode={darkMode}
         />
       ))}
     </div>
   );
 };
 
-const LoadingState = () => (
+const LoadingState = ({ darkMode }: { darkMode: boolean }) => (
   <div className="flex h-full w-full gap-4 overflow-x-auto p-4">
     {COLUMNS.slice(0, 2).map((column) => (
       <div key={column} className="w-72 shrink-0">
@@ -286,9 +281,10 @@ type ColumnProps = {
   setAdding: (adding: boolean) => void;
   newTitle: string;
   setNewTitle: (value: string) => void;
+  darkMode: boolean;
 };
 
-const Column = ({ title, column, cards, setCards, onDragEnd, adding, setAdding, newTitle, setNewTitle }: ColumnProps) => {
+const Column = ({ title, column, cards, setCards, onDragEnd, adding, setAdding, newTitle, setNewTitle, darkMode }: ColumnProps) => {
   const handleDragStart = (e: DragEvent, card: CardType) => {
     e.dataTransfer.setData("cardId", String(card.id));
   };

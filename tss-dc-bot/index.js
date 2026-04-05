@@ -106,6 +106,13 @@ const cooldowns = new Map();
 let messagesTodayCount = 0;
 let lastDay = new Date().getDate();
 
+// Fix: Initialize lastDay once on startup, not constantly
+client.once('ready', () => {
+    lastDay = new Date().getDate();
+    messagesTodayCount = 0;
+    console.log('[BOT] Bot jest gotowy. Reset zlicznika wiadomości.');
+});
+
 function getLevelFromXP(xp) {
     if (!xp || xp < 100) return 0;
     return Math.floor(0.1 * Math.sqrt(xp));
@@ -406,15 +413,20 @@ async function updateDiscordStats() {
         const channels = guild.channels.cache.size;
 
         const currentDay = new Date().getDate();
-        if (currentDay !== lastDay) { messagesTodayCount = 0; lastDay = currentDay; }
+        if (currentDay !== lastDay) {
+            messagesTodayCount = 0;
+            lastDay = currentDay;
+            console.log('[STATS] Nowa data, reset zlicznika wiadomości.');
+        }
 
-        await supabase.from('discord_stats').insert({
+        // Używaj upsert aby utrzymać najnowsze dane
+        await supabase.from('discord_stats').upsert({
             online_users:    online    || 0,
             active_channels: channels  || 0,
             member_count:    humans    || 0,
             messages_today:  messagesTodayCount || 0,
             recorded_at:     new Date().toISOString(),
-        });
+        }, { onConflict: 'recorded_at' });
     } catch (e) {
         console.error('[STATS] Błąd:', e.message);
     }

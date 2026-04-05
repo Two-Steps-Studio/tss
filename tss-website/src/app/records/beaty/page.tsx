@@ -1,18 +1,167 @@
-import { createClient } from "@/lib/supabase-server";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Music, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Music, Calendar, Play, ShoppingCart, Filter, Check } from "lucide-react";
+import { toast } from "sonner";
 
-export default async function BeatyPage() {
-  const supabase = await createClient();
-  const { data: records } = await supabase
-    .from("records")
-    .select("*")
-    .eq("type", "beat")
-    .order("upload_date", { ascending: false });
+type BeatTier = "free" | "basic" | "premium" | "unlimited" | "exclusive";
+
+interface BeatPackage {
+  tier: BeatTier;
+  price: number;
+  description: string;
+  features: string[];
+  stripe_price_id?: string;
+}
+
+interface Beat {
+  id: string;
+  title: string;
+  description?: string;
+  bpm?: number;
+  key?: string;
+  duration?: number;
+  audio_url?: string;
+  preview_url?: string;
+  cover_image?: string;
+  packages: BeatPackage[];
+  status: "available" | "sold" | "reserved";
+  upload_date?: string;
+}
+
+const TIER_CONFIG: Record<BeatTier, { label: string; color: string; bgColor: string; description: string; borderColor: string }> = {
+  free: {
+    label: "Free",
+    color: "text-zinc-400",
+    bgColor: "bg-zinc-500/10",
+    borderColor: "border-zinc-500/30",
+    description: "Darmowy beat do użytku niekomercyjnego",
+  },
+  basic: {
+    label: "Basic",
+    color: "text-blue-400",
+    bgColor: "bg-blue-500/10",
+    borderColor: "border-blue-500/30",
+    description: "Podstawowa licencja",
+  },
+  premium: {
+    label: "Premium",
+    color: "text-purple-400",
+    bgColor: "bg-purple-500/10",
+    borderColor: "border-purple-500/30",
+    description: "Rozszerzona licencja",
+  },
+  unlimited: {
+    label: "Unlimited",
+    color: "text-orange-400",
+    bgColor: "bg-orange-500/10",
+    borderColor: "border-orange-500/30",
+    description: "Nieograniczona licencja",
+  },
+  exclusive: {
+    label: "Exclusive",
+    color: "text-yellow-400",
+    bgColor: "bg-yellow-500/10",
+    borderColor: "border-yellow-500/30",
+    description: "Ekskluzywne prawa",
+  },
+};
+
+const TIERS: BeatTier[] = ["free", "basic", "premium", "unlimited", "exclusive"];
+
+const DEFAULT_PACKAGES: Record<BeatTier, string[]> = {
+  free: ["Użycie niekomercyjne", "Tylko streaming", "Bez dystrybucji"],
+  basic: ["Użycie komercyjne", "Do 100k streamów", "1 projekt"],
+  premium: ["Użycie komercyjne", "Do 500k streamów", "3 projekty", "Wersja WAV"],
+  unlimited: ["Użycie komercyjne", "Nielimitowane streamy", "Nielimitowane projekty", "Wersja WAV + stems"],
+  exclusive: ["Pełne prawa autorskie", "Beat usuwany ze sklepu", "Wszystkie formaty", "Priorytetowe wsparcie"],
+};
+
+export default function BeatyPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [beats, setBeats] = useState<Beat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTier, setSelectedTier] = useState<BeatTier | "all">("all");
+  const [playingId, setPlayingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Sprawdź czy użytkownik wrócił po płatności
+    if (searchParams.get("success")) {
+      toast.success("Płatność zakończona pomyślnie!");
+    }
+    if (searchParams.get("canceled")) {
+      toast.error("Płatność została anulowana");
+    }
+
+    fetchBeats();
+  }, []);
+
+  const fetchBeats = async () => {
+    try {
+      const res = await fetch("/api/beaty");
+      const data = await res.json();
+      setBeats(data || []);
+    } catch (error) {
+      console.error("Błąd pobierania beatów:", error);
+      toast.error("Nie udało się załadować beatów");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBuy = async (beatId: string, beatTitle: string, pkg: BeatPackage) => {
+    if (pkg.tier === "free") {
+      toast.info("Pobieranie darmowego beatu...");
+      // TODO: logika pobierania darmowego beatu
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          beatId,
+          beatTitle,
+          price: pkg.price,
+          tier: pkg.tier,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        toast.error("Nie udało się utworzyć sesji płatności");
+      }
+    } catch (error) {
+      console.error("Błąd płatności:", error);
+      toast.error("Wystąpił błąd podczas płatności");
+    }
+  };
+
+  const handlePlay = (beatId: string, title: string) => {
+    if (playingId === beatId) {
+      setPlayingId(null);
+    } else {
+      setPlayingId(beatId);
+      toast.info(`Odtwarzanie: ${title}`);
+    }
+  };
+
+  const filteredBeats = selectedTier === "all"
+    ? beats
+    : beats.filter((beat) => beat.packages.some((p) => p.tier === selectedTier));
 
   return (
     <div className="container mx-auto p-6 mt-20 max-w-7xl">
+      {/* Header */}
       <div className="relative mb-16 p-8 md:p-12 rounded-[2.5rem] overflow-hidden bg-black/40 border border-white/10 backdrop-blur-md shadow-2xl">
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-records)]/20 via-transparent to-transparent opacity-50" />
         <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-[var(--color-records)]/20 blur-3xl animate-pulse" />
@@ -22,64 +171,196 @@ export default async function BeatyPage() {
             Two Steps Studio
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold text-white font-[family-name:var(--font-space)] tracking-tight">
-            Nasze <span className="text-[var(--color-records)]">Beaty</span>
+            Sklep z <span className="text-[var(--color-records)]">Beatami</span>
           </h1>
           <p className="text-zinc-400 max-w-2xl font-[family-name:var(--font-outfit)] text-lg md:text-xl leading-relaxed">
-            Beaty do kupienia i pobrania — prosto z naszego studia.
+            Wybierz swój beat - od darmowych po ekskluzywne licencje.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {records?.map((record) => (
-          <Card
-            key={record.id}
-            className="group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-black/40 border border-white/10 hover:border-[var(--color-records)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]"
+      {/* Filtry tierów */}
+      <div className="mb-8 flex flex-wrap gap-2">
+        <div className="flex items-center gap-2 text-zinc-400 text-sm mr-4">
+          <Filter size={16} />
+          <span>Filtruj:</span>
+        </div>
+        <Button
+          variant={selectedTier === "all" ? "default" : "outline"}
+          onClick={() => setSelectedTier("all")}
+          className={`rounded-full ${
+            selectedTier === "all"
+              ? "bg-[var(--color-records)] text-white"
+              : "border-white/10 text-zinc-400 hover:text-white"
+          }`}
+        >
+          Wszystkie
+        </Button>
+        {TIERS.map((tier) => (
+          <Button
+            key={tier}
+            variant={selectedTier === tier ? "default" : "outline"}
+            onClick={() => setSelectedTier(tier)}
+            className={`rounded-full ${
+              selectedTier === tier
+                ? `${TIER_CONFIG[tier].bgColor} ${TIER_CONFIG[tier].color} border-0`
+                : "border-white/10 text-zinc-400 hover:text-white"
+            }`}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-records)]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-700">
-              <Music size={120} className="text-[var(--color-records)]" />
-            </div>
-
-            <CardHeader className="relative z-10 pb-4">
-              <div className="flex justify-between items-start gap-4">
-                <CardTitle className="text-2xl font-bold font-[family-name:var(--font-space)] text-white group-hover:text-[var(--color-records)] transition-colors line-clamp-1">
-                  {record.title}
-                </CardTitle>
-                <Badge
-                  variant="secondary"
-                  className="bg-[var(--color-records)]/10 text-[var(--color-records)] border border-[var(--color-records)]/20 shrink-0 uppercase"
-                >
-                  beat
-                </Badge>
-              </div>
-              <CardDescription className="flex items-center gap-2 text-zinc-500 font-[family-name:var(--font-outfit)] text-sm">
-                <Calendar size={14} />
-                Dodano:{" "}
-                <span className="text-zinc-300">
-                  {record.upload_date
-                    ? new Date(record.upload_date).toLocaleDateString()
-                    : "Niedawno"}
-                </span>
-              </CardDescription>
-            </CardHeader>
-
-            <CardContent className="relative z-10 pt-0 flex-1 flex flex-col justify-between">
-              <p className="text-zinc-400 font-[family-name:var(--font-outfit)] leading-relaxed line-clamp-3">
-                {record.description}
-              </p>
-
-              <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between">
-                <span className="text-xs text-zinc-600 font-mono uppercase tracking-wider">
-                  ID: {record.id}
-                </span>
-                <div className="h-8 w-8 rounded-full bg-[var(--color-records)]/10 flex items-center justify-center text-[var(--color-records)] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                  <Music size={16} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            {TIER_CONFIG[tier].label}
+          </Button>
         ))}
+      </div>
+
+      {/* Lista beatów */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[...Array(6)].map((_, i) => (
+            <Card
+              key={i}
+              className="rounded-[2.5rem] bg-black/40 border border-white/10 animate-pulse h-80"
+            />
+          ))}
+        </div>
+      ) : filteredBeats.length === 0 ? (
+        <Card className="w-full glass rounded-[2.5rem] shadow-2xl">
+          <CardContent className="p-12 text-center">
+            <Music className="w-16 h-16 mx-auto mb-6 text-zinc-400" />
+            <h2 className="text-2xl font-bold mb-2 text-white">Brak beatów</h2>
+            <p className="text-zinc-400">
+              {selectedTier === "all"
+                ? "Brak dostępnych beatów w sklepie."
+                : `Brak beatów w kategorii ${TIER_CONFIG[selectedTier].label}.`}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-8">
+          {filteredBeats.map((beat) => (
+            <Card
+              key={beat.id}
+              className={`group relative overflow-hidden rounded-[2.5rem] bg-black/40 border border-white/10 transition-all duration-500 ${
+                beat.status !== "available" ? "opacity-50 grayscale" : "hover:border-[var(--color-records)]"
+              }`}
+            >
+              {/* Header beatu */}
+              <CardHeader className="pb-4 border-b border-white/5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handlePlay(beat.id, beat.title)}
+                      className="h-12 w-12 rounded-full bg-[var(--color-records)]/10 text-[var(--color-records)] hover:bg-[var(--color-records)]/20"
+                    >
+                      <Play size={20} className={playingId === beat.id ? "fill-current" : ""} />
+                    </Button>
+                    <div>
+                      <CardTitle className="text-2xl font-bold text-white font-[family-name:var(--font-space)]">
+                        {beat.title}
+                      </CardTitle>
+                      <CardDescription className="flex items-center gap-2 text-zinc-500 font-[family-name:var(--font-outfit)] text-sm mt-1">
+                        <Calendar size={14} />
+                        Dodano: {beat.upload_date ? new Date(beat.upload_date).toLocaleDateString() : "Niedawno"}
+                        {beat.bpm && <span className="mx-2">•</span>}
+                        {beat.bpm && <span className="text-zinc-400">{beat.bpm} BPM</span>}
+                        {beat.key && <span className="mx-2">•</span>}
+                        {beat.key && <span className="text-zinc-400">{beat.key}</span>}
+                      </CardDescription>
+                    </div>
+                  </div>
+                  {beat.description && (
+                    <p className="text-zinc-400 text-sm max-w-md font-[family-name:var(--font-outfit)]">
+                      {beat.description}
+                    </p>
+                  )}
+                </div>
+              </CardHeader>
+
+              {/* Pakiety */}
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                  {beat.packages.map((pkg) => {
+                    const config = TIER_CONFIG[pkg.tier];
+                    return (
+                      <div
+                        key={pkg.tier}
+                        className={`relative rounded-2xl border p-4 transition-all hover:scale-[1.02] ${config.bgColor} ${config.borderColor}`}
+                      >
+                        {/* Label */}
+                        <div className={`text-sm font-bold ${config.color} mb-1`}>{config.label}</div>
+
+                        {/* Cena */}
+                        <div className="text-2xl font-black text-white mb-2">
+                          {pkg.price === 0 ? "DARMOWY" : `${pkg.price} PLN`}
+                        </div>
+
+                        {/* Opis */}
+                        <p className="text-xs text-zinc-400 mb-3">{pkg.description}</p>
+
+                        {/* Features */}
+                        <ul className="space-y-1.5 mb-4">
+                          {pkg.features.map((feature, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-xs text-zinc-300">
+                              <Check size={12} className={`shrink-0 mt-0.5 ${config.color}`} />
+                              <span>{feature}</span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        {/* Przycisk */}
+                        <Button
+                          onClick={() => handleBuy(beat.id, beat.title, pkg)}
+                          disabled={beat.status !== "available"}
+                          className={`w-full rounded-xl font-bold ${
+                            pkg.tier === "free"
+                              ? "bg-zinc-700 text-white hover:bg-zinc-600"
+                              : "bg-[var(--color-records)] text-white hover:bg-[var(--color-records)]/80"
+                          }`}
+                          size="sm"
+                        >
+                          {pkg.tier === "free" ? "Pobierz" : "Kup teraz"}
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Info o tierach */}
+      <div className="mt-12 p-8 rounded-[2rem] bg-black/40 border border-white/10">
+        <h3 className="text-2xl font-bold text-white mb-6 font-[family-name:var(--font-space)]">
+          Rodzaje licencji
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          {TIERS.map((tier) => {
+            const config = TIER_CONFIG[tier];
+            const features = DEFAULT_PACKAGES[tier];
+            return (
+              <div
+                key={tier}
+                className={`p-4 rounded-xl ${config.bgColor} border border-white/5`}
+              >
+                <h4 className={`font-bold mb-2 ${config.color}`}>
+                  {config.label}
+                </h4>
+                <p className="text-xs text-zinc-400 mb-3">{config.description}</p>
+                <ul className="space-y-1">
+                  {features.map((f, i) => (
+                    <li key={i} className="text-xs text-zinc-300 flex items-start gap-1.5">
+                      <Check size={10} className={`shrink-0 mt-0.5 ${config.color}`} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

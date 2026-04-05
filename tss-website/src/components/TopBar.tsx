@@ -219,6 +219,9 @@ export function TopBar() {
                     maximumFractionDigits: 2
                   })}
                 </span>
+                <Link href="/profil" className="text-xs text-[var(--text)] font-medium hover:text-[var(--color-general)] transition-colors">
+                  Profilowe
+                </Link>
               </div>
             </div>
           ) : (

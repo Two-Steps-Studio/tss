@@ -39,8 +39,9 @@
   --border-color: rgba(0, 0, 0, 0.08);
 }
 
+/* Globalny dark mode - nadpisuje wszystkie motywy */
 .dark {
-  --color-dark: #000000; /* Tryb Ciemny: Prawdziwy czarny */
+  --color-dark: #000000;
   --bg: #000000;
   --text: #F1F5F9;
   --sidebar-bg: rgba(0, 0, 0, 0.9);
@@ -49,17 +50,20 @@
   --selection-bg: var(--color-general);
 }
 
+
 /* --- THEME DEFINITIONS --- */
 
 /* Ocean (Default / Ogólny) */
-.theme-ocean {
-  --color-general-current: #1bbdbd;
-  --color-general-rgb: 27, 189, 189;
+:root.theme-ocean {
   --bg: #e6e6e6;
   --text: #0F172A;
   --sidebar-bg: rgba(255, 255, 255, 0.9);
   --card-bg: rgba(255, 255, 255, 0.75);
   --border-color: rgba(0, 0, 0, 0.08);
+}
+.dark.theme-ocean {
+  --bg: #000000;
+  --card-bg: rgba(10, 10, 10, 0.7);
 }
 
 /* Crimson (Games) */

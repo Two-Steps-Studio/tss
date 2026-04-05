@@ -41,11 +41,11 @@ function SidebarStats({ t }: { t: any }) {
 
   return (
       <div className="px-4 mb-6">
-        <div className="glass rounded-[2rem] p-5 overflow-hidden relative group border border-white/5">
+        <div className="glass rounded-[2rem] p-5 overflow-hidden relative group border border-[var(--border-color)]">
           <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-general)] opacity-5 blur-2xl group-hover:opacity-10 transition-opacity" />
 
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40 flex items-center gap-2 text-white">
+            <h2 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40 flex items-center gap-2 text-[var(--text)]">
               <BarChart3 size={12} className="text-[var(--color-general)] shrink-0" /> {t.nav.stats}
             </h2>
             <div className="w-1.5 h-1.5 shrink-0 rounded-full bg-[var(--color-general)] animate-pulse" />
@@ -54,32 +54,32 @@ function SidebarStats({ t }: { t: any }) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-white/5">
-                  <Users size={14} className="opacity-70 text-white" />
+                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
+                  <Users size={14} className="opacity-70 text-[var(--text)]" />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-white">{t.nav.online}</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]">{t.nav.online}</span>
               </div>
-              <span className="text-xs font-black text-white">{(stats.online_users || 0).toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]">{(stats.online_users || 0).toLocaleString()}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-white/5">
-                  <Users size={14} className="opacity-70 text-white" />
+                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
+                  <Users size={14} className="opacity-70 text-[var(--text)]" />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-white">Społeczność</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]">Społeczność</span>
               </div>
-              <span className="text-xs font-black text-white">{(stats.total_members || 0).toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]">{(stats.total_members || 0).toLocaleString()}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-white/5">
-                  <MessageSquare size={14} className="opacity-70 text-white" />
+                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
+                  <MessageSquare size={14} className="opacity-70 text-[var(--text)]" />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-white">Wiadomości</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]">Wiadomości</span>
               </div>
-              <span className="text-xs font-black text-white">{(stats.messages_today || 0).toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]">{(stats.messages_today || 0).toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -219,7 +219,7 @@ export function Sidebar() {
               onClick={close}
               className="lg:hidden absolute right-4 p-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
           >
-            <X size={20} className="text-white" />
+            <X size={20} className="text-[var(--text)]" />
           </button>
         </div>
 
@@ -227,7 +227,7 @@ export function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 px-4 overflow-y-auto no-scrollbar pb-6" suppressHydrationWarning>
-          <h2 className="text-[11px] font-black uppercase tracking-[0.2em] mb-4 px-4 opacity-30 text-white">{t.nav.mainMenu}</h2>
+          <h2 className="text-[11px] font-black uppercase tracking-[0.2em] mb-4 px-4 opacity-30 text-[var(--text)]">{t.nav.mainMenu}</h2>
           <ul className="space-y-1">
             {sections.map((section) => {
               if (section.type === "single") {

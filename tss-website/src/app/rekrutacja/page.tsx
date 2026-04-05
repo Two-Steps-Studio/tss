@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, Mail, User, Shield, Users, TrendingUp } from "lucide-react";
 
-const useDarkMode = () => {
+export default function RekrutacjaPage() {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -26,13 +26,6 @@ const useDarkMode = () => {
       return () => mediaQuery.removeEventListener('change', handler);
     }
   }, []);
-
-  return { darkMode };
-};
-
-const { darkMode } = useDarkMode();
-
-export default function RekrutacjaPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
