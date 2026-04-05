@@ -14,6 +14,10 @@
 
   --font-space: var(--font-space-grotesk), "Space Grotesk", sans-serif;
   --font-outfit: var(--font-outfit), "Outfit", sans-serif;
+
+  /* Default color scheme for Tailwind v4 */
+  --color-text-foreground: var(--text);
+  --color-muted-foreground: var(--text);
 }
 
 :root {

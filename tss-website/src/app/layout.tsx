@@ -42,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pl" suppressHydrationWarning className={`${spaceGrotesk.variable} ${outfit.variable} dark`}>
+    <html lang="pl" suppressHydrationWarning className={`${spaceGrotesk.variable} ${outfit.variable} dark`} suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#000000" />
         <link rel="icon" href="/assets/Logo/Glowne/Two Steps Studio Bez Tła.png" type="image/png" />

@@ -19,7 +19,6 @@ function SidebarStats({ t }: { t: any }) {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Dodajemy timestamp i cache: no-store, aby wymusić świeże dane z Discorda
         const res = await fetch(`/api/stats?t=${Date.now()}`, {
           cache: 'no-store',
           headers: { 'Cache-Control': 'no-cache' }
@@ -34,7 +33,6 @@ function SidebarStats({ t }: { t: any }) {
     };
 
     fetchStats();
-    // Discord API ma limity (rate limits), 30s jest bezpieczne i wystarczające
     const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -57,9 +55,9 @@ function SidebarStats({ t }: { t: any }) {
                 <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
                   <Users size={14} className="opacity-70 text-[var(--text)]" />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]">{t.nav.online}</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]">Społeczność</span>
               </div>
-              <span className="text-xs font-black text-[var(--text)]">{(stats.online_users || 0).toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]">{(stats.total_members || 0).toLocaleString()}</span>
             </div>
 
             <div className="flex items-center justify-between">
@@ -67,9 +65,9 @@ function SidebarStats({ t }: { t: any }) {
                 <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
                   <Users size={14} className="opacity-70 text-[var(--text)]" />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]">Społeczność</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]">{t.nav.online}</span>
               </div>
-              <span className="text-xs font-black text-[var(--text)]">{(stats.total_members || 0).toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]">{(stats.online_users || 0).toLocaleString()}</span>
             </div>
 
             <div className="flex items-center justify-between">
@@ -92,7 +90,7 @@ export function Sidebar() {
   const { isOpen, close } = useSidebar();
   const { logo } = useSectionTheme();
   const { t, language, setLanguage } = useLanguage();
-  const { theme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -194,21 +192,21 @@ export function Sidebar() {
 
   const SidebarContent = (
       <div className="flex flex-col h-full py-4">
-        {/* Logo Section - POWIĘKSZONE */}
+        {/* Logo Section */}
         <div className="px-6 mb-8 flex items-center justify-center relative">
           <Link href="/" className="block relative group w-full">
             <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="relative z-10 w-full h-[100px] flex items-center justify-center" // Zwiększona wysokość kontenera z 68px na 100px
+                className="relative z-10 w-full h-[100px] flex items-center justify-center"
             >
               {mounted && (
                   <Image
                       src={logo}
                       alt="Two Steps Studio Logo"
-                      width={180} // Zwiększona szerokość z 120 na 180
-                      height={100} // Zwiększona wysokość
-                      className="transition-opacity duration-500 object-contain w-auto h-full max-h-[90px]" // Logo zajmuje teraz więcej miejsca
+                      width={180}
+                      height={100}
+                      className="transition-opacity duration-500 object-contain w-auto h-full max-h-[90px]"
                       unoptimized
                   />
               )}
@@ -401,19 +399,32 @@ export function Sidebar() {
           <div className="flex items-center gap-2 mb-2">
             {mounted && (
                 <>
+                  {/* Przycisk motywu — używa resolvedTheme dla pewnego odczytu aktualnego motywu */}
                   <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                      className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 text-white"
+                      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                      className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 text-[var(--text)]"
                   >
-                    {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                          key={resolvedTheme}
+                          initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+                          animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                          exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+                          transition={{ duration: 0.2 }}
+                      >
+                        {resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+                      </motion.div>
+                    </AnimatePresence>
                   </Button>
+
+                  {/* Przycisk języka — używa var(--text) zamiast hardcoded text-white */}
                   <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setLanguage(language === "pl" ? "en" : "pl")}
-                      className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 font-black text-[10px] text-white"
+                      className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 font-black text-[10px] text-[var(--text)]"
                   >
                     {language.toUpperCase()}
                   </Button>

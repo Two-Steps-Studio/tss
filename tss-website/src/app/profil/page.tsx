@@ -213,7 +213,6 @@ export default function ProfilePage() {
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-zinc-300">
                                 <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10 text-sm"><Mail size={13} /> {user?.email}</span>
                                 <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10 text-sm"><Shield size={13} /> ID: {user?.id.slice(0, 8)}</span>
-                                <Badge className="bg-[var(--color-dev)]/20 text-[var(--color-dev)] border-white/10">Weekly +{weeklyXP} XP</Badge>
                             </div>
                             <DiscordRolesPanel discordRoles={discordRoles} />
                         </div>
@@ -243,7 +242,7 @@ export default function ProfilePage() {
                             </div>
                             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
                                 <span className="text-sm font-bold opacity-60 text-white">Bank</span>
-                                <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-records)]">{profile?.bank || 0}</span><Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} className="opacity-80" /></div>
+                                <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-general)]">{profile?.bank || 0}</span><Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} className="opacity-80" /></div>
                             </div>
                             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
                                 <span className="text-sm font-bold opacity-60 text-white">Saldo PLN</span>
