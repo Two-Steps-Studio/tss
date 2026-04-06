@@ -8,8 +8,54 @@ import { PanelLeftIcon } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { SidebarCategories, openSubcategoriesAfterDelay } from "../sidebar-categories"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
+import { cva } from "class-variance-authority"
+import { Folder, FolderOpen } from "lucide-react"
+
+interface SidebarCategory {
+  title: string
+  href: string
+  subcategories?: SidebarSubcategory[]
+}
+
+interface SidebarSubcategory {
+  title: string
+  href: string
+}
+
+export const SidebarCategories = {
+  General: {
+    title: "General",
+    href: "/",
+    subcategories: [
+      { title: "Profile", href: "/profil" },
+      { title: "Settings", href: "/ustawienia" },
+    ],
+  },
+  Games: {
+    title: "Games",
+    href: "/games",
+    subcategories: [
+      { title: "Dev Tasks", href: "/dev" },
+      { title: "E-Sport", href: "/esport" },
+    ],
+  },
+  Records: {
+    title: "Records",
+    href: "/records",
+  },
+  Dev: {
+    title: "Dev",
+    href: "/dev-tasks",
+  },
+  "E-Sport": {
+    title: "E-Sport",
+    href: "/esport",
+  },
+} as const
+import { cva } from "class-variance-authority"
 import {
   Sheet,
   SheetContent,
@@ -599,6 +645,84 @@ function SidebarMenuBadge({
   )
 }
 
+// Opened states
+const openedSubcategories: Record<string, boolean> = {}
+
+// Auto open subcategories after delay
+const openSubcategoriesAfterDelay = (category: string) => {
+  if (openedSubcategories[category]) return
+
+  setTimeout(() => {
+    openedSubcategories[category] = true
+  }, 1500) // 1.5s delay
+}
+
+// Close subcategory
+const closeSubcategory = (category: string) => {
+  openedSubcategories[category] = false
+}
+
+// Render category with subcategories
+const renderSidebarCategory = ({
+  category,
+  isOpen,
+  onClick,
+}: {
+  category: SidebarCategory
+  isOpen: boolean
+  onClick: () => void
+}) => {
+  const { title, href, subcategories = [] } = category
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        isActive={openedSubcategories[category.title]}
+        tooltip={title}
+        onClick={(event: React.MouseEvent) => {
+          event.preventDefault()
+          openSubcategoriesAfterDelay(category.title)
+          onClick()
+        }}
+      >
+        <a href={href}>
+          {subcategories.length > 0 ? (
+            <Folder
+              className={cn(
+                "size-4 shrink-0",
+                isOpen
+                  ? "text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground"
+              )}
+            />
+          ) : (
+            <Folder
+              className="size-4 shrink-0 text-sidebar-foreground"
+              title={title}
+            />
+          )}
+          <span>{title}</span>
+        </a>
+      </SidebarMenuButton>
+
+      {subcategories.length > 0 && openedSubcategories[category.title] && (
+        <SidebarMenuSub>
+          {subcategories.map((sub) => (
+            <SidebarMenuSubItem key={sub.href}>
+              <SidebarMenuSubButton asChild isActive={false}>
+                <a href={sub.href}>
+                  <span>{sub.title}</span>
+                </a>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          ))}
+        </SidebarMenuSub>
+      )}
+    </SidebarMenuItem>
+  )
+}
+
 function SidebarMenuSkeleton({
   className,
   showIcon = false,
@@ -723,4 +847,58 @@ export {
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,
+}
+
+// Render category with subcategories
+function renderSidebarCategory({
+  category,
+  onClick,
+}: {
+  category: SidebarCategory
+  onClick: () => void
+}) {
+  const { title, href, subcategories = [] } = category
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        tooltip={title}
+        onClick={(event: React.MouseEvent) => {
+          event.preventDefault()
+          openSubcategoriesAfterDelay(category.title)
+          onClick()
+        }}
+      >
+        <a href={href}>
+          {subcategories.length > 0 ? (
+            <Folder
+              className="size-4 shrink-0"
+              title={title}
+            />
+          ) : (
+            <Folder
+              className="size-4 shrink-0 text-sidebar-foreground"
+              title={title}
+            />
+          )}
+          <span>{title}</span>
+        </a>
+      </SidebarMenuButton>
+
+      {subcategories.length > 0 && openedSubcategories[category.title] && (
+        <SidebarMenuSub>
+          {subcategories.map((sub) => (
+            <SidebarMenuSubItem key={sub.href}>
+              <SidebarMenuSubButton asChild isActive={false}>
+                <a href={sub.href}>
+                  <span>{sub.title}</span>
+                </a>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          ))}
+        </SidebarMenuSub>
+      )}
+    </SidebarMenuItem>
+  )
 }

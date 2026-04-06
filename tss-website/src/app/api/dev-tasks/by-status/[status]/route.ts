@@ -19,7 +19,8 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  // Return empty array if no tasks exist for this status
+  return NextResponse.json(data || []);
 }
 
 export async function POST(request: Request, { params }: RouteParams) {

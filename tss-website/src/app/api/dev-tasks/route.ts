@@ -13,7 +13,8 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data);
+  // Return empty array if no tasks exist (handles PGRST116 case)
+  return NextResponse.json(data || []);
 }
 
 export async function POST(request: Request) {
