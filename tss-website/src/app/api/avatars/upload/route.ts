@@ -1,6 +1,28 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+// --- SECURITY: Validate file extension and mime type before upload ---
+const ALLOWED_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "gif"];
+const ALLOWED_MIME_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+
+async function validateFile(file: File | null): Promise<{ valid: boolean; extension?: string; mime?: string }> {
+  if (!file) return { valid: false };
+
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  const mime = file.type || "";
+
+  if (!ALLOWED_EXTENSIONS.includes(extension) || !ALLOWED_MIME_TYPES.includes(mime)) {
+    return { valid: false };
+  }
+
+  // Check file size (max 10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    return { valid: false };
+  }
+
+  return { valid: true, extension, mime };
+}
+
 export async function POST(req: Request) {
   const form = await req.formData();
   const file = form.get("file") as File | null;
@@ -14,13 +36,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Brak userId" }, { status: 400 });
   }
 
+  // Validate file extension and mime type before upload
+  const validation = await validateFile(file);
+  if (!validation.valid) {
+    return NextResponse.json(
+      { error: "Nieprawidłowy typ pliku. Dozwolone: PNG, JPG, GIF, WEBP (max 10MB)" },
+      { status: 400 }
+    );
+  }
+
   const { data: buckets } = await supabaseAdmin.storage.listBuckets();
   const exists = (buckets || []).some((b: any) => b.name === "avatars");
   if (!exists) {
     const { error: createError } = await supabaseAdmin.storage.createBucket("avatars", {
       public: true,
       fileSizeLimit: 10 * 1024 * 1024,
-      allowedMimeTypes: ["image/png", "image/jpeg", "image/webp"],
+      allowedMimeTypes: ALLOWED_MIME_TYPES,
     });
     if (createError) {
       return NextResponse.json({ error: createError.message }, { status: 500 });

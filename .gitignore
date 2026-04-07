@@ -13,3 +13,6 @@ build/
 *.AppImage
 *.deb
 *.rpm
+.env
+.env.*
+!.env.example

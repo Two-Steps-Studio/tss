@@ -1,7 +1,59 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
+// --- Rate Limiting & Security ---
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const MAX_REQUESTS = 100;
+const WINDOW_MS = 60000; // 1 minute
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const record = rateLimitStore.get(ip);
+
+  if (!record || now < record.resetTime) {
+    if (record && record.count >= MAX_REQUESTS) {
+      return false;
+    }
+    return true;
+  }
+
+  if (record && record.count >= MAX_REQUESTS) {
+    return false;
+  }
+
+  rateLimitStore.set(ip, { count: record.count + 1, resetTime: record.resetTime });
+  return true;
+}
+
+function getClientIp(request: NextRequest): string {
+  const forwarded = request.headers.get("x-forwarded-for");
+  return forwarded ? forwarded.split(",")[0] : request.socket?.remoteAddress || "unknown";
+}
+
+// --- Logging for security monitoring ---
+const securityLog = (endpoint: string, action: string, user?: string, ip?: string, details?: string) => {
+  const logEntry = `[${new Date().toISOString()}] [SECURITY] ${action} - ${endpoint} | User: ${user || 'N/A'} | IP: ${ip || 'N/A'}${details ? ` | ${details}` : ''}`;
+  console.log(logEntry);
+};
+
 export async function middleware(request: NextRequest) {
+  const ip = getClientIp(request);
+
+  // Check request rate limit
+  if (!checkRateLimit(ip)) {
+    securityLog(request.url, "RATE_LIMIT_EXCEEDED", undefined, ip);
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
+
+  // Detect suspicious user agents
+  const ua = request.headers.get("user-agent") || "";
+  if (ua.includes("bot") || ua.includes("curl") || ua.includes("python")) {
+    securityLog(request.url, "SUSPICIOUS_USER_AGENT", undefined, ip, `UA: ${ua}`);
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -50,6 +102,7 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isProtectedRoute && !user) {
+    securityLog(request.url, "UNAUTHORIZED_ACCESS", undefined, ip, `Attempted access to: ${request.nextUrl.pathname}`);
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

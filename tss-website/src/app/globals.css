@@ -39,7 +39,7 @@
   --bg: #e6e6e6;
   --text: #0F172A;
   --sidebar-bg: rgba(255, 255, 255, 0.9);
-  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-bg: rgba(0, 0, 0, 0.75);
   --border-color: rgba(0, 0, 0, 0.08);
 }
 
@@ -83,7 +83,7 @@
   --border-color: rgba(51, 34, 40, 0.08);
 }
 .dark.theme-crimson {
-  --bg: #000000; /* Zmienione na czarny */
+  --bg: #000000;
   --card-bg: rgba(28, 5, 8, 0.7);
 }
 
@@ -142,9 +142,9 @@
 .theme-general {
   --bg: #e6e6e6;
   --text: #0F172A;
-  --sidebar-bg: rgba(255, 255, 255, 0.9);
+  --sidebar-busug: rgba(255, 255, 255, 0.9);
   --card-bg: rgba(255, 255, 255, 0.75);
-  --border-color: rgba(0, 0, 0, 0.08);
+  --border-color: rgba(4, 3, 3, 0.72);
 }
 
 /* Base Styles */

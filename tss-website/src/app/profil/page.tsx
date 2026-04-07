@@ -114,16 +114,16 @@ export default function ProfilePage() {
 
             setProfile(initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [], pln_balance: 0, vip_status: false, svip_status: false, mvip_status: false });
 
-            // Realtime subscription
+            // Realtime subscription - najpierw .on(), potem .subscribe()
             if (channel) supabase.removeChannel(channel);
-            channel = supabase.channel(`profile-${discordId}`)
-                .on("postgres_changes", {
-                    event: "*",
-                    schema: "public",
-                    table: "profiles",
-                    filter: `id=eq.${discordId}`
-                }, (payload) => setProfile(payload.new))
-                .subscribe();
+            channel = supabase.channel(`profile-${discordId}`);
+            channel.on("postgres_changes", {
+                event: "*",
+                schema: "public",
+                table: "profiles",
+                filter: `id=eq.${discordId}`
+            }, (payload) => setProfile(payload.new));
+            channel.subscribe();
 
             const weekThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
             const { count } = await supabase
@@ -182,13 +182,13 @@ export default function ProfilePage() {
 
     return (
         <div className="container mx-auto p-6 space-y-8 mt-20 max-w-6xl" suppressHydrationWarning>
-            <Card className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/70 dark:bg-black/40 backdrop-blur-2xl shadow-2xl">
+            <Card className="relative overflow-hidden rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-2xl shadow-2xl">
                 <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)]/15 via-transparent to-transparent opacity-90" />
                 <CardContent className="relative z-10 p-8 md:p-12">
                     <div className="flex flex-col md:flex-row items-center gap-8">
                         <div className="relative group flex-shrink-0">
                             <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-[var(--color-general)] to-transparent opacity-60 blur-md" />
-                            <Avatar className="h-40 w-40 ring-4 ring-[var(--color-general)]/20 border-2 border-[var(--color-general)]/30">
+                            <Avatar className="h-48 w-48 ring-4 ring-[var(--color-general)]/20 border-2 border-[var(--color-general)]/30">
                                 <AvatarImage src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture} />
                                 <AvatarFallback className="text-4xl bg-white text-black font-bold">{discordName?.[0]}</AvatarFallback>
                             </Avatar>
@@ -197,7 +197,7 @@ export default function ProfilePage() {
                             </Badge>
                         </div>
 
-                        <div className="text-center md:text-left space-y-4 flex-1 min-w-0">
+                        <div className="text-center md:text-left space-y-3 flex-1 min-w-0">
                             <div>
                                 <h1 className="text-4xl font-bold text-white tracking-tight">{discordName}</h1>
                                 {isDiscordLinked ? (
@@ -219,11 +219,11 @@ export default function ProfilePage() {
 
                         <div className="w-full md:w-72 space-y-3 bg-white/5 p-5 rounded-2xl border border-white/10 backdrop-blur-sm">
                             <div className="flex items-center justify-between text-sm mb-1">
-                                <span className="font-bold flex items-center gap-2 text-white"><Trophy size={14} className="text-[var(--color-general)]" /> Postęp Poziomu</span>
-                                <span className="font-black text-[var(--color-general)]">{Math.round(progress)}%</span>
+                                <span className="font-bold flex items-center gap-2 text-white text-base"><Trophy size={15} className="text-[var(--color-general)]" /> Postęp Poziomu</span>
+                                <span className="font-black text-[var(--color-general)] text-base">{Math.round(progress)}%</span>
                             </div>
-                            <Progress value={progress} className="h-2.5 rounded-full bg-white/10" />
-                            <div className="flex justify-between text-[10px] uppercase font-black opacity-40 text-white">
+                            <Progress value={progress} className="h-4 rounded-full bg-white/10" />
+                            <div className="flex justify-between text-xs uppercase font-black opacity-40 text-white">
                                 <span>{xp} XP</span><span>{nextLevelXp} XP</span>
                             </div>
                         </div>
@@ -233,19 +233,19 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-4 space-y-8">
-                    <Card className="rounded-[2.5rem] border border-white/10 bg-black/40 backdrop-blur-xl">
-                        <CardHeader className="border-b border-white/5 text-white font-bold italic"><Star className="mr-2 text-[var(--color-general)]" /> Statystyki</CardHeader>
+                    <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl">
+                        <CardHeader className="border-b border-black/10 dark:border-white/5 text-black dark:text-white font-bold italic"><Star className="mr-2 text-[var(--color-general)]" /> Statystyki</CardHeader>
                         <CardContent className="p-6 space-y-6">
-                            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-                                <span className="text-sm font-bold opacity-60 text-white">Portfel</span>
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
+                                <span className="text-sm font-bold opacity-60 text-black dark:text-white">Portfel</span>
                                 <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-general)]">{profile?.money || 0}</span><Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} /></div>
                             </div>
-                            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-                                <span className="text-sm font-bold opacity-60 text-white">Bank</span>
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
+                                <span className="text-sm font-bold opacity-60 text-black dark:text-white">Bank</span>
                                 <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-general)]">{profile?.bank || 0}</span><Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} className="opacity-80" /></div>
                             </div>
-                            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5">
-                                <span className="text-sm font-bold opacity-60 text-white">Saldo PLN</span>
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
+                                <span className="text-sm font-bold opacity-60 text-black dark:text-white">Saldo PLN</span>
                                 <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-general)]">{profile?.pln_balance?.toFixed(2) || "0.00"} zł</span></div>
                             </div>
                         </CardContent>
@@ -253,8 +253,8 @@ export default function ProfilePage() {
                     <LogoutButton />
                 </div>
                 <div className="lg:col-span-8">
-                    <Card className="rounded-[2.5rem] border border-white/10 bg-black/40 backdrop-blur-xl shadow-xl">
-                        <CardHeader className="border-b border-white/5 text-white font-bold italic"><Bell className="mr-2 text-[var(--color-general)]" /> Ustawienia</CardHeader>
+                    <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl shadow-xl">
+                        <CardHeader className="border-b border-black/10 dark:border-white/5 text-black dark:text-white font-bold italic"><Bell className="mr-2 text-[var(--color-general)]" /> Ustawienia</CardHeader>
                         <CardContent className="p-8">
                             <ProfileForm
                                 user={user}

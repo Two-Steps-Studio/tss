@@ -36,7 +36,7 @@ export default async function ESportPage() {
        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <Card className="rounded-[2rem] bg-white dark:bg-black/40 border border-[var(--color-e-sport)]/10 dark:border-white/10">
+        <Card className="rounded-[2rem] bg-white dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10">
           <CardContent className="p-6 flex items-center gap-4">
             <Users className="text-[var(--color-e-sport)]" />
             <div>
@@ -45,7 +45,7 @@ export default async function ESportPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="rounded-[2rem] bg-white dark:bg-black/40 border border-[var(--color-e-sport)]/10 dark:border-white/10">
+        <Card className="rounded-[2rem] bg-white dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10">
           <CardContent className="p-6 flex items-center gap-4">
             <Trophy className="text-[var(--color-e-sport)]" />
             <div>
@@ -54,7 +54,7 @@ export default async function ESportPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="rounded-[2rem] bg-white dark:bg-black/40 border border-[var(--color-e-sport)]/10 dark:border-white/10">
+        <Card className="rounded-[2rem] bg-white dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10">
           <CardContent className="p-6 flex items-center gap-4">
             <Calendar className="text-[var(--color-e-sport)]" />
             <div>
@@ -69,7 +69,7 @@ export default async function ESportPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {teams?.map((team) => (
-          <Card key={team.id} className="group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-white dark:bg-black/40 border border-[var(--color-e-sport)]/10 dark:border-white/10 hover:border-[var(--color-e-sport)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.2)]">
+          <Card key={team.id} className="group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-white dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10 hover:border-[var(--color-e-sport)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.2)]">
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-e-sport)]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-30 transition-opacity transform group-hover:scale-110 duration-700">
                <Trophy size={120} className="text-[var(--color-e-sport)]" />
@@ -109,7 +109,7 @@ export default async function ESportPage() {
         <h2 className="text-3xl font-bold mb-6 font-[family-name:var(--font-space)] text-black dark:text-white">Nadchodzące wydarzenia</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {(events || []).filter(e => new Date(e.event_date) > new Date()).map((event) => (
-            <Card key={event.id} className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-black/40 border border-[var(--color-e-sport)]/10 dark:border-white/10">
+            <Card key={event.id} className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg font-[family-name:var(--font-space)] text-black dark:text-white">
                   <Trophy className="text-[var(--color-e-sport)]" size={20} /> {event.name}
@@ -128,7 +128,7 @@ export default async function ESportPage() {
             </Card>
           ))}
           {((events || []).filter(e => new Date(e.event_date) > new Date()).length === 0) && (
-            <Card className="rounded-[2rem] bg-white dark:bg-black/40 border border-[var(--color-e-sport)]/10 dark:border-white/10">
+            <Card className="rounded-[2rem] bg-white dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10">
               <CardContent className="p-6 text-zinc-600 dark:text-zinc-300">Brak nadchodzących wydarzeń</CardContent>
             </Card>
           )}

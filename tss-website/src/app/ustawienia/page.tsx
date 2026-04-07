@@ -129,7 +129,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
-        <Card className="rounded-[2.5rem] glass">
+        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-black dark:border-[var(--border-color)]">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">{t.settings.appearance}</CardTitle>
           </CardHeader>
@@ -140,7 +140,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] glass">
+        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-black dark:border-[var(--border-color)]">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">{t.settings.language}</CardTitle>
           </CardHeader>
@@ -170,7 +170,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] glass">
+        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-black dark:border-[var(--border-color)]">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">{t.settings.colorTheme}</CardTitle>
           </CardHeader>
@@ -185,7 +185,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10 items-start">
-        <Card className="rounded-[2.5rem] glass">
+        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-black dark:border-[var(--border-color)]">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">Interfejs</CardTitle>
           </CardHeader>

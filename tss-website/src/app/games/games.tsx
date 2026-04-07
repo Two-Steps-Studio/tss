@@ -33,7 +33,7 @@ export default async function GamesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {games?.map((game) => (
-          <Card key={game.id} className="group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-black/40 border border-white/10 hover:border-[var(--color-games)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]">
+          <Card key={game.id} className="group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-white/0 dark:bg-black/40 border-2 border-black dark:border-[var(--color-games)]/10 hover:border-[var(--color-games)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]">
             <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-games)]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-700">
                <Gamepad2 size={120} className="text-[var(--color-games)]" />
@@ -50,7 +50,7 @@ export default async function GamesPage() {
               </div>
               <CardDescription className="flex items-center gap-2 text-zinc-500 font-[family-name:var(--font-outfit)] text-sm">
                  <Calendar size={14} />
-                 Data wydania: <span className="text-zinc-300">{game.release_date || "Wkrótce"}</span>
+                 <span className="text-zinc-300">Dostępna od premiery</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="relative z-10 pt-0 flex-1 flex flex-col justify-between">

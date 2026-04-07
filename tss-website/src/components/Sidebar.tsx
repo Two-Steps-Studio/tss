@@ -12,7 +12,13 @@ import { useSectionTheme } from "../hooks/use-section-theme";
 import { useLanguage } from "../hooks/use-language";
 import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
-import { openSubcategoriesAfterDelay } from "./sidebar-categories";
+
+// Simple delay function for opening subcategories
+const openSubcategoriesAfterDelay = (id: string) => {
+  setTimeout(() => {
+    setHoveredSectionId((prev: string | null) => prev === id ? null : id);
+  }, 1500);
+};
 
 function SidebarStats({ t }: { t: any }) {
   const [stats, setStats] = useState({ online_users: 0, total_members: 0, messages_today: 0 });

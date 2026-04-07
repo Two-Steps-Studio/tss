@@ -41,10 +41,10 @@ const t = {
         },
       marquee: ["Nowe projekty", "E-sport", "Games", "Records", "Dev", "Community"],
       sections: {
-        games: { title: "Games", desc: "Interaktywne światy.", stats: "12 gier" },
-        esport: { title: "E-sport", desc: "Duch rywalizacji.", stats: "5 turniejów" },
-        records: { title: "Records", desc: "Brzmienie pasji.", stats: "24 utwory" },
-        dev: { title: "Dev", desc: "Kod przyszłości.", stats: "8 projektów" },
+        games: { title: "Games", desc: "Interaktywne światy.", stats: "0 gier" },
+        esport: { title: "E-sport", desc: "Duch rywalizacji.", stats: "0 turniejów" },
+        records: { title: "Records", desc: "Brzmienie pasji.", stats: "0 utwory" },
+        dev: { title: "Dev", desc: "Kod przyszłości.", stats: "1 projektów" },
       }
     },
     en: {
@@ -58,10 +58,10 @@ const t = {
       },
       marquee: ["New projects", "E-sport", "Games", "Records", "Dev", "Community"],
       sections: {
-        games: { title: "Games", desc: "Interactive worlds.", stats: "12 games" },
-        esport: { title: "E-sport", desc: "Competitive spirit.", stats: "5 tournaments" },
-        records: { title: "Records", desc: "Sound of passion.", stats: "24 tracks" },
-        dev: { title: "Dev", desc: "Code of tomorrow.", stats: "8 projects" },
+        games: { title: "Games", desc: "Interactive worlds.", stats: "0 games" },
+        esport: { title: "E-sport", desc: "Competitive spirit.", stats: "0 tournaments" },
+        records: { title: "Records", desc: "Sound of passion.", stats: "0 tracks" },
+        dev: { title: "Dev", desc: "Code of tomorrow.", stats: "1 projects" },
       }
     }
 };

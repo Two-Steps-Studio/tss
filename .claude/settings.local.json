@@ -5,7 +5,8 @@
       "Bash(npm run:*)",
       "Bash(ls:*)",
       "Bash(curl -s http://localhost:3000/dev)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(rm:*)"
     ]
   }
 }
