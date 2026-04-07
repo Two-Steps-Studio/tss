@@ -6,7 +6,11 @@
       "Bash(ls:*)",
       "Bash(curl -s http://localhost:3000/dev)",
       "Bash(curl:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(dir src/app)",
+      "Bash(dir src/app/beaty)",
+      "Bash(dir tss-website/src/app/beaty)",
+      "Bash(dir tss-website/beaty)"
     ]
   }
 }

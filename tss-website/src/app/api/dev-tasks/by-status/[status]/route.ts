@@ -6,8 +6,17 @@ interface RouteParams {
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json(
+      { error: "Dev tasks disabled - contact administrator" },
+      { status: 503 }
+    );
+  }
+
   const { status } = await params;
-  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("dev_tasks")
@@ -24,9 +33,17 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json(
+      { error: "Dev tasks disabled - contact administrator" },
+      { status: 503 }
+    );
+  }
+
   const { status } = await params;
-  const supabase = await createClient();
-  const { title, description, priority = "medium", estimated_hours, created_by } = await request.json();
 
   const { data, error } = await supabase
     .from("dev_tasks")
@@ -49,8 +66,17 @@ export async function POST(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json(
+      { error: "Dev tasks disabled - contact administrator" },
+      { status: 503 }
+    );
+  }
+
   const { status } = await params;
-  const supabase = await createClient();
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");

@@ -6,8 +6,17 @@ interface RouteParams {
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json(
+      { error: "Dev tasks disabled - contact administrator" },
+      { status: 503 }
+    );
+  }
+
   const { id } = await params;
-  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("dev_tasks")
@@ -23,9 +32,17 @@ export async function GET(request: Request, { params }: RouteParams) {
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json(
+      { error: "Dev tasks disabled - contact administrator" },
+      { status: 503 }
+    );
+  }
+
   const { id } = await params;
-  const supabase = await createClient();
-  const { title, description, status, assigned_to } = await request.json();
 
   const { data, error } = await supabase
     .from("dev_tasks")

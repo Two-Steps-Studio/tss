@@ -1,7 +1,14 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 export async function POST(req: Request) {
+  // Check if Supabase is configured
+  if (!isSupabaseConfigured || !supabase) {
+    return NextResponse.json({
+      error: 'Newsletter subscription is disabled - contact administrator'
+    }, { status: 503 });
+  }
+
   try {
     const { email } = await req.json();
 
@@ -9,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('newsletter_subs')
       .insert([{ email }]);
 

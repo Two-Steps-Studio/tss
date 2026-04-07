@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { supabaseAdmin, isSupabaseAdminInitialized } from "@/lib/supabase-admin";
 
 export async function POST() {
+  // Check if Supabase admin client is initialized
+  if (!isSupabaseAdminInitialized || !supabaseAdmin) {
+    return NextResponse.json({
+      error: "Avatar bucket creation is disabled - contact administrator"
+    }, { status: 503 });
+  }
+
   const { data: buckets, error: listError } = await supabaseAdmin.storage.listBuckets();
   if (listError) {
     return NextResponse.json({ error: listError.message }, { status: 500 });

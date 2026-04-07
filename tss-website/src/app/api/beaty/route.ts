@@ -10,8 +10,17 @@ const DEFAULT_PACKAGES = {
 };
 
 export async function GET() {
+  let supabase;
   try {
-    const supabase = await createClient();
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json(
+      { error: "Sklep z beatami niedostepny - kontakt z administratorem" },
+      { status: 503 }
+    );
+  }
+
+  try {
 
     // Najpierw spróbuj pobrać z nowej tabeli beats z pakietami
     const { data: beats, error } = await supabase

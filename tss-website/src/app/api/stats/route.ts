@@ -5,8 +5,17 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export async function GET() {
+  let supabase;
   try {
-    const supabase = await createClient();
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json(
+      { online_users: 0, total_members: 0, messages_today: 0, active_channels: 0, recorded_at: new Date().toISOString() },
+      { status: 503 }
+    );
+  }
+
+  try {
 
     // Pobierz najnowsze statystyki Discorda z bazy danych
     const { data: discordStats, error: dsError } = await supabase

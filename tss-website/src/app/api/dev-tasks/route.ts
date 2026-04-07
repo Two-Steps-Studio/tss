@@ -2,7 +2,15 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 
 export async function GET() {
-  const supabase = await createClient();
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json(
+      { error: "Dev tasks disabled - contact administrator" },
+      { status: 503 }
+    );
+  }
 
   const { data, error } = await supabase
     .from("dev_tasks")
@@ -18,7 +26,16 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json(
+      { error: "Dev tasks disabled - contact administrator" },
+      { status: 503 }
+    );
+  }
+
   const { title, description, status = "todo", assigned_to } = await request.json();
 
   const { data, error } = await supabase

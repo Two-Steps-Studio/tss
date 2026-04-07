@@ -1,11 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+// Stripe requires a configured instance
+if (!process.env.STRIPE_SECRET_KEY) {
+  // Stripe is not configured - this route will fail gracefully in the catch block
+}
+
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-02-24.acacia",
+    })
+  : null;
 
 export async function POST(req: NextRequest) {
+  // Check if Stripe is configured
+  if (!stripe) {
+    console.log('[Stripe] Checkout disabled - Stripe not configured');
+    return NextResponse.json(
+      { error: "Płatności Stripe nie są skonfigurowane" },
+      { status: 503 }
+    );
+  }
+
   try {
     const { beatId, beatTitle, price, tier } = await req.json();
 

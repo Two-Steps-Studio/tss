@@ -2,13 +2,28 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase-server";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+// Stripe configuration
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-02-24.acacia",
+    })
+  : null;
 
 export async function POST(req: NextRequest) {
+  // Check if Stripe is configured
+  if (!stripe) {
+    return NextResponse.json(
+      { error: "Webhook disabled - Stripe not configured" },
+      { status: 503 }
+    );
+  }
+
   const body = await req.text();
-  const signature = req.headers.get("stripe-signature")!;
+  const signature = req.headers.get("stripe-signature");
+
+  if (!signature) {
+    return NextResponse.json({ error: "Brak podpisu webhooka" }, { status: 400 });
+  }
 
   let event: Stripe.Event;
 
@@ -33,25 +48,36 @@ export async function POST(req: NextRequest) {
     const amount = session.amount_total ? session.amount_total / 100 : 0;
 
     if (beatId && tier) {
-      const supabase = await createClient();
+      let supabase;
+      try {
+        supabase = await createClient();
+      } catch {
+        console.log('[Webhook] Supabase not configured - skipping order processing');
+        return NextResponse.json({ received: true });
+      }
 
-      // Zaktualizuj status beatu
-      await supabase
-        .from("beats")
-        .update({
-          status: "sold",
+      try {
+        // Zaktualizuj status beatu
+        await supabase
+          .from("beats")
+          .update({
+            status: "sold",
+            tier: tier,
+            sold_at: new Date().toISOString(),
+          })
+          .eq("id", beatId);
+
+        // Zapisz transakcję
+        await supabase.from("beat_sales").insert({
+          beat_id: beatId,
+          stripe_session_id: session.id,
+          amount: amount,
           tier: tier,
-          sold_at: new Date().toISOString(),
-        })
-        .eq("id", beatId);
-
-      // Zapisz transakcję
-      await supabase.from("beat_sales").insert({
-        beat_id: beatId,
-        stripe_session_id: session.id,
-        amount: amount,
-        tier: tier,
-      });
+        });
+      } catch (err) {
+        console.error('[Webhook] Supabase error:', err);
+        // Continue - webhook received
+      }
     }
   }
 

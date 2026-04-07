@@ -2,7 +2,16 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 
 export async function GET() {
-  const supabase = await createClient();
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json(
+      { error: "Statistics unavailable - contact administrator" },
+      { status: 503 }
+    );
+  }
+
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {

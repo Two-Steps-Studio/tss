@@ -8,7 +8,15 @@ type PresenceRow = {
 };
 
 export async function GET() {
-  const supabase = await createClient();
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json(
+      { error: "Site stats unavailable - contact administrator" },
+      { status: 503 }
+    );
+  }
   const now = Date.now();
   const windowMs = 24 * 60 * 60 * 1000;
   const bucketMs = 15 * 60 * 1000;

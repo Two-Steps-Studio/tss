@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { supabaseAdmin, isSupabaseAdminInitialized } from "@/lib/supabase-admin";
 
 // --- SECURITY: Validate file extension and mime type before upload ---
 const ALLOWED_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "gif"];
@@ -24,6 +24,13 @@ async function validateFile(file: File | null): Promise<{ valid: boolean; extens
 }
 
 export async function POST(req: Request) {
+  // Check if Supabase admin client is initialized
+  if (!isSupabaseAdminInitialized || !supabaseAdmin) {
+    return NextResponse.json({
+      error: "Avatar upload is disabled - contact administrator"
+    }, { status: 503 });
+  }
+
   const form = await req.formData();
   const file = form.get("file") as File | null;
   const userId = (form.get("userId") as string) || "";

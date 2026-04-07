@@ -13,9 +13,14 @@ interface NewsItem {
 }
 
 export async function GET() {
+  let supabase;
   try {
-    const supabase = await createClient();
+    supabase = await createClient();
+  } catch {
+    return NextResponse.json([], { status: 503 });
+  }
 
+  try {
     // Pobieranie newsów z bazy
     const { data: news, error } = await supabase
       .from('news')
