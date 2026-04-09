@@ -412,6 +412,11 @@ async function updateDiscordStats() {
         const online   = members.filter(m => m.presence?.status === 'online' || m.presence?.status === 'dnd').size;
         const channels = guild.channels.cache.size;
 
+        // Pobierz liczbę kont na stronie z bazy profiles
+        const { count: siteAccounts } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true });
+
         const currentDay = new Date().getDate();
         if (currentDay !== lastDay) {
             messagesTodayCount = 0;
@@ -424,6 +429,7 @@ async function updateDiscordStats() {
             online_users:    online    || 0,
             active_channels: channels  || 0,
             member_count:    humans    || 0,
+            site_accounts:   siteAccounts || 0,
             messages_today:  messagesTodayCount || 0,
             recorded_at:     new Date().toISOString(),
         }, { onConflict: 'recorded_at' });

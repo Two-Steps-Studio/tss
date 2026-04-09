@@ -10,7 +10,10 @@
       "Bash(dir src/app)",
       "Bash(dir src/app/beaty)",
       "Bash(dir tss-website/src/app/beaty)",
-      "Bash(dir tss-website/beaty)"
+      "Bash(dir tss-website/beaty)",
+      "Bash(Get-Content -Path C:\\\\tss\\\\tss-website\\\\src\\\\components\\\\Sidebar.tsx)",
+      "Bash(Select-Object -Skip 317)",
+      "Bash(Select-Object -First 20)"
     ]
   }
 }

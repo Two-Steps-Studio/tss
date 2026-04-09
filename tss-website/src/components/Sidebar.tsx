@@ -71,7 +71,7 @@ function SidebarStats({ t }: { t: any }) {
               <BarChart3 size={12} className="text-[var(--color-general)] shrink-0" /> {t.nav.stats}
             </h2>
             {loading ? (
-              <div className="w-1.5 h-1.5 shrink-0 rounded-full bg-[var(--color-general)] animate-pulse" />
+                <div className="w-1.5 h-1.5 shrink-0 rounded-full bg-[var(--color-general)] animate-pulse" />
             ) : null}
           </div>
 
