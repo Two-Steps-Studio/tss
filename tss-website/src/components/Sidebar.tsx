@@ -438,11 +438,14 @@ export function Sidebar() {
           <div className="flex items-center gap-2 mb-2">
             {mounted && (
                 <>
-                  {/* Przycisk motywu — używa resolvedTheme dla pewnego odczytu aktualnego motywu */}
+                  {/* Przycisk motywu — pokazuje aktualny motyw i przełącza na przeciwny */}
                   <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                      onClick={() => {
+                        const current = resolvedTheme === "dark" ? "light" : "dark";
+                        setTheme(current);
+                      }}
                       className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 text-[var(--text)]"
                   >
                     <AnimatePresence mode="wait">
