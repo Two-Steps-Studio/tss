@@ -138,15 +138,6 @@
   --card-bg: rgba(28, 15, 5, 0.7);
 }
 
-/* Domyślne tryb jasny (jeśli nie ma klasy .dark ani specjalnego motywu) */
-.theme-general {
-  --bg: #e6e6e6;
-  --text: #0F172A;
-  --sidebar-busug: rgba(255, 255, 255, 0.9);
-  --card-bg: rgba(255, 255, 255, 0.75);
-  --border-color: rgba(4, 3, 3, 0.72);
-}
-
 /* Base Styles */
 body {
   background-color: var(--bg);
@@ -157,6 +148,7 @@ body {
   -webkit-font-smoothing: antialiased;
   position: relative;
   overflow-x: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -204,4 +196,35 @@ h1, h2, h3, h4, h5, h6 {
   filter: brightness(1.1);
   box-shadow: 0 15px 30px -8px rgba(var(--color-general-rgb), 0.6);
 }
-/* trigger turbopack reload */
+
+/* Mobile-first responsive styles */
+@media (max-width: 1023px) {
+  /* Optimalizacja pod touch */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Font sizes dla mobile */
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+
+  /* Hide desktop sidebar on mobile */
+  aside[aria-hidden="true"] {
+    display: none !important;
+  }
+
+  /* Hide MobileHeader on desktop (dla starszych przeglądarek bez JS) */
+  .hidden-mobile-desktop {
+    display: none !important;
+  }
+}
+
+/* Ukryj MobileHeader na desktopach (dla JS fallback) */
+@media (min-width: 1024px) {
+  .mobile-only {
+    display: none !important;
+  }
+}

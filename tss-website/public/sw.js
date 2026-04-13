@@ -1,58 +1,105 @@
-const CACHE_NAME = 'tss-pwa-cache-v1';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'tss-pwa-cache-v2';
+const STATIC_ASSETS = [
   '/',
+  '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
 ];
 
+// Strategie cache dla różnych typów treści
+const STRATEGIES = {
+  STALE_WHILE_REVALIDATE: {
+    cache: 'tswr-cache',
+    options: {
+      cacheableResponse: {
+        statuses: [0, 200],
+      },
+    },
+  },
+  CACHE_FIRST: {
+    cache: 'cachefirst-cache',
+    options: {},
+  },
+};
+
+// Instalacja - cache static assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+      console.log('[SW] Installing cache:', CACHE_NAME);
+      return cache.addAll(STATIC_ASSETS);
+    }).then(() => {
+      console.log('[SW] Skipping waiting to activate immediately');
+      return self.skipWaiting();
     })
   );
-  self.skipWaiting();
 });
 
+// Aktywacja - oczyszcz stare cache
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
+    caches.keys().then((keys) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => {
+            console.log('[SW] Deleting old cache:', key);
+            return caches.delete(key);
+          })
+      ).then(() => self.clients.claim());
     })
   );
-  self.clients.claim();
 });
 
+// Fetch - strategie dla różnych typów
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') return;
+  const { request } = event;
+  const url = new URL(request.url);
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((response) => {
-        // Check if we received a valid response
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+  // AJAX requests - stale while revalidate
+  if (request.headers.get('Sec-Fetch-Destination') === 'document') {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) {
+          console.log('[SW] Serving from cache:', request.url);
+          return cached;
         }
-
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
+        return fetch(request).then((response) => {
+          if (response && response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              console.log('[SW] Caching response:', request.url);
+              cache.put(request, responseClone);
+            });
+          }
+          return response;
         });
+      })
+    );
+  }
 
-        return response;
-      }).catch(() => {
-        // Fallback for offline if needed
-      });
-    })
-  );
+  // API requests - cache first
+  else if (url.pathname.includes('/api/') || request.headers.get('Accept')?.includes('application/json')) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        return cached || fetch(request);
+      })
+    );
+  }
+
+  // Resource requests - network first with fallback
+  else {
+    event.respondWith(
+      fetch(request).catch(() => {
+        return caches.match(request);
+      })
+    );
+  }
+});
+
+// Update - notification o uaktualnieniu SW
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });

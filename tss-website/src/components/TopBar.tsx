@@ -87,21 +87,35 @@ export function TopBar() {
 
   useEffect(() => {
     if (!user) return;
-    const channel = supabase
-        .channel("profile_changes")
-        .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
-            (payload: any) => {
-              const row = payload.new || payload.old || {};
-              if (row.avatar_url) setAvatarUrl(row.avatar_url);
-              if (row.username) setDisplayName(row.username);
-              if (row.pln_balance !== undefined) {
-                localStorage.setItem("pln_balance", String(row.pln_balance));
-              }
-            }
-        )
-        .subscribe();
+
+    const channelId = "profile_changes:" + user.id;
+
+    // Declare channel variable
+    let channel: any = null;
+
+    // Create and subscribe to realtime channel
+    channel = supabase.channel(channelId).subscribe(async (event) => {
+      if (event.type === "channels#error") {
+        console.warn("Channel error:", event);
+        return;
+      }
+      // Listen to all postgres changes on this channel
+      await channel.on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "profiles",
+        filter: `id=eq.${user.id}`
+      }, (payload: any) => {
+        const row = payload.new || payload.old || {};
+        if (row.avatar_url) setAvatarUrl(row.avatar_url);
+        if (row.username) setDisplayName(row.username);
+        if (row.pln_balance !== undefined) {
+          localStorage.setItem("pln_balance", String(row.pln_balance));
+        }
+      });
+    });
+
+    // Cleanup on unmount or user change
     return () => {
       supabase.removeChannel(channel);
     };
@@ -147,7 +161,7 @@ export function TopBar() {
                       variant="ghost"
                       size="icon"
                       onClick={() => setLanguage(language === "pl" ? "en" : "pl")}
-                      className="rounded-2xl w-11 h-11 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-none transition-all hover:scale-105 active:scale-95 text-sm font-black"
+                      className="rounded-2xl w-10 h-10 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-none transition-all hover:scale-105 active:scale-95 text-xs font-black"
                   >
                     {language.toUpperCase()}
                   </Button>

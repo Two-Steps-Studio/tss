@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon } from "lucide-react";
+import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "../lib/utils";
 import { useSidebar } from "@/hooks/use-sidebar";
@@ -12,98 +12,55 @@ import { useSectionTheme } from "../hooks/use-section-theme";
 import { useLanguage } from "../hooks/use-language";
 import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
-
-// Simple delay function for opening subcategories
-const openSubcategoriesAfterDelay = (id: string) => {
-  setTimeout(() => {
-    setHoveredSectionId((prev: string | null) => prev === id ? null : id);
-  }, 1500);
-};
+import { BottomNavigation } from "./BottomNavigation";
 
 function SidebarStats({ t }: { t: any }) {
-  const [stats, setStats] = useState({ online_users: 0, total_members: 0, messages_today: 0 });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/stats?t=${Date.now()}`, {
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        });
-        const data = await res.json();
-        if (data && !data.error) {
-          setStats(data);
-        } else if (data?.error) {
-          // Fallback to mock data if API is not available
-          setStats({
-            online_users: 12,
-            total_members: 45623,
-            messages_today: 89
-          });
-        }
-      } catch (error) {
-        console.error("Błąd pobierania statystyk:", error);
-        // Fallback to mock data on error
-        setStats({
-          online_users: 12,
-          total_members: 45623,
-          messages_today: 89
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
-    const interval = setInterval(fetchStats, 60000); // Refresh every 60 seconds instead of 30
-    return () => clearInterval(interval);
-  }, []);
+  const stats = {
+    online_users: 0,
+    total_members: 0,
+    messages_today: 0
+  };
 
   return (
-      <div className="px-4 mb-6">
-        <div className="glass rounded-[2rem] p-5 overflow-hidden relative group border border-[var(--border-color)]">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-general)] opacity-5 blur-2xl group-hover:opacity-10 transition-opacity" />
+      <div className="px-4 mb-6" suppressHydrationWarning>
+        <div className="glass rounded-[2rem] p-5 overflow-hidden relative group border border-[var(--border-color)]" suppressHydrationWarning>
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-general)] opacity-5 blur-2xl group-hover:opacity-10 transition-opacity" suppressHydrationWarning />
 
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40 flex items-center gap-2 text-[var(--text)]">
-              <BarChart3 size={12} className="text-[var(--color-general)] shrink-0" /> {t.nav.stats}
+            <h2 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40 flex items-center gap-2 text-[var(--text)]" suppressHydrationWarning>
+              <BarChart3 size={12} className="text-[var(--color-general)] shrink-0" suppressHydrationWarning /> {t.nav.stats}
             </h2>
-            {loading ? (
-                <div className="w-1.5 h-1.5 shrink-0 rounded-full bg-[var(--color-general)] animate-pulse" />
-            ) : null}
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
-                  <Users size={14} className="opacity-70 text-[var(--text)]" />
+                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]" suppressHydrationWarning>
+                  <Users size={14} className="opacity-70 text-[var(--text)]" suppressHydrationWarning />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]">Społeczność</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{t.nav.channels}</span>
               </div>
-              <span className="text-xs font-black text-[var(--text)]">{(stats.total_members || 0).toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]" suppressHydrationWarning>{(stats.total_members || 0).toLocaleString()}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
-                  <Users size={14} className="opacity-70 text-[var(--text)]" />
+                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]" suppressHydrationWarning>
+                  <Users size={14} className="opacity-70 text-[var(--text)]" suppressHydrationWarning />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]">{t.nav.online}</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{t.nav.online}</span>
               </div>
-              <span className="text-xs font-black text-[var(--text)]">{(stats.online_users || 0).toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]" suppressHydrationWarning>{(stats.online_users || 0).toLocaleString()}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
-                  <MessageSquare size={14} className="opacity-70 text-[var(--text)]" />
+                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]" suppressHydrationWarning>
+                  <MessageSquare size={14} className="opacity-70 text-[var(--text)]" suppressHydrationWarning />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]">Wiadomości</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{t.nav.newProject}</span>
               </div>
-              <span className="text-xs font-black text-[var(--text)]">{(stats.messages_today || 0).toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]" suppressHydrationWarning>{(stats.messages_today || 0).toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -129,21 +86,21 @@ export function Sidebar() {
       type: "single",
       href: "/",
       label: t.nav.home,
-      iconPath: "/assets/Icons/home_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg",
+      icon: Home,
     },
     {
       id: "profile",
       type: "single",
       href: "/profil",
       label: t.nav.profile,
-      iconPath: "/assets/Icons/account_circle_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg",
+      icon: HomeIcon,
     },
     {
       id: "games",
       type: "expandable",
       href: "/games",
       label: t.nav.games,
-      iconPath: "/assets/Icons/sports_esports_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg",
+      icon: BarChart3,
       items: [
         { href: "/games/loucher-gier", label: "Loucher Gier" },
         { href: "/games/info-o-grach", label: "Info o grach" },
@@ -154,7 +111,7 @@ export function Sidebar() {
       type: "expandable",
       href: "/e-sport",
       label: t.nav.esport,
-      iconPath: "/assets/Icons/gamepad_left_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg",
+      icon: MessageSquare,
       items: [
         { href: "/e-sport/szukanie-do-gry", label: "Szukanie do gry" },
         { href: "/e-sport/customy", label: "Customy" },
@@ -165,7 +122,7 @@ export function Sidebar() {
       type: "expandable",
       href: "/records",
       label: t.nav.records,
-      iconPath: "/assets/Icons/music_note_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg",
+      icon: MessageSquare,
       items: [
         { href: "/records/podcasty", label: "Podcasty" },
         { href: "/records/beaty", label: "Beaty" },
@@ -176,10 +133,10 @@ export function Sidebar() {
       type: "expandable",
       href: "/dev",
       label: t.nav.dev,
-      iconPath: "/assets/Icons/build_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg",
+      icon: Settings,
       items: [
-        { href: "/dev/zarzadzanie-ludzmi", label: "Zarządzanie ludźmi" },
-        { href: "/dev/white-board", label: "White board" },
+        { href: "/dev/managment", label: t.nav.management },
+        { href: "/dev/white-board", label: "Whiteboard" },
         { href: "/dev/taski", label: "Zadania" },
       ],
     },
@@ -188,7 +145,10 @@ export function Sidebar() {
       type: "single",
       href: "/powiadomienia",
       label: t.nav.notifications,
-      iconPath: "/assets/Icons/notifications_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg",
+      icon: MessageSquare,
+      items: [
+        { href: "/powiadomienia", label: "Wiadomości" },
+      ],
     },
   ], [t]);
 
@@ -230,8 +190,8 @@ export function Sidebar() {
                   <Image
                       src={logo}
                       alt="Two Steps Studio Logo"
-                      width={180}
-                      height={100}
+                      width={240}
+                      height={140}
                       className="transition-opacity duration-500 object-contain w-auto h-full max-h-[90px]"
                       unoptimized
                   />
@@ -320,26 +280,14 @@ export function Sidebar() {
                       onMouseEnter={() => handleMouseEnter(section.id)}
                       onMouseLeave={handleMouseLeave}
                   >
-                    <div
+                    <Link
+                        href={section.href}
                         className={cn(
-                            "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all relative group overflow-hidden w-full text-left cursor-pointer",
+                            "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all relative group overflow-hidden w-full text-left",
                             isSectionActive
                                 ? "text-white"
                                 : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
                         )}
-                        onClick={(e) => {
-                          if (isExpandable && section.items && isExpanded) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setHoveredSectionId(null);
-                            openSubcategoriesAfterDelay(section.id);
-                          } else if (isExpandable && !section.items) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setHoveredSectionId(section.id);
-                            openSubcategoriesAfterDelay(section.id);
-                          }
-                        }}
                     >
                       {mounted && isSectionActive && (
                           <motion.div
@@ -374,7 +322,7 @@ export function Sidebar() {
                           <ChevronRight size={14} />
                         </div>
                       </div>
-                    </div>
+                    </Link>
 
                     <AnimatePresence>
                       {isExpanded && (
@@ -438,7 +386,6 @@ export function Sidebar() {
           <div className="flex items-center gap-2 mb-2">
             {mounted && (
                 <>
-                  {/* Przycisk motywu — pokazuje aktualny motyw i przełącza na przeciwny */}
                   <Button
                       variant="ghost"
                       size="sm"
@@ -461,7 +408,6 @@ export function Sidebar() {
                     </AnimatePresence>
                   </Button>
 
-                  {/* Przycisk języka — używa var(--text) zamiast hardcoded text-white */}
                   <Button
                       variant="ghost"
                       size="sm"
@@ -505,7 +451,7 @@ export function Sidebar() {
 
   return (
       <>
-        <aside className="hidden lg:flex w-[240px] bg-[var(--sidebar-bg)] backdrop-blur-3xl border-r border-[var(--border-color)] flex-col fixed inset-y-0 left-0 z-50">
+        <aside className="hidden lg:flex w-[240px] bg-[var(--sidebar-bg)] backdrop-blur-3xl border-r border-[var(--border-color)] flex-col fixed inset-y-0 left-0 z-50 transition-transform" suppressHydrationWarning={true}>
           {SidebarContent}
         </aside>
 
@@ -531,6 +477,10 @@ export function Sidebar() {
               </>
           )}
         </AnimatePresence>
+        {/* Bottom Navigation - mobile only, shown when sidebar is closed */}
+        {!isOpen && (
+          <BottomNavigation />
+        )}
       </>
   );
 }

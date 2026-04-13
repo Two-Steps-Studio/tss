@@ -191,9 +191,6 @@ export default function LoginPage() {
           </div>
           
           <div className="flex flex-col gap-2 pt-4 border-t border-white/5 w-full items-center">
-             <p className="text-[9px] text-zinc-600 font-mono tracking-tighter opacity-50 truncate max-w-xs">
-                NODE_PROJECT_ID: {process.env.NEXT_PUBLIC_SUPABASE_URL}
-             </p>
              <button 
                 onClick={() => {
                    localStorage.clear();

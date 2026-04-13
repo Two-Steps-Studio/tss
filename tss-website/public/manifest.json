@@ -1,12 +1,12 @@
 {
   "name": "Two Steps Studio",
   "short_name": "TSS",
-  "description": "Witaj w Two Steps Studio",
+  "description": "Two Steps Studio - społeczność gamingowa",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#1bbdbd",
-  "orientation": "portrait",
   "icons": [
     {
       "src": "/assets/Logo/Glowne/Two Steps Studio Bez Tła.png",
@@ -28,5 +28,24 @@
       "sizes": "1280x720",
       "type": "image/png"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Profil",
+      "url": "/profil",
+      "description": "Otwórz swój profil"
+    },
+    {
+      "name": "Gry",
+      "url": "/games",
+      "description": "Sekcja gier"
+    },
+    {
+      "name": "E-sport",
+      "url": "/e-sport",
+      "description": "Sekcja e-sportu"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
 }

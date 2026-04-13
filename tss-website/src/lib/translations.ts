@@ -40,7 +40,8 @@ export const translations = {
       channels: "Kanały",
       mainMenu: "Menu Główne",
       searchPlaceholder: "Szukaj projektów, gier...",
-      newProject: "Nowy Projekt"
+      newProject: "Nowy Projekt",
+      management: "Management"
     },
     sections: {
       games: {
@@ -181,7 +182,8 @@ export const translations = {
         channels: "Channels",
         mainMenu: "Main Menu",
         searchPlaceholder: "Search projects, games...",
-        newProject: "New Project"
+        newProject: "New Project",
+        management: "Management"
       },
     sections: {
       games: {

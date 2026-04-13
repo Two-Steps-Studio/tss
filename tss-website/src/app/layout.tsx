@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Outfit } from "next/font/google";
+import { motion } from "framer-motion";
 import "./globals.css";
 import { VisualEditsMessenger } from "orchids-visual-edits";
 import ErrorReporter from "../components/ErrorReporter";
@@ -8,6 +9,8 @@ import { Providers } from "../components/Providers";
 import AdminConsole from "../components/AdminConsole";
 import { Sidebar } from "../components/Sidebar";
 import { TopBar } from "../components/TopBar";
+import { MobileHeader } from "../components/MobileHeader";
+import PWAController from "../components/PWAController";
 import { PageTransition } from "../components/PageTransition";
 import { NoiseOverlay } from "../components/ui/noise-overlay";
 import ServiceWorkerRegister from "../components/ServiceWorkerRegister";
@@ -29,11 +32,6 @@ export const metadata: Metadata = {
   title: "Two Steps Studio",
   description: "Witaj w Two Steps Studio",
   manifest: "/manifest.json",
-    icons: {
-      icon: "/assets/Logo/Glowne/Two Steps Studio Bez Tła.png",
-      shortcut: "/assets/Logo/Glowne/Two Steps Studio Bez Tła.png",
-      apple: "/assets/Logo/Glowne/Two Steps Studio Bez Tła.png",
-    },
 };
 
 export default function RootLayout({
@@ -45,8 +43,6 @@ export default function RootLayout({
     <html lang="pl" suppressHydrationWarning className={`${spaceGrotesk.variable} ${outfit.variable}`}>
       <head>
         <meta name="theme-color" content="#000000" />
-        <link rel="icon" href="/assets/Logo/Glowne/Two Steps Studio Bez Tła.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/assets/Logo/Glowne/Two Steps Studio Bez Tła.png" />
       </head>
       <body className="antialiased overflow-x-hidden" suppressHydrationWarning>
         <NoiseOverlay />
@@ -62,7 +58,7 @@ export default function RootLayout({
         />
         <ErrorReporter />
         <Script
-          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts//route-messenger.js"
+          src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/scripts/route-messenger.js"
           strategy="afterInteractive"
           data-target-origin="*"
           data-message-type="ROUTE_CHANGE"
@@ -73,17 +69,17 @@ export default function RootLayout({
         />
         <Providers>
           <PresencePing />
-          <div className="flex min-h-screen">
-            <Sidebar suppressHydrationWarning={true} />
-            <div className="flex-1 lg:ml-[240px] flex flex-col pt-[60px] transition-[margin] duration-300">
-              <TopBar suppressHydrationWarning={true} />
-              <main className="p-4 md:p-8 pt-8 md:pt-12 max-w-[1400px] mx-auto w-full flex-1 flex flex-col">
-                <PageTransition>
-                  {children}
-                </PageTransition>
-                <Footer />
-              </main>
-            </div>
+          <MobileHeader mobileOnly />
+          <PWAController />
+          <Sidebar suppressHydrationWarning={true} />
+          <div className="flex-1 lg:ml-[240px] flex flex-col pt-[60px] transition-[margin] duration-300">
+            <TopBar suppressHydrationWarning={true} />
+            <main className="p-4 md:p-6 lg:p-8 pt-8 md:pt-12 pb-20 lg:pb-0 max-w-[1400px] mx-auto w-full flex-1 flex flex-col">
+              <PageTransition>
+                {children}
+              </PageTransition>
+              <Footer />
+            </main>
           </div>
           <AdminConsole />
         </Providers>

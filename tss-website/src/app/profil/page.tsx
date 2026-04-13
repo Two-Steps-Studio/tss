@@ -101,7 +101,7 @@ export default function ProfilePage() {
     };
 
     useEffect(() => {
-        let channel: any;
+        let channel: any = null;
 
         const fetchProfileData = async (currentUser: any) => {
             const discordId = currentUser.user_metadata?.provider_id || currentUser.id;
@@ -116,14 +116,15 @@ export default function ProfilePage() {
 
             // Realtime subscription - najpierw .on(), potem .subscribe()
             if (channel) supabase.removeChannel(channel);
-            channel = supabase.channel(`profile-${discordId}`);
-            channel.on("postgres_changes", {
+            const freshChannel = supabase.channel(`profile-${discordId}`);
+            freshChannel.on("postgres_changes", {
                 event: "*",
                 schema: "public",
                 table: "profiles",
                 filter: `id=eq.${discordId}`
             }, (payload) => setProfile(payload.new));
-            channel.subscribe();
+            freshChannel.subscribe();
+            channel = freshChannel;
 
             const weekThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
             const { count } = await supabase

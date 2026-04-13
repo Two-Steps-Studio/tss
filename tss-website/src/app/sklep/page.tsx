@@ -15,9 +15,12 @@ interface Product {
   price: number;
   description: string;
   image: string;
-  category: "skin" | "emblem" | "theme" | "other";
+  category: "bg" | "frame" | "style" | "theme" | "skin" | "emblem" | "other";
   rating: number;
   stock: number;
+  background?: string;
+  frame?: string;
+  style?: string;
 }
 
 export default function ShopPage() {
@@ -52,6 +55,12 @@ export default function ShopPage() {
 
   const getCategoryIcon = (category: Product["category"]) => {
     switch (category) {
+      case "bg":
+        return <span className="text-lg">🖼️</span>;
+      case "frame":
+        return <span className="text-lg">🎭</span>;
+      case "style":
+        return <span className="text-lg">✨</span>;
       case "skin":
         return <ShoppingCart size={16} />;
       case "emblem":
@@ -139,7 +148,7 @@ export default function ShopPage() {
                           : `bg-[var(--color-general)]/20 text-[var(--color-general)]`
                       }`}
                     >
-                      {getCategoryIcon(product.category)} {product.category}
+                      {getCategoryIcon(product.category)}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-1 text-yellow-400">
