@@ -12,12 +12,13 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/utils";
 
+// Definicja sekcji z fallback dla języków - po użyciu useLanguage
 const BOTTOM_NAV_ITEMS = {
-  home: { label: "Home", href: "/" },
+  home: { label: "Strona główna", href: "/" },
   profile: { label: "Profil", href: "/profil" },
-  games: { label: "Gry", href: "/games" },
+  games: { label: "Games", href: "/games" },
   esport: { label: "E-sport", href: "/e-sport" },
-  records: { label: "Rekordy", href: "/records" },
+  records: { label: "Studio", href: "/records" },
   dev: { label: "Dev", href: "/dev" },
   notifications: { label: "Powiadomienia", href: "/powiadomienia" },
 };
@@ -30,7 +31,7 @@ export function BottomNavigation() {
   const getPathColor = (href: string) =>
       pathname === href || pathname.startsWith(`${href}/`)
           ? "var(--color-general)"
-          : "rgba(255, 255, 255, 0.5)";
+          : "rgba(255, 255, 255, 0.15)";
 
   const getPathScale = (href: string) =>
       pathname === href || pathname.startsWith(`${href}/`)

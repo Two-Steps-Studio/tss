@@ -70,7 +70,7 @@ export function OnlineChart() {
     return <div className="h-60 rounded-[2.5rem] bg-white/5 animate-pulse" />;
   }
 
-  const gridColor = "rgba(255,255,255,0.06)";
+  const gridColor = "rgba(255,255,255,0.06)"; // Używa globalnego CSS dla trybu jasnego
 
   return (
     <div className="overflow-hidden rounded-[2.5rem] border border-white/10 bg-black/40 p-4">

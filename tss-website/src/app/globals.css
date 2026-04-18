@@ -3,7 +3,7 @@
 @theme {
   --color-general: var(--color-general-current, #1bbdbd);
   --color-primary: var(--color-general);
-  --color-primary-foreground: #ffffff;
+  --color-primary-foreground: var(--text);
   --color-games: #dc3545;
   --color-records: #ad83f8;
   --color-dev: #ffcb2f;
@@ -167,7 +167,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .dark .glass {
-  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 60px -15px rgba(var(--text-rgb), 0.6);
 }
 
 /* Custom Effects */
@@ -184,7 +184,7 @@ h1, h2, h3, h4, h5, h6 {
 /* Interactive elements */
 .btn-premium {
   background: var(--color-general);
-  color: white;
+  color: var(--text);
   font-weight: 800;
   border-radius: 1rem;
   transition: all 0.3s ease;

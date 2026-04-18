@@ -1,14 +1,12 @@
 # Lista Zadań - Two Steps Studio
-
-> Ta lista zawiera zadania do wykonania dla platformy Two Steps Studio.
-
 ## 🎨 Frontend & UI
+
+Prompt do usunięcia po użyciu:ikonki na side barrze nie dzialaja na komputerze  i top bar jest zbugowany na telefonie ze pojwaiaja sie pod nim zduplikowane rzeczy , sa za duze ikonki na dole na telefonie troszke je zmienjsz i wysrodkuj, i napis na stronie glownej two steps studio jest za maly dodaj ze mozna latwo dodawac nowe jezyki
+do tlumaczenia w jakims pliku i bedzie to dalo sie wybrac w ustawieniach i dodaj w cloude.md ze przed zadaniem ma zapisywac zadanie a po zrobieniu go ma je usuwac
 
 - [ ] **Dodane strony** - Stworzyć brakujące podstrony na platformie
 - [ ] **Poprawa renderowania** - Naprawić problemy z hydration i brakującymi komponentami
 - [ ] **Logowanie** - Sprostować mechanizm logowania użytkownika
-- [ ] **Responsive design** - Dostosować interfejs do telefonów
-- [ ] **Footer** - © Two Steps Studio 2026 *(ZAKOŃCZONE)*
 - [ ] **Strona taski** - Przebudować z nowym designem
 - [ ] **Statystyki** - Naprawić pobieranie danych
 - [ ] **Nick** - Naprawić zmianę nicku
@@ -38,7 +36,6 @@
 
 ### Komendy
 
-- [x] **Komendy** - Naprawić istniejące komendy *(ZAKOŃCZONE)*
 - [ ] **/pay** - Przelewanie pieniędzy
 - [ ] **/powiadomienie** - Ogłoszenie wyświetlane na stronie
 - [ ] **/afk** - Naprawić działanie (start/zatrzymaj łowienie)
@@ -64,4 +61,4 @@
 ---
 
 *Tworzone przez użytkownika*
-*ostatnio zaktualizowane: dzisiaj*
+*ostatnio zaktualizowane: 13.04.2026*
