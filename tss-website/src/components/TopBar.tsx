@@ -93,31 +93,48 @@ export function TopBar() {
     // Declare channel variable
     let channel: any = null;
 
-    // Create and subscribe to realtime channel
-    channel = supabase.channel(channelId).subscribe(async (event) => {
-      if (event.type === "channels#error") {
-        console.warn("Channel error:", event);
-        return;
-      }
-      // Listen to all postgres changes on this channel
-      await channel.on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "profiles",
-        filter: `id=eq.${user.id}`
-      }, (payload: any) => {
-        const row = payload.new || payload.old || {};
-        if (row.avatar_url) setAvatarUrl(row.avatar_url);
-        if (row.username) setDisplayName(row.username);
-        if (row.pln_balance !== undefined) {
-          localStorage.setItem("pln_balance", String(row.pln_balance));
+    // Subscribe first, then add listener
+    const subscription = supabase
+      .channel(channelId)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${user.id}`
+        },
+        (payload: any) => {
+          if (!payload) return;
+          try {
+            const row = payload.new || payload.old || {};
+            if (row.avatar_url) setAvatarUrl(row.avatar_url);
+            if (row.username) setDisplayName(row.username);
+            if (row.pln_balance !== undefined) {
+              // Type validate before localStorage write
+              const val = typeof row.pln_balance === "string"
+                ? parseFloat(row.pln_balance)
+                : row.pln_balance;
+              if (!isNaN(val) && Number.isFinite(val)) {
+                localStorage.setItem("pln_balance", String(val));
+              }
+            }
+          } catch (err) {
+            console.error("Error processing profile change:", err);
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          console.log(`Subscribed to channel: ${channelId}`);
+        } else if (status === "CHANNEL_ERROR") {
+          console.error(`Failed to subscribe to channel: ${channelId}`);
         }
       });
-    });
 
     // Cleanup on unmount or user change
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channelId);
     };
   }, [user]);
 
@@ -142,9 +159,16 @@ export function TopBar() {
             <div className="hidden md:flex items-center relative max-w-md w-full group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-[var(--color-general)]" size={18} />
               <input
+                  maxLength={50}
                   type="text"
                   placeholder={t.nav.searchPlaceholder}
                   className="w-full bg-black/5 dark:bg-white/5 border-none rounded-2xl py-2.5 pl-12 pr-12 text-sm font-medium focus:ring-2 focus:ring-[var(--color-general)]/20 transition-all outline-none"
+                  onInput={(e) => {
+                    const valid = /^[^\n\r\t]+$/;
+                    if (!valid.test(e.currentTarget.value)) {
+                      e.currentTarget.value = e.currentTarget.value.replace(/[\n\r\t]/g, '');
+                    }
+                  }}
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/5 dark:bg-white/10 border border-white/5 opacity-50 group-focus-within:opacity-100 transition-opacity">
                 <Command size={10} className="font-bold" />

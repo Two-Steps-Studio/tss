@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, Settings } from "lucide-react";
+import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, Settings, Bell, Gamepad, Trophy, Mic2, Music2, FolderOpen, Mail, Code } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "../lib/utils";
 import { useSidebar } from "@/hooks/use-sidebar";
@@ -14,7 +14,7 @@ import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
 import { BottomNavigation } from "./BottomNavigation";
 
-function SidebarStats({ t }: { t: any }) {
+function SidebarStats({ translations }: { translations: any }) {
   const stats = {
     online_users: 0,
     total_members: 0,
@@ -28,7 +28,7 @@ function SidebarStats({ t }: { t: any }) {
 
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40 flex items-center gap-2 text-[var(--text)]" suppressHydrationWarning>
-              <BarChart3 size={12} className="text-[var(--color-general)] shrink-0" suppressHydrationWarning /> {t.nav.stats}
+              <BarChart3 size={12} className="text-[var(--color-general)] shrink-0" suppressHydrationWarning /> {translations.nav.stats}
             </h2>
           </div>
 
@@ -38,7 +38,7 @@ function SidebarStats({ t }: { t: any }) {
                 <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]" suppressHydrationWarning>
                   <Users size={14} className="opacity-70 text-[var(--text)]" suppressHydrationWarning />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{t.nav.channels}</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{translations.nav.channels}</span>
               </div>
               <span className="text-xs font-black text-[var(--text)]" suppressHydrationWarning>{(stats.total_members || 0).toLocaleString()}</span>
             </div>
@@ -48,7 +48,7 @@ function SidebarStats({ t }: { t: any }) {
                 <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]" suppressHydrationWarning>
                   <Users size={14} className="opacity-70 text-[var(--text)]" suppressHydrationWarning />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{t.nav.online}</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{translations.nav.online}</span>
               </div>
               <span className="text-xs font-black text-[var(--text)]" suppressHydrationWarning>{(stats.online_users || 0).toLocaleString()}</span>
             </div>
@@ -58,7 +58,7 @@ function SidebarStats({ t }: { t: any }) {
                 <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]" suppressHydrationWarning>
                   <MessageSquare size={14} className="opacity-70 text-[var(--text)]" suppressHydrationWarning />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{t.nav.newProject}</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{translations.nav.newProject || "Wiadomości"}</span>
               </div>
               <span className="text-xs font-black text-[var(--text)]" suppressHydrationWarning>{(stats.messages_today || 0).toLocaleString()}</span>
             </div>
@@ -71,8 +71,8 @@ function SidebarStats({ t }: { t: any }) {
 export function Sidebar() {
   const pathname = usePathname();
   const { isOpen, close } = useSidebar();
+  const { t, language } = useLanguage();
   const { logo } = useSectionTheme();
-  const { t, language, setLanguage } = useLanguage();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -80,83 +80,37 @@ export function Sidebar() {
     setMounted(true);
   }, []);
 
-  const sections = useMemo(() => [
-    {
-      id: "home",
-      type: "single",
-      href: "/",
-      label: t.nav.home,
-      icon: Home,
-    },
-    {
-      id: "profile",
-      type: "single",
-      href: "/profil",
-      label: t.nav.profile,
-      icon: HomeIcon,
-    },
-    {
-      id: "games",
-      type: "expandable",
-      href: "/games",
-      label: t.nav.games,
-      icon: BarChart3,
-      items: [
-        { href: "/games/loucher-gier", label: "Loucher Gier" },
-        { href: "/games/info-o-grach", label: "Info o grach" },
-      ],
-    },
-    {
-      id: "esport",
-      type: "expandable",
-      href: "/e-sport",
-      label: t.nav.esport,
-      icon: MessageSquare,
-      items: [
-        { href: "/e-sport/szukanie-do-gry", label: "Szukanie do gry" },
-        { href: "/e-sport/customy", label: "Customy" },
-      ],
-    },
-    {
-      id: "records",
-      type: "expandable",
-      href: "/records",
-      label: t.nav.records,
-      icon: MessageSquare,
-      items: [
-        { href: "/records/podcasty", label: "Podcasty" },
-        { href: "/records/beaty", label: "Beaty" },
-      ],
-    },
-    {
-      id: "dev",
-      type: "expandable",
-      href: "/dev",
-      label: t.nav.dev,
-      icon: Settings,
-      items: [
-        { href: "/dev/managment", label: t.nav.management },
-        { href: "/dev/white-board", label: "Whiteboard" },
-        { href: "/dev/taski", label: "Zadania" },
-      ],
-    },
-    {
-      id: "notifications",
-      type: "single",
-      href: "/powiadomienia",
-      label: t.nav.notifications,
-      icon: MessageSquare,
-      items: [
-        { href: "/powiadomienia", label: "Wiadomości" },
-      ],
-    },
-  ], [t]);
+  // Definicja sekcji z fallback dla wszystkich tłumaczeń
+  const defaultSections = [
+    { id: "home", type: "single", href: "/", label: t.nav.home || "Strona główna", icon: Home },
+    { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: HomeIcon },
+    { id: "games", type: "expandable", href: "/games", label: t.nav.games || "Games", icon: Gamepad, items: [
+      { href: "/games/loucher-gier", label: t.nav.management || "Loucher Gier" },
+      { href: "/games/info-o-grach", label: "Info o grach" },
+    ]},
+    { id: "esport", type: "expandable", href: "/e-sport", label: t.nav.esport || "E-sport", icon: Trophy, items: [
+      { href: "/e-sport/szukanie-do-gry", label: "Szukanie do gry" },
+      { href: "/e-sport/customy", label: "Customy" },
+    ]},
+    { id: "studio", type: "expandable", href: "/records", label: t.nav.studio || "Studio", icon: Music2, items: [
+      { href: "/records/podcasty", label: "Podcasty" },
+      { href: "/records/beaty", label: "Beaty" },
+    ]},
+    { id: "dev", type: "expandable", href: "/dev", label: t.nav.dev || "Dev", icon: Code, items: [
+      { href: "/dev/managment", label: t.nav.management || "Management" },
+      { href: "/dev/white-board", label: "Whiteboard" },
+      { href: "/dev/taski", label: "Zadania" },
+    ]},
+    { id: "notifications", type: "single", href: "/powiadomienia", label: t.nav.notifications || "Powiadomienia", icon: Bell },
+  ];
+
+  const sections = useMemo(() => defaultSections, [t]);
 
   const isPathActive = (href: string) =>
       pathname === href || pathname.startsWith(`${href}/`);
 
   const [hoveredSectionId, setHoveredSectionId] = useState<string | null>(null);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMouseEnter = (id: string) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
@@ -172,6 +126,16 @@ export function Sidebar() {
     }, 100);
   };
 
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Close sidebar on route change
   useEffect(() => {
     close();
   }, [pathname, close]);
@@ -188,12 +152,12 @@ export function Sidebar() {
             >
               {mounted && (
                   <Image
-                      src={logo}
-                      alt="Two Steps Studio Logo"
-                      width={240}
-                      height={140}
-                      className="transition-opacity duration-500 object-contain w-auto h-full max-h-[90px]"
-                      unoptimized
+   	   	    src={logo}
+   	   	    alt="Two Steps Studio Logo"
+   	   	    width={240}
+   	   	    height={140}
+   	   	    className="transition-opacity duration-500 object-contain w-auto h-full max-h-[90px]"
+   	   	    unoptimized
                   />
               )}
             </motion.div>
@@ -207,8 +171,6 @@ export function Sidebar() {
           </button>
         </div>
 
-        <SidebarStats t={t} />
-
         {/* Navigation */}
         <nav className="flex-1 px-4 overflow-y-auto no-scrollbar pb-6" suppressHydrationWarning>
           <h2 className="text-[11px] font-black uppercase tracking-[0.2em] mb-4 px-4 opacity-30 text-[var(--text)]">{t.nav.mainMenu}</h2>
@@ -218,54 +180,41 @@ export function Sidebar() {
                 const isActive = isPathActive(section.href);
                 return (
                     <li key={section.id}>
-                      <Link
-                          href={section.href}
-                          className={cn(
-                              "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all relative group overflow-hidden",
-                              isActive
-                                  ? "text-white"
-                                  : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
-                          )}
-                      >
-                        {mounted && isActive && (
-                            <motion.div
-                                layoutId={`active-bg-${section.id}`}
-                                className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)] to-[var(--color-records)] shadow-[0_0_20px_rgba(var(--color-general-rgb),0.3)] opacity-90"
-                                initial={false}
-                                transition={{ type: "spring", bounce: 0.1, duration: 0.5 }}
-                            />
-                        )}
+              <Link
+                href={section.href}
+                className={cn(
+                    "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all relative group overflow-hidden",
+                    isActive
+                        ? "text-white"
+                        : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
+                )}
+              >
+                            {mounted && isActive && (
+   	   	   	 <motion.div
+   	   	   	    layoutId={`active-bg-${section.id}`}
+   	   	   	    className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)] to-[var(--color-records)] shadow-[0_0_20px_rgba(var(--color-general-rgb),0.3)] opacity-90"
+   	   	   	    initial={false}
+   	   	   	    transition={{ type: "spring", bounce: 0.1, duration: 0.5 }}
+   	   	   	   />
+                            )}
 
-                        <div className="relative z-10 flex items-center gap-3 w-full">
-                          <div
-                              className={cn(
-                                  "w-5 h-5 bg-current transition-all duration-300 group-hover:scale-110",
-                                  isActive ? "opacity-100 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" : "opacity-40 group-hover:opacity-100"
-                              )}
-                              style={{
-                                maskImage: `url(${section.iconPath})`,
-                                maskSize: "contain",
-                                maskRepeat: "no-repeat",
-                                WebkitMaskImage: `url(${section.iconPath})`,
-                                WebkitMaskSize: "contain",
-                                WebkitMaskRepeat: "no-repeat",
-                              }}
-                          />
-                          <span className={cn(
-                              "text-sm tracking-tight transition-all duration-300",
-                              isActive ? "font-black" : "font-bold opacity-60 group-hover:opacity-100"
-                          )}>{section.label}</span>
-                          {isActive && mounted && (
-                              <motion.div
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  className="ml-auto"
-                              >
-                                <ChevronRight size={14} className="opacity-50" />
-                              </motion.div>
-                          )}
-                        </div>
-                      </Link>
+                            <div className="relative z-10 flex items-center gap-3 w-full">
+    <section.icon className="w-5 h-5 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
+    <span className={cn(
+        "text-sm tracking-tight transition-all duration-300",
+        isActive ? "font-black" : "font-bold opacity-60 group-hover:opacity-100"
+    )}>{section.label}</span>
+    {isActive && mounted && (
+        <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="ml-auto"
+            >
+            <ChevronRight size={14} className="opacity-50" />
+        </motion.div>
+    )}
+                            </div>
+              </Link>
                     </li>
                 );
               }
@@ -276,105 +225,88 @@ export function Sidebar() {
 
               return (
                   <li
-                      key={section.id}
-                      onMouseEnter={() => handleMouseEnter(section.id)}
-                      onMouseLeave={handleMouseLeave}
-                  >
-                    <Link
-                        href={section.href}
-                        className={cn(
-                            "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all relative group overflow-hidden w-full text-left",
-                            isSectionActive
-                                ? "text-white"
-                                : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
-                        )}
-                    >
-                      {mounted && isSectionActive && (
-                          <motion.div
-                              layoutId={`active-bg-${section.id}`}
-                              className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)] to-[var(--color-records)] shadow-[0_0_20px_rgba(var(--color-general-rgb),0.3)] opacity-90"
-                              initial={false}
-                              transition={{ type: "spring", bounce: 0.1, duration: 0.5 }}
-                          />
-                      )}
+                key={section.id}
+                onMouseEnter={() => handleMouseEnter(section.id)}
+                onMouseLeave={handleMouseLeave}
+                >
+                <Link
+                    href={section.href}
+                    className={cn(
+                        "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all relative group overflow-hidden w-full text-left",
+                        isSectionActive
+                            ? "text-white"
+                            : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
+                    )}
+                >
+          {mounted && isSectionActive && (
+            <motion.div
+              layoutId={`active-bg-${section.id}`}
+              className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)] to-[var(--color-records)] shadow-[0_0_20px_rgba(var(--color-general-rgb),0.3)] opacity-90"
+              initial={false}
+              transition={{ type: "spring", bounce: 0.1, duration: 0.5 }}
+            />
+          )}
 
-                      <div className="relative z-10 flex items-center gap-3 w-full">
-                        <div
-                            className={cn(
-                                "w-5 h-5 bg-current transition-all duration-300 group-hover:scale-110",
-                                isSectionActive ? "opacity-100 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]" : "opacity-40 group-hover:opacity-100"
-                            )}
-                            style={{
-                              maskImage: `url(${section.iconPath})`,
-                              maskSize: "contain",
-                              maskRepeat: "no-repeat",
-                              WebkitMaskImage: `url(${section.iconPath})`,
-                              WebkitMaskSize: "contain",
-                              WebkitMaskRepeat: "no-repeat",
-                            }}
-                        />
-                        <span className={cn(
-                            "text-sm tracking-tight transition-all duration-300",
-                            isSectionActive ? "font-black" : "font-bold opacity-60 group-hover:opacity-100"
-                        )}>{section.label}</span>
+          <div className="relative z-10 flex items-center gap-3 w-full">
+    <section.icon className="w-5 h-5 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
+    <span className={cn(
+        "text-sm tracking-tight transition-all duration-300",
+        isSectionActive ? "font-black" : "font-bold opacity-60 group-hover:opacity-100"
+    )}>{section.label}</span>
 
-                        <div className={cn("ml-auto relative z-10 transition-transform duration-200", isExpanded && "rotate-90")}>
-                          <ChevronRight size={14} />
-                        </div>
-                      </div>
-                    </Link>
+    <div className={cn("ml-auto relative z-10 transition-transform duration-200", isExpanded && "rotate-90")}>
+        <ChevronRight size={14} />
+    </div>
+          </div>
+                </Link>
 
-                    <AnimatePresence>
-                      {isExpanded && (
-                          <motion.div
-                              initial={{ opacity: 0, y: -6 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -6 }}
-                              transition={{ duration: 0.18 }}
-                              className="mt-1 pl-4"
-                          >
-                            <ul className="space-y-1">
-                              {isExpandable && section.items?.map((item) => {
-                                const isActive = isPathActive(item.href);
-                                return (
-                                    <li key={item.href}>
-                                      <Link
-                                          href={item.href}
-                                          className={cn(
-                                              "flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all relative group overflow-hidden",
-                                              isActive
-                                                  ? "text-white"
-                                                  : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
-                                          )}
-                                      >
-                                        {mounted && isActive && (
-                                            <motion.div
-                                                layoutId={`active-bg-${item.href}`}
-                                                className="absolute inset-0 bg-black/10 dark:bg-white/10"
-                                                initial={false}
-                                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                            />
-                                        )}
+                <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18 }}
+              className="mt-1 pl-4"
+            >
+              <ul className="space-y-1">
+          {isExpandable && section.items?.map((item) => {
+            const isActive = isPathActive(item.href);
+            return (
+              <li key={item.href}>
+                <Link
+   	   	    href={item.href}
+   	   	    className={cn(
+                            "flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all relative group overflow-hidden",
+                            isActive ? "text-white" : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
+   	   	    )}
+                >
+                  {mounted && isActive && (
+                    <motion.div
+                        layoutId={`active-bg-${item.href}`}
+                        className="absolute inset-0 bg-black/10 dark:bg-white/10"
+                        initial={false}
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
 
-                                        <div className="relative z-10 flex items-center gap-3 w-full pl-3">
-                                          <div
-                                              className={cn(
-                                                  "w-1.5 h-1.5 shrink-0 rounded-full bg-[var(--color-general)] transition-opacity",
-                                                  isActive ? "opacity-100" : "opacity-50 group-hover:opacity-70"
-                                              )}
-                                          />
-                                          <span className="text-sm font-bold tracking-tight truncate">
-                                    {item.label}
-                                  </span>
-                                        </div>
-                                      </Link>
-                                    </li>
-                                );
-                              })}
-                            </ul>
-                          </motion.div>
-                      )}
-                    </AnimatePresence>
+                  <div className="relative z-10 flex items-center gap-3 w-full pl-3">
+                    <div
+   	   	    className={cn(
+                            "w-1.5 h-1.5 shrink-0 rounded-full bg-[var(--color-general)] transition-opacity",
+                            isActive ? "opacity-100" : "opacity-50 group-hover:opacity-70"
+   	   	    )}
+                    />
+                    <span className="text-sm font-bold tracking-tight truncate">{item.label}</span>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+              </ul>
+            </motion.div>
+          )}
+                </AnimatePresence>
                   </li>
               );
             })}
@@ -387,34 +319,34 @@ export function Sidebar() {
             {mounted && (
                 <>
                   <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const current = resolvedTheme === "dark" ? "light" : "dark";
-                        setTheme(current);
-                      }}
-                      className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 text-[var(--text)]"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                    const current = resolvedTheme === "dark" ? "light" : "dark";
+                    setTheme(current);
+                }}
+                className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 text-[var(--text)]"
                   >
                     <AnimatePresence mode="wait">
-                      <motion.div
-                          key={resolvedTheme}
-                          initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
-                          animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                          exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
-                          transition={{ duration: 0.2 }}
-                      >
-                        {resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-                      </motion.div>
+          <motion.div
+            key={resolvedTheme}
+            initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+            animate={{ opacity: 1, rotate: 0, scale: 1 }}
+            exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+            transition={{ duration: 0.2 }}
+          >
+            {resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </motion.div>
                     </AnimatePresence>
                   </Button>
 
                   <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setLanguage(language === "pl" ? "en" : "pl")}
-                      className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 font-black text-[10px] text-[var(--text)]"
+                variant="ghost"
+                size="sm"
+                onClick={() => setLanguage({ pl: "en", en: "de", de: "pl" }[language])}
+                className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 font-black text-[10px] text-[var(--text)]"
                   >
-                    {language.toUpperCase()}
+                    {(t.settings.language || "Language").toUpperCase()}
                   </Button>
                 </>
             )}
@@ -425,8 +357,8 @@ export function Sidebar() {
               className={cn(
                   "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all group relative overflow-hidden border",
                   pathname === "/ustawienia"
-                      ? "text-white bg-[var(--color-general)] shadow-lg shadow-[var(--color-general)]/20 font-black border-transparent"
-                      : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5 border-black/10 dark:border-white/10"
+                    ? "text-white bg-[var(--color-general)] shadow-lg shadow-[var(--color-general)]/20 font-black border-transparent"
+                    : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5 border-black/10 dark:border-white/10"
               )}
           >
             <div
@@ -447,40 +379,5 @@ export function Sidebar() {
           </Link>
         </div>
       </div>
-  );
-
-  return (
-      <>
-        <aside className="hidden lg:flex w-[240px] bg-[var(--sidebar-bg)] backdrop-blur-3xl border-r border-[var(--border-color)] flex-col fixed inset-y-0 left-0 z-50 transition-transform" suppressHydrationWarning={true}>
-          {SidebarContent}
-        </aside>
-
-        <AnimatePresence>
-          {isOpen && (
-              <>
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={close}
-                    className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] lg:hidden"
-                />
-                <motion.aside
-                    initial={{ x: "-100%" }}
-                    animate={{ x: 0 }}
-                    exit={{ x: "-100%" }}
-                    transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                    className="fixed inset-y-0 left-0 w-[300px] bg-[var(--bg)] shadow-2xl z-[101] lg:hidden border-r border-[var(--border-color)]"
-                >
-                  {SidebarContent}
-                </motion.aside>
-              </>
-          )}
-        </AnimatePresence>
-        {/* Bottom Navigation - mobile only, shown when sidebar is closed */}
-        {!isOpen && (
-          <BottomNavigation />
-        )}
-      </>
   );
 }
