@@ -188,7 +188,7 @@ export default function KanbanBoard() {
             </div>
           </div>
         </div>
-        
+
         <MobileStyles />
         <div className={`h-screen w-full transition-colors duration-300 dev-main p-6 ${darkMode ? "bg-neutral-900 text-neutral-50" : "bg-transparent"}`}>
           <header className="mb-6 flex items-center gap-4 dev-board-header">

@@ -11,10 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Mail, Shield, Trophy, Star, Bell, Link as LinkIcon, CheckCircle2 } from "lucide-react";
 import LogoutButton from "./logout-button";
-import { toast } from "sonner";
 import Image from "next/image";
 
-// ── ROLE Z PRIORYTETEM ──
 const ROLE_PRIORITY: Array<{ key: string; color: string; label: string }> = [
     { key: "〔 👑︱Owner 〕", color: "#dc3545", label: "OWNER" },
     { key: "〔 👑︱Owner Records 〕", color: "#9b59b6", label: "OWNER RECORDS" },
@@ -80,80 +78,64 @@ function DiscordRolesPanel({ discordRoles }: { discordRoles: string[] }) {
     );
 }
 
-const DISCORD_ROLES_BADGE: Record<string, { color: string; label: string }> = Object.fromEntries(
+const ROLE_MAP_BADGE: Record<string, { color: string; label: string }> = Object.fromEntries(
     ROLE_PRIORITY.map((r) => [r.key, { color: r.color, label: r.label }])
 );
+
+const fetchRankingData = async () => {
+    const [topLevel, topMoney] = await Promise.all([
+        supabase.from("profiles").select("id, level, money").order("level", { ascending: false }).limit(100),
+        supabase.from("profiles").select("id, money, level").order("money", { ascending: false }).limit(100)
+    ]);
+
+    return {
+        usersByLevel: (topLevel.data || []).map((u, idx) => ({ ...u, rank: idx + 1 })),
+        usersByMoney: (topMoney.data || []).map((u, idx) => ({ ...u, rank: idx + 1 }))
+    };
+};
 
 export default function ProfilePage() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<any>(null);
-    const [weeklyXP, setWeeklyXP] = useState(0);
     const [authChecked, setAuthChecked] = useState(false);
-
-    const linkDiscord = async () => {
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'discord',
-            options: { redirectTo: `${window.location.origin}/profil` }
-        });
-        if (error) toast.error("Błąd: " + error.message);
-    };
+    const [rankingData, setRankingData] = useState<{ usersByLevel: any[]; usersByMoney: any[] }>({ usersByLevel: [], usersByMoney: [] });
+    const [topTab, setTopTab] = useState<"level" | "money">("level");
 
     useEffect(() => {
         let channel: any = null;
 
-        const fetchProfileData = async (currentUser: any) => {
+        const fetchData = async (currentUser: any) => {
             const discordId = currentUser.user_metadata?.provider_id || currentUser.id;
-
             const { data: initialProfile } = await supabase
                 .from("profiles")
                 .select("*")
                 .eq("id", discordId)
                 .maybeSingle();
+            setProfile(initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [], pln_balance: 0 });
 
-            setProfile(initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [], pln_balance: 0, vip_status: false, svip_status: false, mvip_status: false });
-
-            // Realtime subscription - najpierw .on(), potem .subscribe()
             if (channel) supabase.removeChannel(channel);
             const freshChannel = supabase.channel(`profile-${discordId}`);
-            freshChannel.on("postgres_changes", {
-                event: "*",
-                schema: "public",
-                table: "profiles",
-                filter: `id=eq.${discordId}`
-            }, (payload) => setProfile(payload.new));
+            freshChannel.on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${discordId}` },
+                (payload) => setProfile(payload.new));
             freshChannel.subscribe();
             channel = freshChannel;
 
-            const weekThreshold = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-            const { count } = await supabase
-                .from("site_presence")
-                .select("session_id", { count: "exact", head: true })
-                .eq("user_id", discordId)
-                .gte("seen_at", weekThreshold);
-
-            setWeeklyXP(count || 0);
+            const data = await fetchRankingData();
+            setRankingData(data);
             setLoading(false);
         };
 
-        // Nasłuchuj zmian sesji (obsługuje OAuth callback automatycznie)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_OUT') {
-                router.push('/login');
-                return;
-            }
-
+            if (event === 'SIGNED_OUT') { router.push('/login'); return; }
             if (session?.user) {
-                const currentUser = session.user;
-                setUser(currentUser);
+                setUser(session.user);
                 setAuthChecked(true);
-                await fetchProfileData(currentUser);
+                await fetchData(session.user);
             } else if (event === 'INITIAL_SESSION' && !session) {
                 setAuthChecked(true);
-                if (!window.location.search.includes("code=")) {
-                    router.push("/login");
-                }
+                if (!window.location.search.includes("code=")) router.push("/login");
             }
         });
 
@@ -164,12 +146,12 @@ export default function ProfilePage() {
     }, [router]);
 
     if (!authChecked || (loading && !user)) {
-        return <div className="p-20 text-center text-white italic">Wczytywanie...</div>;
+        return <div className="p-20 text-center italic">Wczytywanie...</div>;
     }
 
     const discordId = user?.user_metadata?.provider_id || user?.id;
     const isDiscordLinked = user?.app_metadata?.provider === 'discord' || user?.identities?.some((id: any) => id.provider === 'discord');
-    const roleInfo = DISCORD_ROLES_BADGE[profile?.rank] || { color: "var(--color-general)", label: `LEVEL ${profile?.level || 1}` };
+    const roleInfo = ROLE_MAP_BADGE[profile?.rank] || { color: "var(--color-general)", label: `LEVEL ${profile?.level || 1}` };
     const discordName = user?.user_metadata?.global_name || user?.user_metadata?.full_name || user?.email?.split("@")[0];
     const xp = profile?.xp || 0;
     const level = profile?.level || 1;
@@ -180,9 +162,12 @@ export default function ProfilePage() {
     const progress = Math.min(Math.max((currentProgressXP / neededXP) * 100, 0), 100);
     const nextLevelXp = Math.round(nextLevelStartXP);
     const discordRoles = Array.isArray(profile?.discord_roles) ? profile.discord_roles : [];
+    const topList = topTab === "level" ? rankingData.usersByLevel : rankingData.usersByMoney;
 
     return (
         <div className="container mx-auto p-6 space-y-8 mt-20 max-w-6xl" suppressHydrationWarning>
+
+            {/* ── PROFIL ── */}
             <Card className="relative overflow-hidden rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-2xl shadow-2xl">
                 <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)]/15 via-transparent to-transparent opacity-90" />
                 <CardContent className="relative z-10 p-8 md:p-12">
@@ -206,7 +191,7 @@ export default function ProfilePage() {
                                         <CheckCircle2 size={12} /> Zweryfikowany Discord
                                     </Badge>
                                 ) : (
-                                    <Button onClick={linkDiscord} variant="outline" size="sm" className="mt-2 h-7 bg-indigo-500/10 border-indigo-500/30 text-indigo-400 text-xs rounded-full gap-2">
+                                    <Button variant="outline" size="sm" className="mt-2 h-7 bg-indigo-500/10 border-indigo-500/30 text-indigo-400 text-xs rounded-full gap-2">
                                         <LinkIcon size={12} /> Połącz z Discordem
                                     </Button>
                                 )}
@@ -232,41 +217,106 @@ export default function ProfilePage() {
                 </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div className="lg:col-span-4 space-y-8">
-                    <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl">
-                        <CardHeader className="border-b border-black/10 dark:border-white/5 text-black dark:text-white font-bold italic"><Star className="mr-2 text-[var(--color-general)]" /> Statystyki</CardHeader>
-                        <CardContent className="p-6 space-y-6">
-                            <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
-                                <span className="text-sm font-bold opacity-60 text-black dark:text-white">Portfel</span>
-                                <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-general)]">{profile?.money || 0}</span><Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} /></div>
+            {/* ── STATYSTYKI + TOPKA ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                {/* Statystyki */}
+                <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl">
+                    <CardHeader className="border-b border-black/10 dark:border-white/5 text-black dark:text-white font-bold italic flex items-center">
+                        <Star size={18} className="mr-2 text-[var(--color-general)]" /> Statystyki
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
+                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">Portfel</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl font-black text-[var(--color-general)]">{profile?.money || 0}</span>
+                                <Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} />
                             </div>
-                            <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
-                                <span className="text-sm font-bold opacity-60 text-black dark:text-white">Bank</span>
-                                <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-general)]">{profile?.bank || 0}</span><Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} className="opacity-80" /></div>
+                        </div>
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
+                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">Bank</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl font-black text-[var(--color-general)]">{profile?.bank || 0}</span>
+                                <Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} className="opacity-80" />
                             </div>
-                            <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
-                                <span className="text-sm font-bold opacity-60 text-black dark:text-white">Saldo PLN</span>
-                                <div className="flex items-center gap-2"><span className="text-xl font-black text-[var(--color-general)]">{profile?.pln_balance?.toFixed(2) || "0.00"} zł</span></div>
+                        </div>
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
+                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">Saldo PLN</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl font-black text-[var(--color-general)]">{profile?.pln_balance?.toFixed(2) || "0.00"} zł</span>
                             </div>
-                        </CardContent>
-                    </Card>
-                    <LogoutButton />
-                </div>
-                <div className="lg:col-span-8">
-                    <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl shadow-xl">
-                        <CardHeader className="border-b border-black/10 dark:border-white/5 text-black dark:text-white font-bold italic"><Bell className="mr-2 text-[var(--color-general)]" /> Ustawienia</CardHeader>
-                        <CardContent className="p-8">
-                            <ProfileForm
-                                user={user}
-                                discordId={discordId}
-                                profile={profile}
-                                onUpdated={(p) => setProfile({ ...profile, ...p })}
-                            />
-                        </CardContent>
-                    </Card>
-                </div>
+                        </div>
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
+                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">Poziom</span>
+                            <span className="text-xl font-black text-[var(--color-general)]">{level}</span>
+                        </div>
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
+                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">XP</span>
+                            <span className="text-xl font-black text-[var(--color-general)]">{xp}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Topka */}
+                <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl flex flex-col h-[520px]">
+                    <CardHeader className="border-b border-black/10 dark:border-white/5 flex flex-col gap-3 pb-4">
+                        <div className="flex items-center text-black dark:text-white font-bold italic">
+                            <Trophy size={18} className="mr-2 text-[var(--color-general)]" /> Topka
+                        </div>
+                        {/* Przełącznik */}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setTopTab("level")}
+                                className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "level" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
+                            >
+                                🏆 Poziomy
+                            </button>
+                            <button
+                                onClick={() => setTopTab("money")}
+                                className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "money" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
+                            >
+                                💰 Pieniądze
+                            </button>
+                        </div>
+                    </CardHeader>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar">
+                        {topList.length === 0 && (
+                            <div className="text-center opacity-40 text-sm pt-8">Wczytywanie...</div>
+                        )}
+                        {topList.map((u, idx) => (
+                            <div key={u.id} className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${u.id === discordId ? "bg-[var(--color-general)]/10 border-[var(--color-general)]/30" : "bg-black/5 dark:bg-white/5 border-white/5 hover:bg-black/10 dark:hover:bg-white/10"}`}>
+                                <div className="flex items-center gap-3">
+                                    <span className={`font-black w-6 text-center ${idx < 3 ? "text-[var(--color-general)]" : "text-zinc-400"}`}>{u.rank}</span>
+                                    <span className="text-lg">{idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : topTab === "money" ? "💰" : "🎮"}</span>
+                                    <div className="min-w-0">
+                                        <div className={`font-bold truncate text-sm ${u.id === discordId ? "text-[var(--color-general)]" : "text-black dark:text-zinc-200"}`}>{u.id.slice(0, 14)}</div>
+                                        <div className="text-xs opacity-50">
+                                            {topTab === "level" ? `Poziom ${u.level}` : `${(u.money / 1000).toFixed(1)}K monet`}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
             </div>
+
+            {/* ── USTAWIENIA ── */}
+            <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl shadow-xl">
+                <CardHeader className="border-b border-black/10 dark:border-white/5 text-black dark:text-white font-bold italic flex items-center">
+                    <Bell size={18} className="mr-2 text-[var(--color-general)]" /> Ustawienia
+                </CardHeader>
+                <CardContent className="p-8">
+                    <ProfileForm
+                        user={user}
+                        discordId={discordId}
+                        profile={profile}
+                        onUpdated={(p) => setProfile({ ...profile, ...p })}
+                    />
+                </CardContent>
+            </Card>
+
+            <LogoutButton />
         </div>
     );
 }

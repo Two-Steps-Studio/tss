@@ -7,7 +7,6 @@ import ErrorReporter from "../components/ErrorReporter";
 import Script from "next/script";
 import { Providers } from "../components/Providers";
 import AdminConsole from "../components/AdminConsole";
-import { Sidebar } from "../components/Sidebar";
 import { TopBar } from "../components/TopBar";
 import { MobileHeader } from "../components/MobileHeader";
 import PWAController from "../components/PWAController";
@@ -18,6 +17,8 @@ import InstallPrompt from "../components/InstallPrompt";
 import { PresencePing } from "../components/presence-ping";
 import { Footer } from "../components/Footer";
 import { LanguageProvider } from "../hooks/use-language";
+import { SidebarProvider } from "../hooks/use-sidebar";
+import { SidebarLayout } from "../components/SidebarLayout";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -70,11 +71,13 @@ export default function RootLayout({
         />
         <Providers>
           <LanguageProvider>
+            <SidebarProvider>
+              <SidebarLayout />
+            </SidebarProvider>
             <PresencePing />
             <MobileHeader mobileOnly />
             <PWAController />
-            <Sidebar suppressHydrationWarning={true} />
-            <div className="flex-1 lg:ml-[240px] flex flex-col pt-[60px] transition-[margin] duration-300">
+            <div className="flex-1 lg:ml-[240px] lg:border-l lg:border-zinc-700/30 flex flex-col pt-[60px] transition-[margin] duration-300">
               <TopBar suppressHydrationWarning={true} />
               <main className="p-4 md:p-6 lg:p-8 pt-8 md:pt-12 pb-20 lg:pb-0 max-w-[1400px] mx-auto w-full flex-1 flex flex-col">
                 <PageTransition>

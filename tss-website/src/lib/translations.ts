@@ -572,5 +572,581 @@ export const translations = {
   }
 } as const;
 
+// Nowe języki - Rosyjski
+export const ru = {
+  settings: {
+    title: "Настройки",
+    subtitle: "Персонализируйте свой интерфейс Two Steps Studio.",
+    appearance: "Внешний вид",
+    light: "Светлый",
+    dark: "Тёмный",
+    system: "Системный",
+    colorTheme: "Цветовая тема",
+    language: "Язык / Language",
+    notifications: "Уведомления и предпочтения",
+    news: "Новости и объявления",
+    newsDesc: "Информация о новых играх и проектах.",
+    esport: "Обновления e-sпорта",
+    esportDesc: "Результаты матчей и уведомления о турнирах.",
+    dev: "DEV обновления",
+    devDesc: "Уведомления о новых инструментах и прогрессе проектов.",
+    themes: {
+      default: "Бирюзовый (По умолчанию)",
+      cyberpunk: "Киберпанк",
+      midnight: "Миднайт",
+      nature: "Природа",
+      gold: "Золото",
+      sunset: "Закат"
+    }
+  },
+  nav: {
+    home: "Главная",
+    profile: "Профиль",
+    games: "Игры",
+    esport: "e-sport",
+    studio: "Студия",
+    dev: "Dev",
+    notifications: "Уведомления",
+    settings: "Настройки",
+    login: "Войти",
+    stats: "Статистика",
+    online: "Онлайн",
+    channels: "Каналы",
+    mainMenu: "Главное меню",
+    searchPlaceholder: "Поиск проектов, игр...",
+    newProject: "Сообщения",
+    management: "Менеджмент"
+  },
+  sections: {
+    games: {
+      subtitle: "Откройте для себя новейшие новинки и отзывы.",
+      preview: "Предпросмотр игры",
+      title: "Название игры",
+      desc: "Краткое описание игры и её основные функции."
+    },
+    esport: {
+      subtitle: "Отслеживайте матчи и рейтинги наших команд.",
+      upcoming: "Состоящие матчи",
+      today: "Сегодня",
+      vs: "vs"
+    },
+    records: {
+      subtitle: "Наши музыкальные произведения и записи.",
+      newRelease: "Новое выпуск",
+      listenNow: "Слушать сейчас"
+    },
+    dev: {
+      subtitle: "Наши проекты и инструменты разработки.",
+      projects: "Проекты",
+      status: "Статус"
+    }
+  },
+  home: {
+    newsTitle: "Новости Студии",
+    newsSubtitle: "Будьте в курсе наших новейших проектов и мероприятий.",
+    readMore: "Читать далее",
+    viewAll: "Все посты",
+    newsletterTitle: "Будьте в курсе событий",
+    newsletterSubtitle: "Подпишитесь на нашу рассылку, чтобы получать новости о запусках и турнирах.",
+    emailPlaceholder: "Ваш адрес электронной почты...",
+    subscribe: "Подписаться",
+    subscribeSuccess: "Спасибо! Вы подписались.",
+    communityTitle: "Наше сообщество",
+    messagesToday: "Сообщений сегодня",
+    onlineNow: "Онлайн сейчас",
+    installApp: "Скачать приложение",
+    installAppDesc: "Установите приложение Two Steps Studio на свой компьютер.",
+    prototypeBadge: "ПРОТОТИП",
+    prototypeVersion: "ПРОТОТИП ВЕРСИЯ"
+  },
+  auth: {
+    registerTitle: "Присоединяйтесь к нам",
+    registerSubtitle: "Создайте аккаунт в Two Steps Studio.",
+    fullName: "Полное имя / Ник",
+    fullNamePlaceholder: "Ваше имя",
+    email: "Электронная почта",
+    emailPlaceholder: "ваш@email.com",
+    password: "Пароль",
+    passwordPlaceholder: "••••••••",
+    registerButton: "ЗАРЕГИСТРИРОВАТЬСЯ",
+    orContinueWith: "ИЛИ ПРОДОЛЖИТЬ ЧЕРЕЗ",
+    alreadyHaveAccount: "Уже есть аккаунт?",
+    loginLink: "ВОЙТИ",
+    registerSuccess: "Регистрация успешна! Проверьте электронную почту для подтверждения аккаунта.",
+    registerError: "Ошибка регистрации",
+    loginTitle: "С возвращением",
+    loginSubtitle: "Войдите, чтобы получить доступ к панели Two Steps Studio.",
+    loginButton: "ВОЙТИ",
+    forgotPassword: "Забыли?",
+    noAccount: "Ещё нет аккаунта?",
+    registerLink: "ЗАРЕГИСТРИРОВАТЬСЯ",
+    loginSuccess: "Успешный вход!",
+    loginError: "Ошибка входа",
+    oauthError: "Ошибка входа через"
+  },
+  profile: {
+    level: "Уровень",
+    rank: "Ранг",
+    nextLevel: "До следующего уровня",
+    memberSince: "Участник с",
+    personalInfo: "Личная информация",
+    username: "Имя пользователя",
+    saveChanges: "Сохранить изменения",
+    recentActivity: "Последняя активность",
+    management: "Управление",
+    dangerZone: "Зона опасности",
+    logout: "Выйти",
+    logoutDesc: "Безопасно выйти из своего аккаунта."
+  },
+  regulamin: {
+    title: "Условия Two Steps Studio",
+    subtitle: "Внимательно прочитайте перед регистрацией.",
+    accepted: "Условия приняты!",
+    acceptError: "Ошибка принятия условий"
+  },
+  rekrutacja: {
+    title: "Регистрация в студию",
+    subtitle: "Присоединяйтесь к нашей команде!",
+    email: "Электронная почта",
+    name: "Имя",
+    emailPlaceholder: "ваш@email.com",
+    namePlaceholder: "Ваш ник",
+    discordRoles: "Требуются роли Discord:",
+    backToHome: "Вернуться на главную"
+  }
+} as const;
+
+// Hiszpański
+export const es = {
+  settings: {
+    title: "Configuración",
+    subtitle: "Personaliza tu interfaz de Two Steps Studio.",
+    appearance: "Apariencia",
+    light: "Claro",
+    dark: "Oscuro",
+    system: "Sistema",
+    colorTheme: "Tema de color",
+    language: "Idioma / Język",
+    notifications: "Notificaciones y preferencias",
+    news: "Noticias y anuncios",
+    newsDesc: "Información sobre nuevos juegos y proyectos.",
+    esport: "actualizaciones de e-sports",
+    esportDesc: "Resultados de partidos y notificaciones de torneos.",
+    dev: "actualizaciones DEV",
+    devDesc: "Notificaciones sobre nuevas herramientas y progreso de proyectos.",
+    themes: {
+      default: "Turquesa (Predeterminado)",
+      cyberpunk: "Cyberpunk",
+      midnight: "Medianoche",
+      nature: "Naturaleza",
+      gold: "Oro",
+      sunset: "Atardecer"
+    }
+  },
+  nav: {
+    home: "Inicio",
+    profile: "Perfil",
+    games: "Juegos",
+    esport: "E-sport",
+    studio: "Estudio",
+    dev: "Dev",
+    notifications: "Notificaciones",
+    settings: "Configuración",
+    login: "Iniciar sesión",
+    stats: "Estadísticas",
+    online: "En línea",
+    channels: "Canales",
+    mainMenu: "Menú principal",
+    searchPlaceholder: "Buscar proyectos, juegos...",
+    newProject: "Mensajes",
+    management: "Administración"
+  },
+  sections: {
+    games: {
+      subtitle: "Descubre los últimos títulos y reseñas.",
+      preview: "Vista previa del juego",
+      title: "Título del juego",
+      desc: "Descripción corta del juego y sus principales características."
+    },
+    esport: {
+      subtitle: "Sigue los partidos y clasificaciones de nuestros equipos.",
+      upcoming: "Partidos próximos",
+      today: "Hoy",
+      vs: "vs"
+    },
+    records: {
+      subtitle: "Nuestras producciones musicales y registros.",
+      newRelease: "Nuevo lanzamiento",
+      listenNow: "Escucha ahora"
+    },
+    dev: {
+      subtitle: "Nuestros proyectos y herramientas de desarrollo.",
+      projects: "Proyectos",
+      status: "Estado"
+    }
+  },
+  home: {
+    newsTitle: "Noticias del Estudio",
+    newsSubtitle: "Mantente al día con nuestros últimos proyectos y eventos.",
+    readMore: "Leer más",
+    viewAll: "Ver todas las entradas",
+    newsletterTitle: "Mantente al día",
+    newsletterSubtitle: "Suscríbete a nuestro boletín para actualizaciones de lanzamientos y noticias de torneos.",
+    emailPlaceholder: "Tu dirección de correo electrónico...",
+    subscribe: "Suscribirse",
+    subscribeSuccess: "¡Gracias! Te has suscrito.",
+    communityTitle: "Nuestra comunidad",
+    messagesToday: "Mensajes hoy",
+    onlineNow: "En línea ahora",
+    installApp: "Descargar aplicación",
+    installAppDesc: "Instala la aplicación de Two Steps Studio en tu computadora.",
+    prototypeBadge: "PROTOTIPO",
+    prototypeVersion: "VERSIÓN DE PROTOTIPO"
+  },
+  auth: {
+    registerTitle: "Únete a nosotros",
+    registerSubtitle: "Crea una cuenta en Two Steps Studio.",
+    fullName: "Nombre completo / Apodo",
+    fullNamePlaceholder: "Tu nombre",
+    email: "Correo electrónico",
+    emailPlaceholder: "tu@email.com",
+    password: "Contraseña",
+    passwordPlaceholder: "••••••••",
+    registerButton: "REGISTRARSE",
+    orContinueWith: "O CONTINUAR CON",
+    alreadyHaveAccount: "¿Ya tienes una cuenta?",
+    loginLink: "INICIAR SESIÓN",
+    registerSuccess: "¡Registro exitoso! Verifica tu correo electrónico para confirmar tu cuenta.",
+    registerError: "Error de registro",
+    loginTitle: "Bienvenido de nuevo",
+    loginSubtitle: "Inicia sesión para acceder al panel de Two Steps Studio.",
+    loginButton: "INICIAR SESIÓN",
+    forgotPassword: "¿Olvidaste?",
+    noAccount: "¿Aún no tienes una cuenta?",
+    registerLink: "REGISTRARSE",
+    loginSuccess: "¡Sesión iniciada con éxito!",
+    loginError: "Error de inicio de sesión",
+    oauthError: "Error de inicio de sesión a través de"
+  },
+  profile: {
+    level: "Nivel",
+    rank: "Rango",
+    nextLevel: "Al siguiente nivel",
+    memberSince: "Miembro desde",
+    personalInfo: "Información personal",
+    username: "Nombre de usuario",
+    saveChanges: "Guardar cambios",
+    recentActivity: "Actividad reciente",
+    management: "Administración",
+    dangerZone: "Zona de peligro",
+    logout: "Cerrar sesión",
+    logoutDesc: "Cerrar sesión de forma segura de tu cuenta."
+  },
+  regulamin: {
+    title: "Reglamentos Two Steps Studio",
+    subtitle: "Lee cuidadosamente antes de registrarte.",
+    accepted: "¡Reglamentos aceptados!",
+    acceptError: "Error al aceptar los reglamentos"
+  },
+  rekrutacja: {
+    title: "Reclutación del Estudio",
+    subtitle: "¡Únete a nuestro equipo!",
+    email: "Correo electrónico",
+    name: "Nombre",
+    emailPlaceholder: "tu@email.com",
+    namePlaceholder: "Tu apodo",
+    discordRoles: "Roles de Discord requeridos:",
+    backToHome: "Volver al inicio"
+  }
+} as const;
+
+// Francuski
+export const fr = {
+  settings: {
+    title: "Paramètres",
+    subtitle: "Personnalisez votre interface Two Steps Studio.",
+    appearance: "Apparence",
+    light: "Clair",
+    dark: "Sombre",
+    system: "Système",
+    colorTheme: "Thème de couleur",
+    language: "Langue / Język",
+    notifications: "Notifications et Préférences",
+    news: "Actualités et Annonces",
+    newsDesc: "Informations sur les nouveaux jeux et projets.",
+    esport: "Mises à jour e-sport",
+    esportDesc: "Résultats de matchs et notifications de tournois.",
+    dev: "Mises à jour DEV",
+    devDesc: "Notifications sur les nouveaux outils et la progression des projets.",
+    themes: {
+      default: "Bleu-vert (Par défaut)",
+      cyberpunk: "Cyberpunk",
+      midnight: "Minuit",
+      nature: "Nature",
+      gold: "Or",
+      sunset: "Coucher de soleil"
+    }
+  },
+  nav: {
+    home: "Accueil",
+    profile: "Profil",
+    games: "Jeux",
+    esport: "E-sport",
+    studio: "Studio",
+    dev: "Dev",
+    notifications: "Notifications",
+    settings: "Paramètres",
+    login: "Se connecter",
+    stats: "Statistiques",
+    online: "En ligne",
+    channels: "Canaux",
+    mainMenu: "Menu principal",
+    searchPlaceholder: "Rechercher des projets, des jeux...",
+    newProject: "Messages",
+    management: "Management"
+  },
+  sections: {
+    games: {
+      subtitle: "Découvrez les derniers titres et critiques.",
+      preview: "Aperçu du jeu",
+      title: "Titre du jeu",
+      desc: "Courte description du jeu et de ses fonctionnalités principales."
+    },
+    esport: {
+      subtitle: "Suivez les matchs et classements de nos équipes.",
+      upcoming: "Prochains matchs",
+      today: "Aujourd'hui",
+      vs: "vs"
+    },
+    records: {
+      subtitle: "Nos productions musicales et disques.",
+      newRelease: "Nouvelle sortie",
+      listenNow: "Écouter maintenant"
+    },
+    dev: {
+      subtitle: "Nos projets et outils de développement.",
+      projects: "Projets",
+      status: "Statut"
+    }
+  },
+  home: {
+    newsTitle: "Actualités du Studio",
+    newsSubtitle: "Restez informé de nos derniers projets et événements.",
+    readMore: "Lire la suite",
+    viewAll: "Voir tous les articles",
+    newsletterTitle: "Restez informé",
+    newsletterSubtitle: "Abonnez-vous à notre newsletter pour les mises à jour de lancement et les actualités des tournois.",
+    emailPlaceholder: "Votre adresse email...",
+    subscribe: "S'abonner",
+    subscribeSuccess: "Merci ! Vous vous êtes abonné.",
+    communityTitle: "Notre communauté",
+    messagesToday: "Messages aujourd'hui",
+    onlineNow: "En ligne maintenant",
+    installApp: "Télécharger l'application",
+    installAppDesc: "Installez l'application Two Steps Studio sur votre ordinateur.",
+    prototypeBadge: "PROTOTYPE",
+    prototypeVersion: "VERSION DE PROTOTYPE"
+  },
+  auth: {
+    registerTitle: "Rejoignez-nous",
+    registerSubtitle: "Créez un compte sur Two Steps Studio.",
+    fullName: "Nom complet / Surnom",
+    fullNamePlaceholder: "Votre nom",
+    email: "Email",
+    emailPlaceholder: "votre@email.com",
+    password: "Mot de passe",
+    passwordPlaceholder: "••••••••",
+    registerButton: "S'INSCRIRE",
+    orContinueWith: "OU CONTINUER AVEC",
+    alreadyHaveAccount: "Vous avez déjà un compte ?",
+    loginLink: "SE CONNECTER",
+    registerSuccess: "Inscription réussie ! Vérifiez votre email pour confirmer votre compte.",
+    registerError: "Erreur d'inscription",
+    loginTitle: "Bon retour",
+    loginSubtitle: "Connectez-vous pour accéder au panneau Two Steps Studio.",
+    loginButton: "SE CONNECTER",
+    forgotPassword: "Oublié ?",
+    noAccount: "Vous n'avez pas encore de compte ?",
+    registerLink: "S'INSCRIRE",
+    loginSuccess: "Connecté avec succès !",
+    loginError: "Erreur de connexion",
+    oauthError: "Erreur de connexion via"
+  },
+  profile: {
+    level: "Niveau",
+    rank: "Rang",
+    nextLevel: "Au niveau suivant",
+    memberSince: "Membre depuis",
+    personalInfo: "Informations personnelles",
+    username: "Nom d'utilisateur",
+    saveChanges: "Enregistrer les modifications",
+    recentActivity: "Activité récente",
+    management: "Gestion",
+    dangerZone: "Zone de danger",
+    logout: "Se déconnecter",
+    logoutDesc: "Déconnectez-vous en toute sécurité de votre compte."
+  },
+  regulamin: {
+    title: "Règlement Two Steps Studio",
+    subtitle: "Lisez attentivement avant de vous inscrire.",
+    accepted: "Règlement accepté !",
+    acceptError: "Erreur d'acceptation du règlement"
+  },
+  rekrutacja: {
+    title: "Recrutement du Studio",
+    subtitle: "Rejoignez notre équipe !",
+    email: "Email",
+    name: "Nom",
+    emailPlaceholder: "votre@email.com",
+    namePlaceholder: "Votre surnom",
+    discordRoles: "Rôles Discord requis :",
+    backToHome: "Retour à l'accueil"
+  }
+} as const;
+
+// Włoski
+export const it = {
+  settings: {
+    title: "Impostazioni",
+    subtitle: "Personalizza l'interfaccia di Two Steps Studio.",
+    appearance: "Aspetto",
+    light: "Chiaro",
+    dark: "Scuro",
+    system: "Sistema",
+    colorTheme: "Tema colore",
+    language: "Lingua / Język",
+    notifications: "Notifiche e Preferenze",
+    news: "Notizie e Annunci",
+    newsDesc: "Informazioni sui nuovi giochi e progetti.",
+    esport: "aggiornamenti e-sport",
+    esportDesc: "Risultati delle partite e notifiche sui tornei.",
+    dev: "aggiornamenti DEV",
+    devDesc: "Notifiche sugli nuovi strumenti e il progresso dei progetti.",
+    themes: {
+      default: "Verde (Predefinito)",
+      cyberpunk: "Cyberpunk",
+      midnight: "Mezzanotte",
+      nature: "Natura",
+      gold: "Oro",
+      sunset: "Tramonto"
+    }
+  },
+  nav: {
+    home: "Home",
+    profile: "Profilo",
+    games: "Giochi",
+    esport: "E-sport",
+    studio: "Studio",
+    dev: "Dev",
+    notifications: "Notifiche",
+    settings: "Impostazioni",
+    login: "Accedi",
+    stats: "Statistiche",
+    online: "Online",
+    channels: "Canali",
+    mainMenu: "Menu principale",
+    searchPlaceholder: "Cerca progetti, giochi...",
+    newProject: "Messaggi",
+    management: "Gestione"
+  },
+  sections: {
+    games: {
+      subtitle: "Scopri gli ultimi titoli e recensioni.",
+      preview: "Anteprima gioco",
+      title: "Titolo del gioco",
+      desc: "Breve descrizione del gioco e delle sue caratteristiche principali."
+    },
+    esport: {
+      subtitle: "Segui le partite e le classifiche delle nostre squadre.",
+      upcoming: "Prossime partite",
+      today: "Oggi",
+      vs: "vs"
+    },
+    records: {
+      subtitle: "Le nostre produzioni musicali e singoli.",
+      newRelease: "Nuovo rilascio",
+      listenNow: "Ascolta ora"
+    },
+    dev: {
+      subtitle: "I nostri progetti e strumenti di sviluppo.",
+      projects: "Progetti",
+      status: "Stato"
+    }
+  },
+  home: {
+    newsTitle: "Novità dello Studio",
+    newsSubtitle: "Mantieni il passo con i nostri ultimi progetti ed eventi.",
+    readMore: "Leggi di più",
+    viewAll: "Vedi tutti i post",
+    newsletterTitle: "Mantieni il contatto",
+    newsletterSubtitle: "Iscriviti alla nostra newsletter per le novità dei lanci e le notizie sui tornei.",
+    emailPlaceholder: "Il tuo indirizzo email...",
+    subscribe: "Iscriviti",
+    subscribeSuccess: "Grazie! Ti sei iscritto.",
+    communityTitle: "La nostra comunità",
+    messagesToday: "Messaggi oggi",
+    onlineNow: "Online ora",
+    installApp: "Scarica l'app",
+    installAppDesc: "Installa l'app Two Steps Studio sul tuo computer.",
+    prototypeBadge: "PROTOTIPO",
+    prototypeVersion: "VERSIONE PROTOTIPO"
+  },
+  auth: {
+    registerTitle: "Unisciti a noi",
+    registerSubtitle: "Crea un account su Two Steps Studio.",
+    fullName: "Nome completo / Nickname",
+    fullNamePlaceholder: "Il tuo nome",
+    email: "Email",
+    emailPlaceholder: "tuo@email.com",
+    password: "Password",
+    passwordPlaceholder: "••••••••",
+    registerButton: "ISCRIVITI",
+    orContinueWith: "O CONTINUA CON",
+    alreadyHaveAccount: "Hai già un account?",
+    loginLink: "ACCEDE",
+    registerSuccess: "Iscrizione riuscita! Controlla la tua email per confermare il tuo account.",
+    registerError: "Errore di iscrizione",
+    loginTitle: "Ben tornato",
+    loginSubtitle: "Accedi per accedere al pannello Two Steps Studio.",
+    loginButton: "ACCEDE",
+    forgotPassword: "Dimenticato?",
+    noAccount: "Non hai ancora un account?",
+    registerLink: "ISCRIVITI",
+    loginSuccess: "Accesso riuscito!",
+    loginError: "Errore di accesso",
+    oauthError: "Errore di accesso tramite"
+  },
+  profile: {
+    level: "Livello",
+    rank: "Rank",
+    nextLevel: "Al livello successivo",
+    memberSince: "Membro dal",
+    personalInfo: "Informazioni personali",
+    username: "Nome utente",
+    saveChanges: "Salva modifiche",
+    recentActivity: "Attività recente",
+    management: "Gestione",
+    dangerZone: "Zona pericolosa",
+    logout: "Esci",
+    logoutDesc: "Disconnettiti in sicurezza dal tuo account."
+  },
+  regulamin: {
+    title: "Regolamento Two Steps Studio",
+    subtitle: "Leggi attentamente prima di registrarti.",
+    accepted: "Regolamento accettato!",
+    acceptError: "Errore nell'accettare il regolamento"
+  },
+  rekrutacja: {
+    title: "Reclutazione Studio",
+    subtitle: "Unisciti al nostro team!",
+    email: "Email",
+    name: "Nome",
+    emailPlaceholder: "tuo@email.com",
+    namePlaceholder: "Il tuo nickname",
+    discordRoles: "Ruoli Discord richiesti:",
+    backToHome: "Torna alla home"
+  }
+} as const;
+
 // Wygenerowany typ na podstawie powyższego obiektu - obejmuje wszystkie dostępne języki
 export type TranslationKey = typeof translations.pl;

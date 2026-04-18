@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -27,6 +28,16 @@ const NAV_ICONS: Record<string, React.ReactNode> = {};
 
 export function BottomNavigation() {
   const pathname = usePathname();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  if (!isMobile) return null;
 
   const getPathColor = (href: string) =>
       pathname === href || pathname.startsWith(`${href}/`)
@@ -54,9 +65,6 @@ export function BottomNavigation() {
       default:             return null;
     }
   };
-
-  const isScrollable = typeof window !== "undefined" && window.innerWidth < 1024;
-  if (!isScrollable) return null;
 
   return (
       <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-[var(--border-color)]">

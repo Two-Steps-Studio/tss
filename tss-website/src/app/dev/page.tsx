@@ -6,7 +6,7 @@ export default function DevHomePage() {
     ];
 
     return (
-        <div className="min-h-screen bg-white dark:bg-zinc-950">
+        <div className="min-h-screen bg-transparent">
             <div className="container mx-auto p-6 mt-20 max-w-7xl">
                 {/* Hero */}
                 <div className="relative mb-16 p-8 md:p-12 rounded-[2.5rem] overflow-hidden bg-[var(--color-dev)]/5 border border-[var(--color-dev)]/20 backdrop-blur-md shadow-xl">
@@ -15,7 +15,7 @@ export default function DevHomePage() {
 
                     <div className="relative z-10 space-y-4">
                         <div className="inline-flex bg-[var(--color-dev)]/20 text-[var(--color-dev)] px-4 py-1.5 text-sm font-medium rounded-full">
-                            DEV PANEL
+                            Two Steps Studio
                         </div>
 
                         <h1 className="text-4xl md:text-6xl font-bold text-black dark:text-white tracking-tight">

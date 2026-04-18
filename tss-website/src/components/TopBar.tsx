@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { Moon, Sun, User as UserIcon, Menu, Bell, Search, Command, LogIn } from "lucide-react";
+import { Moon, Sun, User as UserIcon, Menu, Bell, Search, Command, LogIn, Languages, Upload } from "lucide-react";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/hooks/use-language";
 import { useAuth } from "@/hooks/use-auth";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { LanguageSelect } from "./LanguageSelect";
 import { supabase } from "@/lib/supabase";
 
 export function TopBar() {
@@ -85,58 +87,9 @@ export function TopBar() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
-
-    const channelId = "profile_changes:" + user.id;
-
-    // Declare channel variable
-    let channel: any = null;
-
-    // Subscribe first, then add listener
-    const subscription = supabase
-      .channel(channelId)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${user.id}`
-        },
-        (payload: any) => {
-          if (!payload) return;
-          try {
-            const row = payload.new || payload.old || {};
-            if (row.avatar_url) setAvatarUrl(row.avatar_url);
-            if (row.username) setDisplayName(row.username);
-            if (row.pln_balance !== undefined) {
-              // Type validate before localStorage write
-              const val = typeof row.pln_balance === "string"
-                ? parseFloat(row.pln_balance)
-                : row.pln_balance;
-              if (!isNaN(val) && Number.isFinite(val)) {
-                localStorage.setItem("pln_balance", String(val));
-              }
-            }
-          } catch (err) {
-            console.error("Error processing profile change:", err);
-          }
-        }
-      )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          console.log(`Subscribed to channel: ${channelId}`);
-        } else if (status === "CHANNEL_ERROR") {
-          console.error(`Failed to subscribe to channel: ${channelId}`);
-        }
-      });
-
-    // Cleanup on unmount or user change
-    return () => {
-      supabase.removeChannel(channelId);
-    };
-  }, [user]);
+  // Realtime subscription removed - profile data is synced via regular queries
+  // See: https://supabase.com/docs/guides/realtime#react-client
+  // The profile is already loaded on mount and refetched when user changes
 
   return (
       <header className={cn(
@@ -181,14 +134,7 @@ export function TopBar() {
           <div className="flex items-center gap-2 md:gap-4">
             <div className="flex items-center gap-1.5">
               {mounted && (
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setLanguage(language === "pl" ? "en" : "pl")}
-                      className="rounded-2xl w-10 h-10 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-none transition-all hover:scale-105 active:scale-95 text-xs font-black"
-                  >
-                    {language.toUpperCase()}
-                  </Button>
+                  <LanguageSelect showImport={false} />
               )}
 
               <Link href="/powiadomienia">

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, Settings, Bell, Gamepad, Trophy, Mic2, Music2, FolderOpen, Mail, Code } from "lucide-react";
+import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, User, Settings, Bell, Gamepad, Trophy, Mic2, Music2, FolderOpen, Mail, Code } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "../lib/utils";
 import { useSidebar } from "@/hooks/use-sidebar";
@@ -68,10 +68,10 @@ function SidebarStats({ translations }: { translations: any }) {
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
   const pathname = usePathname();
-  const { isOpen, close } = useSidebar();
-  const { t, language } = useLanguage();
+  const { close } = useSidebar();
+  const { t, language, setLanguage } = useLanguage();
   const { logo } = useSectionTheme();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -83,7 +83,7 @@ export function Sidebar() {
   // Definicja sekcji z fallback dla wszystkich tłumaczeń
   const defaultSections = [
     { id: "home", type: "single", href: "/", label: t.nav.home || "Strona główna", icon: Home },
-    { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: HomeIcon },
+    { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: User },
     { id: "games", type: "expandable", href: "/games", label: t.nav.games || "Games", icon: Gamepad, items: [
       { href: "/games/loucher-gier", label: t.nav.management || "Loucher Gier" },
       { href: "/games/info-o-grach", label: "Info o grach" },
@@ -135,15 +135,13 @@ export function Sidebar() {
     };
   }, []);
 
-  // Close sidebar on route change
-  useEffect(() => {
-    close();
-  }, [pathname, close]);
+  // Nie resetujemy isOpen przy zmianie pathname - to powoduje, że sidebar zamyka się przy każdej zmianie URL
+  // Client-side navigation w Next.js nie powinien resetować stanu sidebara
 
   const SidebarContent = (
-      <div className="flex flex-col h-full py-4">
-        {/* Logo Section */}
-        <div className="px-6 mb-8 flex items-center justify-center relative">
+    <div className="flex flex-col h-full py-4">
+          {/* Logo Section */}
+          <div className="px-6 mb-8 flex items-center justify-center relative">
           <Link href="/" className="block relative group w-full">
             <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -170,6 +168,9 @@ export function Sidebar() {
             <X size={20} className="text-[var(--text)]" />
           </button>
         </div>
+
+        {/* Stats Section */}
+        <SidebarStats translations={t} />
 
         {/* Navigation */}
         <nav className="flex-1 px-4 overflow-y-auto no-scrollbar pb-6" suppressHydrationWarning>
@@ -198,8 +199,8 @@ export function Sidebar() {
    	   	   	   />
                             )}
 
-                            <div className="relative z-10 flex items-center gap-3 w-full">
-    <section.icon className="w-5 h-5 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
+                            <div className="relative z-10 flex items-center gap-2 w-full">
+    <section.icon className="w-4 h-4 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
     <span className={cn(
         "text-sm tracking-tight transition-all duration-300",
         isActive ? "font-black" : "font-bold opacity-60 group-hover:opacity-100"
@@ -247,8 +248,8 @@ export function Sidebar() {
             />
           )}
 
-          <div className="relative z-10 flex items-center gap-3 w-full">
-    <section.icon className="w-5 h-5 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
+          <div className="relative z-10 flex items-center gap-2 w-full">
+    <section.icon className="w-4 h-4 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
     <span className={cn(
         "text-sm tracking-tight transition-all duration-300",
         isSectionActive ? "font-black" : "font-bold opacity-60 group-hover:opacity-100"
@@ -267,7 +268,7 @@ export function Sidebar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.18 }}
-              className="mt-1 pl-4"
+              className="mt-1 pl-0"
             >
               <ul className="space-y-1">
           {isExpandable && section.items?.map((item) => {
@@ -363,21 +364,18 @@ export function Sidebar() {
           >
             <div
                 className={cn(
-                    "w-[18px] h-[18px] bg-current group-hover:rotate-90 transition-transform duration-500 relative z-10",
+                    "w-[18px] h-[18px] flex items-center justify-center relative z-10",
                     pathname === "/ustawienia" ? "opacity-100" : "opacity-70"
                 )}
-                style={{
-                  maskImage: `url(/assets/Icons/settings_40dp_E3E3E3_FILL0_wght400_GRAD0_opsz40.svg)`,
-                  maskSize: 'contain',
-                  maskRepeat: 'no-repeat',
-                  WebkitMaskImage: `url(/assets/Icons/settings_40dp_E3E3E3_FILL0_wght400_GRAD0_opsz40.svg)`,
-                  WebkitMaskSize: 'contain',
-                  WebkitMaskRepeat: 'no-repeat',
-                }}
-            />
+            >
+              <Settings size={18} className="text-current group-hover:rotate-90 transition-transform duration-500" />
+            </div>
             <span className="text-sm font-bold tracking-tight relative z-10">{t.nav.settings}</span>
           </Link>
         </div>
       </div>
   );
+
+  if (!sidebarOpen) return null;
+  return SidebarContent;
 }

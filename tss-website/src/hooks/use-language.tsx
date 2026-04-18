@@ -1,16 +1,20 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { translations, BaseTranslations } from "../lib/translations";
 
 // Lista dostępnych języków (domyślnie: polski)
 export type Language = keyof typeof translations;
+
+// Lista domyślnych języków dla dropdown menu
+export const defaultLanguages = ["pl", "en", "de", "ru", "es", "fr", "it"] as const;
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: ReturnType<typeof translations>;
   availableLanguages: Language[];
+  importTranslations: (data: string) => Promise<void>;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -72,22 +76,38 @@ export function addTranslation(locale: string, translationsObject: BaseTranslati
     if (!(locale in translations)) {
       (window as any).__TSS_TRANSLATIONS__ = (window as any).__TSS_TRANSLATIONS__ || {};
       (window as any).__TSS_TRANSLATIONS__[locale] = translationsObject;
-
-      // Opcjonalnie: dodaj do globalnych tłumaczeń (wymaga ponownego ładowania strony)
-      const newTranslations = {
-        ...translations,
-        [locale]: translationsObject,
-      };
-
-      // Zaktualizuj globalny obiekt tłumaczeń
-      Object.defineProperty(globalThis, "translations", {
-        configurable: true,
-        enumerable: true,
-        writable: true,
-        value: newTranslations,
-      });
     }
   }
 
   return translationsObject;
+}
+
+// Importuj tłumaczenia z JSON
+export async function importTranslations(data: string): Promise<void> {
+  try {
+    // Parse JSON
+    const translationsObject = JSON.parse(data) as BaseTranslations;
+
+    // Sprawdź czy zawiera wymagane pola
+    if (!translationsObject.settings?.title || !translationsObject.nav?.home) {
+      console.warn("Importowane tłumaczenia są niekompletne");
+      console.log("Importowane tłumaczenia:", translationsObject);
+      throw new Error("Brak wymaganych pól w tłumaczeniach");
+    }
+
+    // Dodaj nowy język do tłumaczeń (nie usuwamy istniejących)
+    const newLocale = Object.keys(translationsObject)[0] as Language;
+    if (newLocale && !(newLocale in translations)) {
+      (translations as any)[newLocale] = translationsObject[newLocale] || translationsObject;
+      console.log(`Tłumaczenie dla języka ${newLocale} zostało dodane`);
+    } else if (newLocale in translations) {
+      console.warn(`Język ${newLocale} już istnieje, nie jest dodawany`);
+    }
+
+    // Przeładuj stronę
+    window.location.reload();
+  } catch (error) {
+    console.error("Błąd podczas importu tłumaczeń:", error);
+    throw new Error(`Import nie powiódł się: ${error}`);
+  }
 }
