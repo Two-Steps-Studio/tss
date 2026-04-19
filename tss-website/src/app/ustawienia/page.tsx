@@ -24,7 +24,11 @@ type Prefs = {
 
 export default function SettingsPage() {
   const { t, language, setLanguage } = useLanguage();
-  const { theme: appearance, setTheme, resolvedTheme } = useTheme();
+  const { theme: appearance, setTheme } = useTheme();
+  const [resolvedTheme, setResolvedTheme] = useState<string>("light");
+  useEffect(() => {
+    setResolvedTheme(typeof window !== "undefined" ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : "light");
+  }, []);
   const darkMode = resolvedTheme === "dark";
   const { theme: colorTheme, setTheme: setColorTheme } = useColorTheme();
   const [prefs, setPrefs] = useState<Prefs>(() => ({

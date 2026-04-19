@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Mail, Shield, Trophy, Star, Bell, Link as LinkIcon, CheckCircle2 } from "lucide-react";
 import LogoutButton from "./logout-button";
 import Image from "next/image";
@@ -83,15 +84,24 @@ const ROLE_MAP_BADGE: Record<string, { color: string; label: string }> = Object.
 );
 
 const fetchRankingData = async () => {
-    const [topLevel, topMoney] = await Promise.all([
-        supabase.from("profiles").select("id, level, money").order("level", { ascending: false }).limit(100),
-        supabase.from("profiles").select("id, money, level").order("money", { ascending: false }).limit(100)
-    ]);
+    const { data: levelUsers } = await supabase.from("profiles").select("id, discord_id, username, level, xp").order("level", { ascending: false }).limit(100);
+    const { data: moneyUsers } = await supabase.from("profiles").select("id, discord_id, username, money").order("money", { ascending: false }).limit(100);
 
-    return {
-        usersByLevel: (topLevel.data || []).map((u, idx) => ({ ...u, rank: idx + 1 })),
-        usersByMoney: (topMoney.data || []).map((u, idx) => ({ ...u, rank: idx + 1 }))
-    };
+    const usersByLevel = (levelUsers || []).map((u: any, idx: number) => ({
+        ...u,
+        rank: idx + 1,
+        discord_id: u.discord_id || u.id
+    }));
+    const usersByMoney = (moneyUsers || []).map((u: any, idx: number) => ({
+        ...u,
+        rank: idx + 1,
+        discord_id: u.discord_id || u.id
+    }));
+
+    console.log('[PROFILE] Ranking data:', { level: usersByLevel.length, money: usersByMoney.length });
+    console.log('[PROFILE] Level users:', JSON.stringify(usersByLevel.slice(0, 3)));
+
+    return { usersByLevel, usersByMoney };
 };
 
 export default function ProfilePage() {
@@ -267,13 +277,13 @@ export default function ProfilePage() {
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setTopTab("level")}
-                                className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "level" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
+                                className={`flex-2 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "level" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
                             >
                                 🏆 Poziomy
                             </button>
                             <button
                                 onClick={() => setTopTab("money")}
-                                className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "money" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
+                                className={`flex-2 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "money" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
                             >
                                 💰 Pieniądze
                             </button>
@@ -284,12 +294,18 @@ export default function ProfilePage() {
                             <div className="text-center opacity-40 text-sm pt-8">Wczytywanie...</div>
                         )}
                         {topList.map((u, idx) => (
-                            <div key={u.id} className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${u.id === discordId ? "bg-[var(--color-general)]/10 border-[var(--color-general)]/30" : "bg-black/5 dark:bg-white/5 border-white/5 hover:bg-black/10 dark:hover:bg-white/10"}`}>
-                                <div className="flex items-center gap-3">
-                                    <span className={`font-black w-6 text-center ${idx < 3 ? "text-[var(--color-general)]" : "text-zinc-400"}`}>{u.rank}</span>
-                                    <span className="text-lg">{idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : topTab === "money" ? "💰" : "🎮"}</span>
-                                    <div className="min-w-0">
-                                        <div className={`font-bold truncate text-sm ${u.id === discordId ? "text-[var(--color-general)]" : "text-black dark:text-zinc-200"}`}>{u.id.slice(0, 14)}</div>
+                            <div key={u.id} className={cn("w-full flex items-center justify-between p-4 rounded-xl border transition-colors",
+                                u.id === discordId ? "bg-[var(--color-general)]/10 border-[var(--color-general)]/30" : "",
+                                idx === 0 ? "bg-yellow-500/10" : "",
+                                idx === 1 ? "bg-zinc-500/10" : "",
+                                idx === 2 ? "bg-orange-600/10" : "",
+                                idx > 2 ? "bg-sky-500/10" : ""
+                            )}>
+                                <div className="flex items-center gap-4">
+                                    <span className={`font-black w-6 text-center`}>{u.rank}</span>
+                                    <div className="w-6"></div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className={cn("font-bold truncate text-sm", u.discord_id === discordId ? "text-[var(--color-general)]" : "")}>{u.username || u.discord_name || u.email?.split("@")[0] || (u.discord_id ? u.discord_id.slice(0, 14) : "Nieznany")}</div>
                                         <div className="text-xs opacity-50">
                                             {topTab === "level" ? `Poziom ${u.level}` : `${(u.money / 1000).toFixed(1)}K monet`}
                                         </div>

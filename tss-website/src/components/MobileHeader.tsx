@@ -12,7 +12,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function MobileHeader() {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const [resolvedTheme, setResolvedTheme] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    setResolvedTheme("light");
+    const themeChange = () => setResolvedTheme(mediaQuery ? "dark" : "light");
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", themeChange);
+    theme?.onChange?.(themeChange);
+    return () => {
+      window.matchMedia("(prefers-color-scheme: dark)").removeEventListener("change", themeChange);
+    };
+  }, [theme]);
   const { toggle } = useSidebar();
   const { user, loading } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
