@@ -85,12 +85,12 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
     { id: "home", type: "single", href: "/", label: t.nav.home || "Strona główna", icon: Home },
     { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: User },
     { id: "games", type: "expandable", href: "/games", label: t.nav.games || "Games", icon: Gamepad, items: [
-      { href: "/games/loucher-gier", label: t.nav.management || "Loucher Gier" },
+      { href: "/games/loucher-gier", label: t.nav.Loucher || "Loucher Gier" },
       { href: "/games/info-o-grach", label: "Info o grach" },
     ]},
     { id: "esport", type: "expandable", href: "/e-sport", label: t.nav.esport || "E-sport", icon: Trophy, items: [
       { href: "/e-sport/szukanie-do-gry", label: "Szukanie do gry" },
-      { href: "/e-sport/customy", label: "Customy" },
+      { href: "/e-sport/turnieje", label: "Turnieje" },
     ]},
     { id: "records", type: "expandable", href: "/records", label: t.nav.records || "Records", icon: Music2, items: [
       { href: "/records/podcasty", label: "Podcasty" },
@@ -111,6 +111,11 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
 
   const [hoveredSectionId, setHoveredSectionId] = useState<string | null>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Reset hover state on pathname change
+  useEffect(() => {
+    setHoveredSectionId(null);
+  }, [pathname]);
 
   const handleMouseEnter = (id: string) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);

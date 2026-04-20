@@ -4,7 +4,21 @@ import { Badge } from "@/components/ui/badge";
 import { Gamepad2, Calendar } from "lucide-react";
 
 export default async function GamesPage() {
-  const supabase = await createClient();
+  let supabase: any = null;
+  let createClientError: Error | null = null;
+
+  try {
+    supabase = await createClient();
+  } catch (err) {
+    createClientError = err as Error;
+    console.error('[GAMES] Failed to create Supabase client:', createClientError.message);
+    return <div className="p-20 text-center">Błąd konfiguracji Supabase</div>;
+  }
+
+  if (!supabase) {
+    return <div className="p-20 text-center">Błąd konfiguracji Supabase</div>;
+  }
+
   const { data: games, error } = await supabase.from("games").select("*");
 
   if (error) {
@@ -35,8 +49,8 @@ export default async function GamesPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             {[
                 /* TODO: Change Navigation to Games */
-                { name: "Taski", href: "/dev/tasks" },
-                { name: "Ludzie", href: "/dev/team" },
+                { name: "Loucher Gier", href: "/games/info-o-grach" },
+                { name: "Info o grach", href: "/games/loucher-gier" },
             ].map((item, i) => (
                 <a
                     key={i}

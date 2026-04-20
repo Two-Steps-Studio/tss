@@ -5,13 +5,26 @@ import { Button } from "@/components/ui/button";
 import { Trophy, Calendar, Users } from "lucide-react";
 
 export default async function ESportPage() {
-  const supabase = await createClient();
+  let supabase: any = null;
+  let createClientError: Error | null = null;
+
+  try {
+    supabase = await createClient();
+  } catch (err) {
+    createClientError = err as Error;
+    console.error('[E-SPORT] Failed to create Supabase client:', createClientError.message);
+    return <div className="p-20 text-center">Błąd konfiguracji Supabase</div>;
+  }
+
+  if (!supabase) {
+    return <div className="p-20 text-center">Błąd konfiguracji Supabase</div>;
+  }
+
   const { data: events, error: eventsError } = await supabase
     .from("e_sport_events")
     .select("*")
     .order("event_date", { ascending: true });
 
-  // Placeholder drużyn - tablica pustych obiektów
   const teams = [];
 
   if (eventsError) console.error('[E-SPORT] Error fetching events:', eventsError.message);
@@ -38,8 +51,8 @@ export default async function ESportPage() {
         {/* Quick Navigation */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             {[
-                { name: "Taski", href: "/dev/tasks" },
-                { name: "Ludzie", href: "/dev/team" },
+                { name: "Szukanie Do Gry", href: "/e-sport/szukanie-do-gry" },
+                { name: "Turnieje", href: "/dev/team" },
             ].map((item, i) => (
                 <a
                     key={i}

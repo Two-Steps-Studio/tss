@@ -43,14 +43,22 @@ const ROLE_PRIORITY: Array<{ key: string; color: string; label: string }> = [
 
 const ROLE_MAP = new Map(ROLE_PRIORITY.map((r, i) => [r.key.trim(), { priority: i, color: r.color, label: r.label }]));
 
-function findRole(raw: string) {
+function findRole(raw: string): { priority: number; color: string; label: string } | null {
     const t = raw.trim();
+
     if (ROLE_MAP.has(t)) return ROLE_MAP.get(t)!;
-    const inner = raw.match(/︱\s*(.+?)\s*〕/)?.[1]?.trim().toLowerCase();
-    if (inner) {
-        for (const [key, val] of ROLE_MAP) {
-            const ki = key.match(/︱\s*(.+?)\s*〕/)?.[1]?.trim().toLowerCase();
-            if (ki && ki === inner) return val;
+
+    const match = raw.match(/︱\s*(.+?)\s*〕/);
+    if (!match) return null;
+
+    const inner = match[1]?.trim().toLowerCase();
+    if (!inner) return null;
+
+    for (const [key, val] of ROLE_MAP) {
+        const keyMatch = key.match(/︱\s*(.+?)\s*〕/);
+        if (keyMatch) {
+            const ki = keyMatch[1]?.trim().toLowerCase();
+            if (ki === inner) return val;
         }
     }
     return null;
@@ -84,16 +92,27 @@ const ROLE_MAP_BADGE: Record<string, { color: string; label: string }> = Object.
     ROLE_PRIORITY.map((r) => [r.key, { color: r.color, label: r.label }])
 );
 
+interface RankedUser {
+    id: string;
+    discord_id: string;
+    username?: string;
+    discord_name?: string;
+    level?: number;
+    xp?: number;
+    money?: number;
+    rank: number;
+}
+
 const fetchRankingData = async () => {
     const { data: levelUsers } = await supabase.from("profiles").select("id, discord_id, username, level, xp").order("level", { ascending: false }).limit(100);
     const { data: moneyUsers } = await supabase.from("profiles").select("id, discord_id, username, money").order("money", { ascending: false }).limit(100);
 
-    const usersByLevel = (levelUsers || []).map((u: any, idx: number) => ({
+    const usersByLevel: RankedUser[] = (levelUsers || []).map((u, idx: number) => ({
         ...u,
         rank: idx + 1,
         discord_id: u.discord_id || u.id
     }));
-    const usersByMoney = (moneyUsers || []).map((u: any, idx: number) => ({
+    const usersByMoney: RankedUser[] = (moneyUsers || []).map((u, idx: number) => ({
         ...u,
         rank: idx + 1,
         discord_id: u.discord_id || u.id
@@ -119,22 +138,43 @@ export default function ProfilePage() {
 
         const fetchData = async (currentUser: any) => {
             const discordId = currentUser.user_metadata?.provider_id || currentUser.id;
+
+            // Fetch ranking data FIRST (outside realtime callback)
+            const rankingData = await fetchRankingData();
+            setRankingData(rankingData);
+
+            // Get profile with fallback
             const { data: initialProfile } = await supabase
                 .from("profiles")
                 .select("*")
                 .eq("id", discordId)
                 .maybeSingle();
-            setProfile(initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [], pln_balance: 0 });
 
-            if (channel) supabase.removeChannel(channel);
+            const profileData = initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [], pln_balance: 0 };
+
+            // Set profile (but don't call setProfile twice for same event)
+            setProfile(profileData);
+
+            // Subscribe AFTER setting initial state
+            if (channel && typeof channel.unsubscribe === 'function') {
+                supabase.removeChannel(channel);
+            }
             const freshChannel = supabase.channel(`profile-${discordId}`);
-            freshChannel.on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${discordId}` },
-                (payload) => setProfile(payload.new));
+            const subscription = freshChannel.on("postgres_changes", {
+                event: "UPDATE",  // Only UPDATE, not INSERT/DELETE for profile
+                schema: "public",
+                table: "profiles",
+                filter: `id=eq.${discordId}`
+            }, (payload) => {
+                // Update only if new profile has different data
+                setProfile(prev => {
+                    if (!prev) return payload.new;
+                    return { ...prev, ...payload.new };
+                });
+            });
             freshChannel.subscribe();
             channel = freshChannel;
 
-            const data = await fetchRankingData();
-            setRankingData(data);
             setLoading(false);
         };
 
@@ -240,7 +280,7 @@ export default function ProfilePage() {
                         <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
                             <span className="text-sm font-bold opacity-60 text-black dark:text-white">Portfel</span>
                             <div className="flex items-center gap-2">
-                                <span className="text-xl font-black text-[var(--color-general)]">{profile?.money || 0}</span>
+                                <span className="text-xl font-black text-[var(--color-general)]">{(profile?.money ?? 0).toLocaleString()}</span>
                                 <Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} />
                             </div>
                         </div>
