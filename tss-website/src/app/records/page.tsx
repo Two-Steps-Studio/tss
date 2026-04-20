@@ -31,6 +31,25 @@ export default async function RecordsPage() {
           </div>
        </div>
 
+        {/* Quick Navigation */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            {[
+                /* TODO: Change Navigation to Records */
+                { name: "Taski", href: "/dev/tasks" },
+                { name: "Ludzie", href: "/dev/team" },
+            ].map((item, i) => (
+                <a
+                    key={i}
+                    href={item.href}
+                    className="rounded-3xl border border-[var(--color-records)]/20 bg-[var(--color-records)]/5 hover:bg-[var(--color-records)]/10 transition-all p-5 shadow-sm group"
+                >
+                    <div className="text-lg font-bold text-black dark:text-white group-hover:text-[var(--color-records)] transition-colors">
+                        {item.name}
+                    </div>
+                </a>
+            ))}
+        </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {records?.map((record) => (
           <Card key={record.id} className="group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-white dark:bg-black/40 border-2 border-black dark:border-white/10 hover:border-[var(--color-records)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)]">

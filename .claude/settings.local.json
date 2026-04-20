@@ -17,7 +17,9 @@
       "Bash(Remove-Item -Recurse -Force .next)",
       "Bash(findstr \"clsx\\\\|tailwind\")",
       "Bash(pkill -f \"next dev\")",
-      "Bash(rm -rf \"C:/tss/tss-website/.next\")"
+      "Bash(rm -rf \"C:/tss/tss-website/.next\")",
+      "Read(//app/**)",
+      "Bash(node index.js)"
     ]
   }
 }

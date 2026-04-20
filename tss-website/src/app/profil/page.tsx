@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Mail, Shield, Trophy, Star, Bell, Link as LinkIcon, CheckCircle2 } from "lucide-react";
 import LogoutButton from "./logout-button";
 import Image from "next/image";
+import { BottomNavigation } from "@/components/BottomNavigation";
 
 const ROLE_PRIORITY: Array<{ key: string; color: string; label: string }> = [
     { key: "〔 👑︱Owner 〕", color: "#dc3545", label: "OWNER" },
@@ -175,7 +176,7 @@ export default function ProfilePage() {
     const topList = topTab === "level" ? rankingData.usersByLevel : rankingData.usersByMoney;
 
     return (
-        <div className="container mx-auto p-6 space-y-8 mt-20 max-w-6xl" suppressHydrationWarning>
+        <div className="container mx-auto p-6 space-y-8 mt-20 max-w-6xl pb-16" suppressHydrationWarning>
 
             {/* ── PROFIL ── */}
             <Card className="relative overflow-hidden rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-2xl shadow-2xl">
@@ -274,16 +275,16 @@ export default function ProfilePage() {
                             <Trophy size={18} className="mr-2 text-[var(--color-general)]" /> Topka
                         </div>
                         {/* Przełącznik */}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 w-full">
                             <button
                                 onClick={() => setTopTab("level")}
-                                className={`flex-2 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "level" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
+                                className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "level" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
                             >
                                 🏆 Poziomy
                             </button>
                             <button
                                 onClick={() => setTopTab("money")}
-                                className={`flex-2 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "money" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
+                                className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "money" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
                             >
                                 💰 Pieniądze
                             </button>
@@ -333,6 +334,7 @@ export default function ProfilePage() {
             </Card>
 
             <LogoutButton />
+            <BottomNavigation />
         </div>
     );
 }

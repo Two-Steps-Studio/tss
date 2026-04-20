@@ -92,7 +92,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
       { href: "/e-sport/szukanie-do-gry", label: "Szukanie do gry" },
       { href: "/e-sport/customy", label: "Customy" },
     ]},
-    { id: "studio", type: "expandable", href: "/records", label: t.nav.studio || "Studio", icon: Music2, items: [
+    { id: "records", type: "expandable", href: "/records", label: t.nav.records || "Records", icon: Music2, items: [
       { href: "/records/podcasty", label: "Podcasty" },
       { href: "/records/beaty", label: "Beaty" },
     ]},

@@ -19,7 +19,7 @@ const BOTTOM_NAV_ITEMS = {
   profile: { label: "Profil", href: "/profil" },
   games: { label: "Games", href: "/games" },
   esport: { label: "E-sport", href: "/e-sport" },
-  records: { label: "Studio", href: "/records" },
+  records: { label: "Records", href: "/records" },
   dev: { label: "Dev", href: "/dev" },
   notifications: { label: "Powiadomienia", href: "/powiadomienia" },
 };
@@ -29,12 +29,15 @@ const NAV_ICONS: Record<string, React.ReactNode> = {};
 export function BottomNavigation() {
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
+  const mediaQuery = "(max-width: 1023px)";
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    const checkMobile = () => setIsMobile(window.matchMedia(mediaQuery).matches);
     checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    const mobileMedia = window.matchMedia(mediaQuery);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mobileMedia.addEventListener("change", handler);
+    return () => mobileMedia.removeEventListener("change", handler);
   }, []);
 
   if (!isMobile) return null;
@@ -75,12 +78,12 @@ export function BottomNavigation() {
                   pathname === item.href || pathname.startsWith(`${item.href}/`);
 
               return (
-                  <li key={key} className="flex-1 max-w-[72px]">
+                  <li key={key} className="flex-1 max-w-[80px]">
                     <Link
                         href={item.href}
                         className={cn(
-                            "flex flex-col items-center justify-center gap-1.5 py-2 transition-all",
-                            isActive ? "opacity-100" : "opacity-60 hover:opacity-80"
+                            "flex flex-col items-center justify-center gap-1 py-3 transition-all",
+                            isActive ? "opacity-100" : "opacity-60 hover:opacity-90"
                         )}
                     >
                       {getIcon(item.href)}

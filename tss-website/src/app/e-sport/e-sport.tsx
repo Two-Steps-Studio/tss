@@ -35,6 +35,24 @@ export default async function ESportPage() {
           </div>
        </div>
 
+        {/* Quick Navigation */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            {[
+                { name: "Taski", href: "/dev/tasks" },
+                { name: "Ludzie", href: "/dev/team" },
+            ].map((item, i) => (
+                <a
+                    key={i}
+                    href={item.href}
+                    className="rounded-3xl border border-[var(--color-e-sport)]/20 bg-[var(--color-e-sport)]/5 hover:bg-[var(--color-e-sport)]/10 transition-all p-5 shadow-sm group"
+                >
+                    <div className="text-lg font-bold text-black dark:text-white group-hover:text-[var(--color-e-sport)] transition-colors">
+                        {item.name}
+                    </div>
+                </a>
+            ))}
+        </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         <Card className="rounded-[2rem] bg-white dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10">
           <CardContent className="p-6 flex items-center gap-4">
