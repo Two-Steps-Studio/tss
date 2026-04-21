@@ -54,25 +54,18 @@ export async function middleware(request: NextRequest) {
     securityLog(request.url, "SUSPICIOUS_USER_AGENT", undefined, ip, `UA: ${ua}`);
   }
 
-  // Check environment variables before creating Supabase client
-  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.warn('[Middleware] Supabase credentials missing, skipping auth check');
-  }
-
+  // Only create Supabase client if credentials exist
+  let user = null;
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
-  // Only create Supabase client if credentials exist
-  if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
     const supabase = createServerClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY,
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       {
         cookies: {
           getAll() {
@@ -95,18 +88,7 @@ export async function middleware(request: NextRequest) {
       }
     );
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser().catch(() => {
-      // Auth failed or user not found - continue without user data
-      console.warn('[Middleware] Supabase auth check failed, continuing without auth');
-      return { data: { user: null } };
-    });
-  } else {
-    // No Supabase credentials - continue without auth check
-    const {
-      data: { user },
-    } = { data: { user: null } };
+    user = (await supabase.auth.getUser()).data.user;
   }
 
   // Protected routes
