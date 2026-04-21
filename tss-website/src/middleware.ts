@@ -54,40 +54,60 @@ export async function middleware(request: NextRequest) {
     securityLog(request.url, "SUSPICIOUS_USER_AGENT", undefined, ip, `UA: ${ua}`);
   }
 
+  // Check environment variables before creating Supabase client
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.warn('[Middleware] Supabase credentials missing, skipping auth check');
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+  // Only create Supabase client if credentials exist
+  if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+    const supabase = createServerClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              request.cookies.set(name, value)
+            );
+            response = NextResponse.next({
+              request: {
+                headers: request.headers,
+              },
+            });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            );
+          },
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value)
-          );
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
+      }
+    );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser().catch(() => {
+      // Auth failed or user not found - continue without user data
+      console.warn('[Middleware] Supabase auth check failed, continuing without auth');
+      return { data: { user: null } };
+    });
+  } else {
+    // No Supabase credentials - continue without auth check
+    const {
+      data: { user },
+    } = { data: { user: null } };
+  }
 
   // Protected routes
   const protectedRoutes = ["/profil", "/ustawienia", "/powiadomienia"];
