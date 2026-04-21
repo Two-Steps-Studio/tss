@@ -14,7 +14,7 @@ export const SECTIONS = {
   RECORDS: {
     path: "/records",
     logo: "/assets/Logo/Records/Two Steps Studio Records Bez Tła.png",
-    color: "#8B5CF6",
+    color: "#ad83f8",
   },
   DEV: {
     path: "/dev",

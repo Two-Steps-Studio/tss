@@ -33,7 +33,7 @@ export default async function CustomyPage() {
             Drużynowa
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold text-black dark:text-white font-[family-name:var(--font-space)] tracking-tight">
-            <span className="text-[var(--color-e-sport)]">Customy</span>
+            <span className="text-[var(--color-e-sport)]">Turnieje</span>
           </h1>
           <p className="text-zinc-600 dark:text-zinc-300 max-w-2xl font-[family-name:var(--font-outfit)] text-lg md:text-xl leading-relaxed">
             Gry dostępne dla drużyny Two Steps Studio. Dołącz do naszej społeczności e-sportowej!
@@ -41,36 +41,22 @@ export default async function CustomyPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="rounded-[2rem] bg-white/0 dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10">
-          <CardContent className="p-6 flex items-center gap-4">
-            <Monitor className="text-[var(--color-e-sport)]" size={32} />
-            <div>
-              <div className="text-xs uppercase tracking-widest opacity-50 dark:opacity-60">Platformy</div>
-              <div className="text-2xl font-bold text-black dark:text-white">PC</div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[2rem] bg-white/0 dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10">
-          <CardContent className="p-6 flex items-center gap-4">
-            <Gamepad2 className="text-[var(--color-e-sport)]" size={32} />
-            <div>
-              <div className="text-xs uppercase tracking-widest opacity-50 dark:opacity-60">Styl Gry</div>
-              <div className="text-2xl font-bold text-black dark:text-white">e-Sport</div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[2rem] bg-white/0 dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10">
-          <CardContent className="p-6 flex items-center gap-4">
-            <Trophy className="text-[var(--color-e-sport)]" size={32} />
-            <div>
-              <div className="text-xs uppercase tracking-widest opacity-50 dark:opacity-60">Rankingi</div>
-              <div className="text-2xl font-bold text-black dark:text-white">AKTYWNE</div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Quick Navigation */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        {[
+          { name: "E-Sport", href: "/e-sport" },
+          { name: "Szukanie Do Gry", href: "/e-sport/szukanie-do-gry" },
+        ].map((item, i) => (
+            <a
+                key={i}
+                href={item.href}
+                className="rounded-3xl border border-[var(--color-e-sport)]/20 bg-[var(--color-e-sport)]/5 hover:bg-[var(--color-e-sport)]/10 transition-all p-5 shadow-sm group"
+            >
+              <div className="text-lg font-bold text-black dark:text-white group-hover:text-[var(--color-e-sport)] transition-colors">
+                {item.name}
+              </div>
+            </a>
+        ))}
       </div>
 
       <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">

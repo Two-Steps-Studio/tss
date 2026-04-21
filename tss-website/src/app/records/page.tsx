@@ -37,7 +37,7 @@ export default async function RecordsPage() {
                 Two Steps Studio
              </Badge>
              <h1 className="text-4xl md:text-6xl font-bold text-white font-[family-name:var(--font-space)] tracking-tight">
-                Nasze <span className="text-[var(--color-records)]">Records</span>
+                <span className="text-[var(--color-records)]">Records</span>
              </h1>
              <p className="text-zinc-400 max-w-2xl font-[family-name:var(--font-outfit)] text-lg md:text-xl leading-relaxed">
                 Podcasty, beaty i muzyka. Posłuchaj tego, co tworzymy w naszym studio.

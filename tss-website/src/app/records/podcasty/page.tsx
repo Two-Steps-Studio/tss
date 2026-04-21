@@ -30,6 +30,24 @@ export default async function PodcastyPage() {
         </div>
       </div>
 
+      {/* Quick Navigation */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        {[
+          { name: "Records", href: "/records" },
+          { name: "Beaty", href: "/records/beaty" },
+        ].map((item, i) => (
+            <a
+                key={i}
+                href={item.href}
+                className="rounded-3xl border border-[var(--color-records)]/20 bg-[var(--color-records)]/5 hover:bg-[var(--color-records)]/10 transition-all p-5 shadow-sm group"
+            >
+              <div className="text-lg font-bold text-black dark:text-white group-hover:text-[var(--color-records)] transition-colors">
+                {item.name}
+              </div>
+            </a>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {records?.map((record) => (
           <Card

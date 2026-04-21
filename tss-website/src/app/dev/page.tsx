@@ -19,11 +19,11 @@ export default function DevHomePage() {
                         </div>
 
                         <h1 className="text-4xl md:text-6xl font-bold text-black dark:text-white tracking-tight">
-                            Centrum <span className="text-[var(--color-dev)]">zarządzania</span>
+                            <span className="text-[var(--color-dev)]">DEV</span>
                         </h1>
 
                         <p className="text-zinc-600 dark:text-zinc-300 max-w-2xl text-lg md:text-xl leading-relaxed">
-                            Główna strona dla Two Steps Dev — zarządzaj zadaniami, ludźmi,
+                            Zarządzaj zadaniami, ludźmi,
                             notatkami i postępem projektów w jednym miejscu.
                         </p>
                     </div>
@@ -32,9 +32,9 @@ export default function DevHomePage() {
                 {/* Quick Navigation */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
                     {[
-                        { name: "Taski", href: "/dev/tasks" },
-                        { name: "Ludzie", href: "/dev/team" },
-                        { name: "Notatki", href: "/dev/notes" },
+                        { name: "Managment", href: "/dev/managment" },
+                        { name: "Tasks", href: "/dev/tasks" },
+                        { name: "White-board", href: "/dev/white-board" },
                     ].map((item, i) => (
                         <a
                             key={i}

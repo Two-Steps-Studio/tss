@@ -45,6 +45,24 @@ export default async function SzukanieDoGryPage() {
         </div>
       </div>
 
+      {/* Quick Navigation */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        {[
+          { name: "E-Sport", href: "/e-sport" },
+          { name: "Turnieje", href: "/e-sport/turnieje" },
+        ].map((item, i) => (
+            <a
+                key={i}
+                href={item.href}
+                className="rounded-3xl border border-[var(--color-e-sport)]/20 bg-[var(--color-e-sport)]/5 hover:bg-[var(--color-e-sport)]/10 transition-all p-5 shadow-sm group"
+            >
+              <div className="text-lg font-bold text-black dark:text-white group-hover:text-[var(--color-e-sport)] transition-colors">
+                {item.name}
+              </div>
+            </a>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {allGames?.map((game) => (
           <Card

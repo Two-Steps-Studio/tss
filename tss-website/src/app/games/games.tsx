@@ -37,7 +37,7 @@ export default async function GamesPage() {
                 Two Steps Studio
              </Badge>
              <h1 className="text-4xl md:text-6xl font-bold text-white font-[family-name:var(--font-space)] tracking-tight">
-                Nasze <span className="text-[var(--color-games)]">Gry</span>
+                 <span className="text-[var(--color-games)]">Games</span>
              </h1>
              <p className="text-zinc-400 max-w-2xl font-[family-name:var(--font-outfit)] text-lg md:text-xl leading-relaxed">
                 Odkryj światy, które tworzymy. Od epickich przygód po szybkie rozgrywki – znajdź coś dla siebie.

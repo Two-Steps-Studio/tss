@@ -179,6 +179,24 @@ export default function BeatyPage() {
         </div>
       </div>
 
+      {/* Quick Navigation */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        {[
+          { name: "Records", href: "/records" },
+          { name: "Podscasty", href: "/records/podcasty" },
+        ].map((item, i) => (
+            <a
+                key={i}
+                href={item.href}
+                className="rounded-3xl border border-[var(--color-records)]/20 bg-[var(--color-records)]/5 hover:bg-[var(--color-records)]/10 transition-all p-5 shadow-sm group"
+            >
+              <div className="text-lg font-bold text-black dark:text-white group-hover:text-[var(--color-records)] transition-colors">
+                {item.name}
+              </div>
+            </a>
+        ))}
+      </div>
+
       {/* Filtry tierów */}
       <div className="mb-8 flex flex-wrap gap-2">
         <div className="flex items-center gap-2 text-zinc-400 text-sm mr-4">
