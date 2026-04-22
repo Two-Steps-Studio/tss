@@ -23,6 +23,26 @@ export default function WhiteBoardPage() {
             </div>
           </div>
         </div>
+
+        {/* Quick Navigation */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          {[
+            { name: "Managment", href: "/dev/managment" },
+            { name: "Tasks", href: "/dev/tasks" },
+            { name: "White-board", href: "/dev/white-board" },
+          ].map((item, i) => (
+              <a
+                  key={i}
+                  href={item.href}
+                  className="rounded-3xl border border-[var(--color-dev)]/20 bg-[var(--color-dev)]/5 hover:bg-[var(--color-dev)]/10 transition-all p-5 shadow-sm group"
+              >
+                <div className="text-lg font-bold text-black dark:text-white group-hover:text-[var(--color-dev)] transition-colors">
+                  {item.name}
+                </div>
+              </a>
+          ))}
+        </div>
+        
       </>
   );
 }

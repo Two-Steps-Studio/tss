@@ -52,7 +52,7 @@ export default async function ESportPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             {[
                 { name: "Szukanie Do Gry", href: "/e-sport/szukanie-do-gry" },
-                { name: "Turnieje", href: "/dev/team" },
+                { name: "Turnieje", href: "/e-sport/turnieje" },
             ].map((item, i) => (
                 <a
                     key={i}

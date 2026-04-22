@@ -44,9 +44,26 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   const { id } = await params;
 
+  const body = await request.json();
+  const { title, description, status, assigned_to } = body;
+
+  const validStatuses = ["todo", "in_progress", "completed"];
+  if (status && !validStatuses.includes(status)) {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
+
+  if (!title?.trim() && !description) {
+    return NextResponse.json({ error: "Title or description is required" }, { status: 400 });
+  }
+
   const { data, error } = await supabase
     .from("dev_tasks")
-    .update({ title, description, status, assigned_to })
+    .update({
+      title: title?.trim() || title,
+      description: description || "",
+      status,
+      assigned_to,
+    })
     .eq("id", Number(id))
     .select()
     .single();

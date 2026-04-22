@@ -124,24 +124,6 @@ export default async function SzukanieDoGryPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="rounded-[2rem] bg-white/0 dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10">
-          <CardContent className="p-6 flex items-center gap-4">
-            <ExternalLink className="text-[var(--color-e-sport)]" />
-            <div>
-              <div className="text-xs uppercase tracking-widest opacity-50 dark:opacity-60">Platformy</div>
-              <div className="text-3xl font-bold text-black dark:text-white">PC</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="rounded-[2rem] bg-white/0 dark:bg-black/40 border-2 border-black dark:border-[var(--color-e-sport)]/10">
-          <CardContent className="p-6 flex items-center gap-4">
-            <Calendar className="text-[var(--color-e-sport)]" />
-            <div>
-              <div className="text-xs uppercase tracking-widest opacity-50 dark:opacity-60">Aktywność</div>
-              <div className="text-3xl font-bold text-black dark:text-white">Wysoka</div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

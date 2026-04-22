@@ -156,24 +156,6 @@ export default function ProfileForm({
               </p>
               {errorMsg && <p className="text-xs text-red-500 font-[family-name:var(--font-outfit)]">{errorMsg}</p>}
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="balance" className="text-zinc-300 ml-1 font-[family-name:var(--font-outfit)] flex items-center gap-2">
-                💰 Balans PLN
-              </Label>
-              <Input
-                id="balance"
-                type="number"
-                min="0"
-                step="0.01"
-                value={balance}
-                onChange={(e) => setBalance(parseFloat(e.target.value) || 0)}
-                className="rounded-2xl border-white/10 bg-white/5 text-white placeholder:text-zinc-500 focus:border-[var(--color-general)] focus:ring-[var(--color-general)]/20 transition-all duration-300 h-12"
-              />
-              <p className="text-xs text-zinc-500 font-[family-name:var(--font-outfit)]">
-                Twoje saldo w złotówkach
-              </p>
-            </div>
           </div>
 
           <div className="flex justify-end pt-2">

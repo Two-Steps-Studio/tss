@@ -297,14 +297,6 @@ export default function ProfilePage() {
                                 <span className="text-xl font-black text-[var(--color-general)]">{profile?.pln_balance?.toFixed(2) || "0.00"} zł</span>
                             </div>
                         </div>
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
-                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">Poziom</span>
-                            <span className="text-xl font-black text-[var(--color-general)]">{level}</span>
-                        </div>
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
-                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">XP</span>
-                            <span className="text-xl font-black text-[var(--color-general)]">{xp}</span>
-                        </div>
                     </CardContent>
                 </Card>
 
@@ -312,7 +304,7 @@ export default function ProfilePage() {
                 <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl flex flex-col h-[520px]">
                     <CardHeader className="border-b border-black/10 dark:border-white/5 flex flex-col gap-3 pb-4">
                         <div className="flex items-center text-black dark:text-white font-bold italic">
-                            <Trophy size={18} className="mr-2 text-[var(--color-general)]" /> Topka
+                            <Trophy size={18} className="mr-2 text-[var(--color-general)]" /> Tabela Wyników
                         </div>
                         {/* Przełącznik */}
                         <div className="flex gap-2 w-full">

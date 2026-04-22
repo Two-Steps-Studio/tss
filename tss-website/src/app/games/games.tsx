@@ -48,7 +48,6 @@ export default async function GamesPage() {
         {/* Quick Navigation */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             {[
-                /* TODO: Change Navigation to Games */
                 { name: "Loucher Gier", href: "/games/info-o-grach" },
                 { name: "Info o grach", href: "/games/loucher-gier" },
             ].map((item, i) => (

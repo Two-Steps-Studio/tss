@@ -18,10 +18,19 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   const { status } = await params;
 
+  // Map API statuses to DB statuses (pending = todo, in_progress = doing, completed = done)
+  const statusMap: Record<string, string> = {
+    todo: "pending",
+    in_progress: "in_progress",
+    completed: "completed",
+  };
+
+  const dbStatus = statusMap[status] || status;
+
   const { data, error } = await supabase
     .from("dev_tasks")
     .select("*")
-    .eq("status", status)
+    .eq("status", dbStatus)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -45,12 +54,25 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   const { status } = await params;
 
+  // Valid statuses only
+  const validStatuses = ["todo", "in_progress", "completed"];
+  if (!validStatuses.includes(status)) {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+  }
+
+  const body = await request.json();
+  const { title, description, priority = 0, estimated_hours = 0, created_by = null } = body;
+
+  if (!title?.trim()) {
+    return NextResponse.json({ error: "Title is required" }, { status: 400 });
+  }
+
   const { data, error } = await supabase
     .from("dev_tasks")
     .insert({
-      title,
-      description,
-      status: status,
+      title: title.trim(),
+      description: description || "",
+      status,
       priority,
       estimated_hours,
       created_by,

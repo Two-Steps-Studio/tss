@@ -7,13 +7,12 @@ import {
   Home,
   User,
   Gamepad2,
-  Trophy,
   Zap,
   MessageSquare,
+  Music2,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 
-// Definicja sekcji z fallback dla języków - po użyciu useLanguage
 const BOTTOM_NAV_ITEMS = {
   home: { label: "Strona główna", href: "/" },
   profile: { label: "Profil", href: "/profil" },
@@ -24,15 +23,14 @@ const BOTTOM_NAV_ITEMS = {
   notifications: { label: "Powiadomienia", href: "/powiadomienia" },
 };
 
-const NAV_ICONS: Record<string, React.ReactNode> = {};
-
 export function BottomNavigation() {
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
   const mediaQuery = "(max-width: 1023px)";
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.matchMedia(mediaQuery).matches);
+    const checkMobile = () =>
+        setIsMobile(window.matchMedia(mediaQuery).matches);
     checkMobile();
     const mobileMedia = window.matchMedia(mediaQuery);
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
@@ -40,32 +38,41 @@ export function BottomNavigation() {
     return () => mobileMedia.removeEventListener("change", handler);
   }, []);
 
+  useEffect(() => {
+    const style = getComputedStyle(document.documentElement);
+    console.log("--color-general-current:", style.getPropertyValue("--color-general-current"));
+    console.log("--color-general:", style.getPropertyValue("--color-general"));
+    console.log("--color-general-rgb:", style.getPropertyValue("--color-general-rgb"));
+  }, []);
+
   if (!isMobile) return null;
 
-  const getPathColor = (href: string) =>
-      pathname === href || pathname.startsWith(`${href}/`)
-          ? "var(--color-general)"
-          : "rgba(255, 255, 255, 0.15)";
-
-  const getPathScale = (href: string) =>
-      pathname === href || pathname.startsWith(`${href}/`)
-          ? "scale-125 drop-shadow-[0_0_8px_rgba(var(--color-general-rgb),0.5)]"
-          : "scale-100";
-
   const getIcon = (href: string) => {
-    const color = getPathColor(href);
-    const scale = getPathScale(href);
-    const props = { size: 18, style: { color }, className: cn("transition-all duration-300", scale) };
+    const isActive =
+        pathname === href || pathname.startsWith(`${href}/`);
+
+    const props = {
+      size: 18,
+      color: isActive
+          ? "var(--color-general-current)"
+          : "rgba(255,255,255,0.15)",
+      className: cn(
+          "transition-all duration-300",
+          isActive
+              ? "scale-125 drop-shadow-[0_0_8px_rgba(var(--color-general-rgb),0.5)]"
+              : "scale-100"
+      ),
+    };
 
     switch (href) {
-      case "/":            return <Home {...props} />;
-      case "/profil":      return <User {...props} />;
-      case "/games":       return <Gamepad2 {...props} />;
-      case "/e-sport":     return <Zap {...props} />;
-      case "/records":     return <Trophy {...props} />;
-      case "/dev":         return <Zap {...props} />;
+      case "/":              return <Home {...props} />;
+      case "/profil":        return <User {...props} />;
+      case "/games":         return <Gamepad2 {...props} />;
+      case "/e-sport":       return <Zap {...props} />;
+      case "/records":       return <Music2 {...props} />;
+      case "/dev":           return <Zap {...props} />;
       case "/powiadomienia": return <MessageSquare {...props} />;
-      default:             return null;
+      default:               return null;
     }
   };
 

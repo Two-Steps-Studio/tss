@@ -171,7 +171,7 @@ export default function BeatyPage() {
             Two Steps Studio
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold text-white font-[family-name:var(--font-space)] tracking-tight">
-            Sklep z <span className="text-[var(--color-records)]">Beatami</span>
+            <span className="text-[var(--color-records)]">Beaty</span>
           </h1>
           <p className="text-zinc-400 max-w-2xl font-[family-name:var(--font-outfit)] text-lg md:text-xl leading-relaxed">
             Wybierz swój beat - od darmowych po ekskluzywne licencje.
