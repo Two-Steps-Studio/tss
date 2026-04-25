@@ -19,7 +19,18 @@
       "Bash(pkill -f \"next dev\")",
       "Bash(rm -rf \"C:/tss/tss-website/.next\")",
       "Read(//app/**)",
-      "Bash(node index.js)"
+      "Bash(node index.js)",
+      "Bash(git checkout *)",
+      "WebFetch(domain:claude.ai)",
+      "Bash(mv \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\avatars\\\\ensure\" \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\avatars\\\\\" && mv \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\avatars\\\\upload\" \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\avatars\\\\\")",
+      "Bash(mv \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\beaty\" \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\beaty\\\\\" && mv \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\powiadomienia\\\\page.tsx\" \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\powiadomienia\\\\\")",
+      "Bash(mv \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\dev-tasks\" \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\dev-tasks\\\\\" && mv \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\records\" \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\records\\\\\")",
+      "Bash(mv \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\rekrutacja\" \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\rekrutacja\\\\\" && mv \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\regulamin\" \"C:\\\\tss\\\\tss-website\\\\src\\\\app\\\\regulamin\")",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(start-sleep -s 10)",
+      "Bash(rm -rf .next)",
+      "Bash(npm run *)",
+      "Bash(node *)"
     ]
   }
 }

@@ -49,7 +49,7 @@
   --bg: #000000;
   --text: #F1F5F9;
   --sidebar-bg: rgba(0, 0, 0, 0.9);
-  --card-bg: rgba(20, 20, 20, 0.6);
+  --card-bg: rgba(255, 255, 255, 0.6);
   --border-color: rgba(255, 255, 255, 0.1);
   --selection-bg: var(--color-general);
 }

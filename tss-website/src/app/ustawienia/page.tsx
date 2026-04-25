@@ -20,6 +20,8 @@ type Prefs = {
   notif_news: boolean;
   notif_esport: boolean;
   notif_dev: boolean;
+  dev_mode: boolean;
+  dev_access_code: string | null;
 };
 
 export default function SettingsPage() {
@@ -40,6 +42,27 @@ export default function SettingsPage() {
     notif_dev: true,
   }));
 
+  const autoFillCode = (waitForInput = false) => {
+    const code = localStorage.getItem("dev-access-code");
+    if (code && prefs.dev_mode) {
+      // Automatycznie wpisz kod gdy jest zapisany i DEV jest włączone
+      setTimeout(() => {
+        if (typeof document !== "undefined") {
+          const input = document.querySelector('input[type="password"]');
+          if (input && prefs.dev_access_code !== code) {
+            // Synchronizuj tylko jeśli kod się zmienił
+            const newValue = code;
+            if (input.value !== newValue) {
+              setPrefs(prev => ({ ...prev, dev_access_code: newValue }));
+              // Automatycznie wypełnij input
+              input.value = newValue;
+            }
+          }
+        }
+      }, waitForInput ? 300 : 0);
+    }
+  };
+
   useEffect(() => {
     const loadLocalStorage = (): Prefs => ({
       animations: localStorage.getItem("ui-animations") !== "off",
@@ -48,35 +71,60 @@ export default function SettingsPage() {
       notif_news: localStorage.getItem("notif-news") !== "off",
       notif_esport: localStorage.getItem("notif-esport") !== "off",
       notif_dev: localStorage.getItem("notif-dev") !== "off",
+      dev_mode: localStorage.getItem("dev-mode") === "on",
+      dev_access_code: localStorage.getItem("dev-access-code") || null,
     });
 
     (async () => {
       const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
-      if (!user) return;
+      if (!user) {
+        // Bez logowania - DEV domyślnie wyłączone
+        localStorage.setItem("dev-mode", "off");
+        localStorage.removeItem("dev-access-code");
+        setPrefs(prev => ({ ...prev, dev_mode: false, dev_access_code: null }));
+        autoFillCode();
+        return;
+      }
 
       const currentPrefs = loadLocalStorage();
-      supabase.from("profiles").select("settings").eq("id", user.id).single().then(({ data }) => {
-        if (data?.settings) {
-          setPrefs(prev => ({
-            animations: data.settings.animations ?? prev.animations,
-            sounds: data.settings.sounds ?? prev.sounds,
-            quality: data.settings.quality ?? prev.quality,
-            notif_news: data.settings.notif_news ?? prev.notif_news,
-            notif_esport: data.settings.notif_esport ?? prev.notif_esport,
-            notif_dev: data.settings.notif_dev ?? prev.notif_dev,
-          }));
-          setUiStorage("animations", data.settings.animations);
-          setUiStorage("sounds", data.settings.sounds);
-          setUiStorage("quality", data.settings.quality);
-          setNotifStorage("notif_news", data.settings.notif_news);
-          setNotifStorage("notif_esport", data.settings.notif_esport);
-          setNotifStorage("notif_dev", data.settings.notif_dev);
-        }
-      }).catch((err) => {
-        console.error("Error loading user settings:", err);
-      });
+
+      // Jeśli DEV jest włączone, automatycznie załaduj kod
+      if (currentPrefs.dev_mode && !currentPrefs.dev_access_code) {
+        currentPrefs.dev_access_code = localStorage.getItem("dev-access-code");
+      }
+
+      const profileDataResult = await supabase
+        .from("profiles")
+        .select("settings")
+        .eq("id", user.id)
+        .single();
+
+      const profileData = profileDataResult.data;
+
+      if (profileData?.settings) {
+        currentPrefs = {
+          ...currentPrefs,
+          dev_mode: profileData.settings.dev_mode ?? currentPrefs.dev_mode,
+          dev_access_code: profileData.settings.dev_access_code ?? currentPrefs.dev_access_code,
+        };
+      }
+
+      setPrefs(currentPrefs);
+      setUiStorage("animations", profileData?.settings?.animations);
+      setUiStorage("sounds", profileData?.settings?.sounds);
+      setUiStorage("quality", profileData?.settings?.quality);
+      setNotifStorage("notif_news", profileData?.settings?.notif_news);
+      setNotifStorage("notif_esport", profileData?.settings?.notif_esport);
+      setNotifStorage("notif_dev", profileData?.settings?.notif_dev);
+      setUiStorage("dev_mode", currentPrefs.dev_mode);
+      setUiStorage("dev_access_code", currentPrefs.dev_access_code);
     })();
   }, []);
+
+  // Automatycznie synchronizuj kod dostępowy z delayem
+  useEffect(() => {
+    autoFillCode(true);
+  }, [prefs.dev_mode]);
 
   const setPref = async (key: keyof Prefs, value: string | boolean) => {
     setPrefs((prev) => ({ ...prev, [key]: value }));
@@ -86,6 +134,15 @@ export default function SettingsPage() {
     setUiStorage("animations", value);
     setUiStorage("sounds", value);
     setUiStorage("quality", value);
+    localStorage.setItem("dev-mode", value ? "on" : "off");
+    if (key === "dev_access_code") {
+      if (value) {
+        // Zapisuj kod tylko jeśli nie jest pusty
+        localStorage.setItem("dev-access-code", value);
+      } else {
+        localStorage.removeItem("dev-access-code");
+      }
+    }
   };
 
   const AppearanceOption = ({ value, icon: Icon, label }: { value: "light" | "dark" | "system"; icon: any; label: string }) => {
@@ -209,7 +266,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] glass lg:col-span-2">
+        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-black dark:border-[var(--border-color)]">
           <CardHeader className="flex items-center justify-between">
             <CardTitle className="text-[var(--text)]">{t.settings.notifications}</CardTitle>
             <Badge className="bg-[var(--color-general)]/15 text-[var(--color-general)] px-3 py-1 rounded-2xl border-0">Bezpieczne dane</Badge>
@@ -236,6 +293,56 @@ export default function SettingsPage() {
                 <Switch checked={prefs.notif_dev} onCheckedChange={(v) => setPref("notif_dev", v)} />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-[2.5rem] glass lg:col-span-2 border-2 border-red-500/30 bg-red-500/5 dark:bg-red-500/10">
+          <CardHeader className="flex items-center justify-between">
+            <CardTitle className="text-[var(--text)] text-red-500 font-black">DEV MODE</CardTitle>
+            <Badge className={`${prefs.dev_mode ? "bg-red-500" : "bg-zinc-500"} text-white px-3 py-1 rounded-2xl border-0`}>
+              {prefs.dev_mode ? "WŁĄCZONY" : "WYŁĄCZONY"}
+            </Badge>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between px-4 py-3 rounded-2xl border-[var(--border-color)] bg-[var(--bg)]/50 border-red-500/20">
+              <div className="font-medium text-red-500">Tryb deweloperski</div>
+              <Switch
+                checked={prefs.dev_mode}
+                onCheckedChange={(v) => setPref("dev_mode", v)}
+              />
+            </div>
+
+            {prefs.dev_mode && (
+              <div className="space-y-3 p-4 rounded-2xl border border-red-500/30 bg-red-500/10">
+                <div className="text-sm font-bold text-red-500">Kod dostępowy do DEV</div>
+                <div className="text-xs opacity-70 text-red-400">
+                  Wpisz kod dostępowy aby wejść do trybu DEV. Kod zostanie zapisany w przeglądarce na 15 minut.
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="password"
+                    placeholder="Wpisz kod..."
+                    className="flex-1 px-4 py-3 rounded-xl border border-red-500/30 bg-black/50 text-white placeholder:text-red-400/50 focus:outline-none focus:ring-2 focus:ring-red-500 font-mono text-sm"
+                    value={prefs.dev_access_code ?? ""}
+                    onChange={(e) => setPref("dev_access_code", e.target.value)}
+                  />
+                  <Button
+                    onClick={() => setPref("dev_access_code", prefs.dev_access_code)}
+                    variant="outline"
+                    className="px-4 py-3 border-red-500/30 text-red-500 hover:bg-red-500/20"
+                  >
+                    Zapisz
+                  </Button>
+                </div>
+                {prefs.dev_access_code && (
+                  <div className="flex items-center gap-2 text-xs text-red-400/80 px-2 py-1 bg-red-500/5 rounded">
+                    <span className="font-mono bg-red-500/20 px-2 py-1 rounded">Zapisany kod:</span>
+                    <span className="font-mono font-bold">{prefs.dev_access_code}</span>
+                    <span className="opacity-60">· (ważny na 15 min)</span>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

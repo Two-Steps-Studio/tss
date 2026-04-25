@@ -30,6 +30,74 @@ function getClientIp(request: NextRequest): string {
   return forwarded ? forwarded.split(",")[0] : request.socket?.remoteAddress || "unknown";
 }
 
+// --- Bot Detection & Protection ---
+const BOT_PATTERNS = [
+  /bot|crawler|spider|scraper/i,
+  /curl|wget|python|ruby|perl|node\.js|java/i,
+  /sqlmap|nikto|nuclei|nmap/i,
+];
+
+function detectBot(request: NextRequest): { isBot: boolean; botType: string | null } => {
+  const ua = request.headers.get("user-agent") || "";
+
+  // Check for bot patterns
+  for (const pattern of BOT_PATTERNS) {
+    if (pattern.test(ua)) {
+      const match = ua.match(pattern);
+      return { isBot: true, botType: match?.[0]?.replace(/\/gi/g, '') || 'unknown-bot' };
+    }
+  }
+
+  // Check for suspicious header combinations
+  const accept = request.headers.get("accept") || "";
+  if (accept.includes('*/*') && !ua.includes('Mozilla')) {
+    return { isBot: true, botType: 'suspicious-accept' };
+  }
+
+  return { isBot: false, botType: null };
+}
+
+function handleBotRequest(request: NextRequest, botType: string): NextResponse {
+  // Log bot detection
+  const ip = getClientIp(request);
+  console.log(`[${new Date().toISOString()}] [BOT-DETECTION] Blocked: ${botType} from ${ip}`);
+
+  // Rate limit for bots (stricter)
+  if (rateLimitStore.has(ip) && rateLimitStore.get(ip)!.count >= MAX_REQUESTS) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
+
+  // Block known attack tools immediately
+  if (/sqlmap|nikto|nuclei/i.test(botType)) {
+    return NextResponse.json(
+      { error: "Forbidden" },
+      { status: 403, headers: { "X-Content-Type-Options": "nosniff" } }
+    );
+  }
+
+  // Warn about scraper/crawler
+  if (/crawler|scraper/i.test(botType)) {
+    return NextResponse.json(
+      { error: "Scraping is disabled on this site" },
+      { status: 403 }
+    );
+  }
+
+  // Allow basic user agents with "bot" in name (Googlebot, Bingbot, etc.)
+  if (/googlebot|bingbot|baidu|yandex/i.test(botType)) {
+    return NextResponse.next();
+  }
+
+  // Default: block unknown bots
+  return NextResponse.json(
+    { error: "Access denied" },
+    { status: 403 }
+  );
+}
+
 // --- Logging for security monitoring ---
 const securityLog = (endpoint: string, action: string, user?: string, ip?: string, details?: string) => {
   const logEntry = `[${new Date().toISOString()}] [SECURITY] ${action} - ${endpoint} | User: ${user || 'N/A'} | IP: ${ip || 'N/A'}${details ? ` | ${details}` : ''}`;
@@ -39,6 +107,12 @@ const securityLog = (endpoint: string, action: string, user?: string, ip?: strin
 export async function middleware(request: NextRequest) {
   const ip = getClientIp(request);
 
+  // Detect bots before rate limiting
+  const botDetection = detectBot(request);
+  if (botDetection.isBot) {
+    return handleBotRequest(request, botDetection.botType || '');
+  }
+
   // Check request rate limit
   if (!checkRateLimit(ip)) {
     securityLog(request.url, "RATE_LIMIT_EXCEEDED", undefined, ip);
@@ -46,12 +120,6 @@ export async function middleware(request: NextRequest) {
       { error: "Too many requests. Please try again later." },
       { status: 429, headers: { "Retry-After": "60" } }
     );
-  }
-
-  // Detect suspicious user agents
-  const ua = request.headers.get("user-agent") || "";
-  if (ua.includes("bot") || ua.includes("curl") || ua.includes("python")) {
-    securityLog(request.url, "SUSPICIOUS_USER_AGENT", undefined, ip, `UA: ${ua}`);
   }
 
   // Only create Supabase client if credentials exist

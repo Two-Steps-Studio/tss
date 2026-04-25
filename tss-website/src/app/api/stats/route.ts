@@ -32,8 +32,8 @@ export async function GET() {
     // Zwróć dane w nowym formacie
     const response: any = {
       online_users: discordStats?.online_users || 0,
-      member_count: discordStats?.member_count || 0,
-      site_accounts: siteAccounts || 0,
+      total_members: discordStats?.member_count || 0,
+      messages_today: discordStats?.messages_today || 0,
     };
 
     if (dsError) {

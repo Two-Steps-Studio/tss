@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, User, Settings, Bell, Gamepad, Trophy, Mic2, Music2, FolderOpen, Mail, Code } from "lucide-react";
+import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, User, Settings, Bell, Gamepad, Trophy, Mic2, Music2, FolderOpen, Mail, Code, BookOpen, Book, Server, Layout, Database, Shield, Clipboard, Terminal, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "../lib/utils";
 import { useSidebar } from "@/hooks/use-sidebar";
@@ -14,53 +14,47 @@ import { useTheme } from "next-themes";
 import { Button } from "./ui/button";
 import { BottomNavigation } from "./BottomNavigation";
 
-function SidebarStats({ translations }: { translations: any }) {
-  const stats = {
-    online_users: 0,
-    total_members: 0,
-    messages_today: 0
-  };
-
+function SidebarStats({ translations, stats }: { translations: any; stats: { online_users: number; total_members: number; messages_today: number } }) {
   return (
-      <div className="px-4 mb-6" suppressHydrationWarning>
-        <div className="glass rounded-[2rem] p-5 overflow-hidden relative group border border-[var(--border-color)]" suppressHydrationWarning>
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-general)] opacity-5 blur-2xl group-hover:opacity-10 transition-opacity" suppressHydrationWarning />
+      <div className="px-4 mb-6">
+        <div className="glass rounded-[2rem] p-5 overflow-hidden relative group border border-[var(--border-color)]">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-general)] opacity-5 blur-2xl group-hover:opacity-10 transition-opacity" />
 
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40 flex items-center gap-2 text-[var(--text)]" suppressHydrationWarning>
-              <BarChart3 size={12} className="text-[var(--color-general)] shrink-0" suppressHydrationWarning /> {translations.nav.stats}
+            <h2 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40 flex items-center gap-2 text-[var(--text)]">
+              <BarChart3 size={12} className="text-[var(--color-general)] shrink-0" /> {translations.nav.stats}
             </h2>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]" suppressHydrationWarning>
-                  <Users size={14} className="opacity-70 text-[var(--text)]" suppressHydrationWarning />
+                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
+                  <Users size={14} className="opacity-70 text-[var(--text)]" />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{translations.nav.channels}</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]">{translations.nav.channels}</span>
               </div>
-              <span className="text-xs font-black text-[var(--text)]" suppressHydrationWarning>{(stats.total_members || 0).toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]">{stats.online_users}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]" suppressHydrationWarning>
-                  <Users size={14} className="opacity-70 text-[var(--text)]" suppressHydrationWarning />
+                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
+                  <Users size={14} className="opacity-70 text-[var(--text)]" />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{translations.nav.online}</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]">{translations.nav.online}</span>
               </div>
-              <span className="text-xs font-black text-[var(--text)]" suppressHydrationWarning>{(stats.online_users || 0).toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]">{stats.total_members.toLocaleString()}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]" suppressHydrationWarning>
-                  <MessageSquare size={14} className="opacity-70 text-[var(--text)]" suppressHydrationWarning />
+                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
+                  <MessageSquare size={14} className="opacity-70 text-[var(--text)]" />
                 </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]" suppressHydrationWarning>{translations.nav.newProject || "Wiadomości"}</span>
+                <span className="text-xs font-bold opacity-60 text-[var(--text)]">{translations.nav.newProject || "Wiadomości"}</span>
               </div>
-              <span className="text-xs font-black text-[var(--text)]" suppressHydrationWarning>{(stats.messages_today || 0).toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]">{stats.messages_today.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -80,26 +74,43 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
     setMounted(true);
   }, []);
 
+  const [stats, setStats] = useState({
+    online_users: 0,
+    total_members: 0,
+    messages_today: 0
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetch("/api/stats")
+        .then((res) => res.json())
+        .then((data) => setStats(data))
+        .catch(() => setStats({ online_users: 0, total_members: 0, messages_today: 0 }));
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Definicja sekcji z fallback dla wszystkich tłumaczeń
   const defaultSections = [
     { id: "home", type: "single", href: "/", label: t.nav.home || "Strona główna", icon: Home },
     { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: User },
     { id: "games", type: "expandable", href: "/games", label: t.nav.games || "Games", icon: Gamepad, items: [
-      { href: "/games/loucher-gier", label: t.nav.Loucher || "Loucher Gier" },
-      { href: "/games/info-o-grach", label: "Info o grach" },
+      { href: "/games/loucher-gier", label: t.nav.Loucher || "Loucher Gier", icon: Gamepad },
+      { href: "/games/info-o-grach", label: "Info o grach", icon: BookOpen },
     ]},
     { id: "esport", type: "expandable", href: "/e-sport", label: t.nav.esport || "E-sport", icon: Trophy, items: [
-      { href: "/e-sport/szukanie-do-gry", label: "Szukanie do gry" },
-      { href: "/e-sport/turnieje", label: "Turnieje" },
+      { href: "/e-sport/szukanie-do-gry", label: "Szukanie do gry", icon: Search },
+      { href: "/e-sport/turnieje", label: "Turnieje", icon: Trophy },
     ]},
     { id: "records", type: "expandable", href: "/records", label: t.nav.records || "Records", icon: Music2, items: [
-      { href: "/records/podcasty", label: "Podcasty" },
-      { href: "/records/beaty", label: "Beaty" },
+      { href: "/records/podcasty", label: "Podcasty", icon: Book },
+      { href: "/records/beaty", label: "Beaty", icon: Mic2 },
     ]},
     { id: "dev", type: "expandable", href: "/dev", label: t.nav.dev || "Dev", icon: Code, items: [
-      { href: "/dev/managment", label: t.nav.management || "Management" },
-      { href: "/dev/white-board", label: "Whiteboard" },
-      { href: "/dev/taski", label: "Zadania" },
+      { href: "/dev/managment", label: t.nav.management || "Management", icon: Clipboard },
+      { href: "/dev/white-board", label: "Whiteboard", icon: Layout },
+      { href: "/dev/taski", label: "Zadania", icon: Terminal },
     ]},
     { id: "notifications", type: "single", href: "/powiadomienia", label: t.nav.notifications || "Powiadomienia", icon: Bell },
   ];
@@ -175,7 +186,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
         </div>
 
         {/* Stats Section */}
-        <SidebarStats translations={t} />
+        <SidebarStats translations={t} stats={stats} />
 
         {/* Navigation */}
         <nav className="flex-1 px-4 overflow-y-auto no-scrollbar pb-6" suppressHydrationWarning>
@@ -297,12 +308,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
                   )}
 
                   <div className="relative z-10 flex items-center gap-3 w-full pl-3">
-                    <div
-   	   	    className={cn(
-                            "w-1.5 h-1.5 shrink-0 rounded-full bg-[var(--color-general)] transition-opacity",
-                            isActive ? "opacity-100" : "opacity-50 group-hover:opacity-70"
-   	   	    )}
-                    />
+                    <item.icon className="w-4 h-4 shrink-0 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
                     <span className="text-sm font-bold tracking-tight truncate">{item.label}</span>
                   </div>
                 </Link>
