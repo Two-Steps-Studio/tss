@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Email Templates for Two Steps Studio
  * Used for login tokens, password resets, and notifications
  */
@@ -15,7 +15,8 @@ export interface EmailTemplate {
  */
 export const LOGIN_TOKEN_TEMPLATE_PL = {
   subject: 'Twój kod weryfikacyjny - Two Steps Studio',
-  html: \<html>
+  html: `<!DOCTYPE html>
+<html>
 <head>
   <meta charset="utf-8">
   <title>Kod Weryfikacyjny</title>
@@ -37,7 +38,6 @@ export const LOGIN_TOKEN_TEMPLATE_PL = {
     </p>
   </div>
 </body>
-</html>\
-,
-  text: \Two Steps Studio - Twój kod weryfikacyjny to:\n\n\\n\nTen kod wygasza za 10 minut.\,
+</html>`,
+  text: 'Two Steps Studio - Twój kod weryfikacyjny to:\n\nTen kod wygasza za 10 minut.'
 };

@@ -1,124 +1,136 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import Tree from "react-d3-tree";
 import { Users, Mail, MapPin, Badge } from "lucide-react";
 
-// Dane hierarchiczne zespołu
-const orgChart = {
-  name: "CEO / Owner",
-  attributes: { role: "Owner", email: "owner@tss.com" },
-  children: [
-    {
-      name: "Management",
-      attributes: { role: "Manager", email: "manager@tss.com" },
-      children: [
-        {
-          name: "Development Team",
-          attributes: { department: "DEV", email: "dev@tss.com" },
-          children: [
-            {
-              name: "Frontend Lead",
-              attributes: { role: "Lead", email: "frontend@tss.com" },
-              children: [
-                { name: "Frontend Developer 1" },
-                { name: "Frontend Developer 2" },
-              ],
-            },
-            {
-              name: "Backend Lead",
-              attributes: { role: "Lead", email: "backend@tss.com" },
-              children: [
-                { name: "Backend Developer 1" },
-                { name: "Backend Developer 2" },
-              ],
-            },
-          ],
-        },
-        {
-          name: "Design Team",
-          attributes: { department: "Design", email: "design@tss.com" },
-          children: [
-            { name: "UI/UX Designer 1" },
-            { name: "UI/UX Designer 2" },
-          ],
-        },
-        {
-          name: "Production Team",
-          attributes: { department: "Production", email: "prod@tss.com" },
-          children: [
-            { name: "Producer 1" },
-            { name: "Producer 2" },
-          ],
-        },
-      ],
-    },
-  ],
-};
+interface OrgNode extends React.D3Tree.Node {
+  name: string;
+  attributes?: {
+    role?: string;
+    email?: string;
+    department?: string;
+  };
+}
 
+interface OrgNodeRenderProps {
+  node: OrgNode;
+  depth: number;
+  expand: boolean;
+  expandedIds: Set<string>;
+  toggleExpand: (id: string) => void;
+}
 
-const CustomTreeNode = ({ node }: { node: any }) => {
-  const nodeData = node || { name: "", attributes: {} };
+const OrgNode = ({ node, depth, expandedIds, toggleExpand }: OrgNodeRenderProps) => {
+  const { name, attributes } = node;
+
+  const hasChildren = Array.isArray(attributes?.members) && attributes.members.length > 0;
+
+  // Use expandedIds prop directly instead of internal state
+  const isOpen = expandedIds.has(name);
+
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleExpand(name);
+  };
 
   return (
-  <div className="group">
-    <div className="node-container p-4 rounded-lg border border-zinc-700/50 bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors backdrop-blur-sm">
-      {/* Avatar / Ikona */}
-      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-600 flex items-center justify-center mb-3 border border-zinc-500">
-        {nodeData.attributes?.role ? (
-          <Badge className="text-white" />
-        ) : (
-          <Users className="text-zinc-300" />
+    <Tree.Node
+      key={name}
+      ref={(ref) => {
+        if (ref) {
+          if (!isOpen && hasChildren) {
+            // Use data-* attribute for click handler instead of direct assignment
+            ref.element.setAttribute("data-toggle", "expand");
+          }
+        }
+      }}
+    >
+      <Tree.Styles.Node />
+
+      <div className="tree-item-container">
+        <div className={`flex items-center ${hasChildren ? "cursor-pointer hover:bg-accent/10" : ""}`}>
+          <div
+            className={`w-5 h-5 flex items-center justify-center mr-2 ${
+              hasChildren ? "opacity-60 hover:opacity-100" : "opacity-0"
+            }`}
+            onClick={toggle}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 4a1 1 0 00-1 1v3h-2a1 1 0 00-1 1v3a1 1 0 001 1h14a1 1 0 001-1v-3a1 1 0 00-1-1H9v-3a1 1 0 00-1-1z" />
+            </svg>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-full ${attributes?.role === "CEO" ? "bg-red-500/10 text-red-500" : "bg-blue-500/10 text-blue-500"}`}>
+              {attributes?.role === "CEO" ? <Users className="w-5 h-5" /> : <MapPin className="w-5 h-5" />}
+            </div>
+
+            <div className="flex flex-col">
+              <span className="font-bold text-lg">{name}</span>
+              {attributes?.role && (
+                <span className="text-xs text-gray-500">{attributes.role}</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {hasChildren && (
+          <>
+            <Tree.Styles.Edge />
+            <Tree.NodeGroup
+              label=""
+              expand={isOpen}
+              nodeIds={Array.isArray(attributes?.members) ? attributes.members : []}
+              onToggle={toggleExpand}
+            >
+              {Array.isArray(attributes?.members) &&
+                attributes.members.map((memberName) => (
+                  <OrgNode
+                    key={memberName}
+                    node={{ name: memberName }}
+                    depth={depth + 1}
+                    expandedIds={expandedIds}
+                    toggleExpand={toggleExpand}
+                  />
+                ))}
+            </Tree.NodeGroup>
+          </>
         )}
       </div>
-
-      {/* Nazwa */}
-      <div className="text-center mb-2">
-        <h3 className="font-bold text-zinc-100 text-sm">{nodeData.name}</h3>
-      </div>
-
-      {/* Atrybuty */}
-      {nodeData.attributes && (
-        <div className="space-y-1.5 text-center">
-          {nodeData.attributes.role && (
-            <div className="text-xs text-zinc-400">
-              <span className="inline-block px-2 py-0.5 rounded bg-zinc-700/50 text-zinc-300 text-[10px] font-medium">
-                {nodeData.attributes.role}
-              </span>
-            </div>
-          )}
-          {nodeData.attributes.department && (
-            <div className="text-xs text-zinc-400">
-              {nodeData.attributes.department}
-            </div>
-          )}
-          {nodeData.attributes.email && (
-            <div className="flex items-center justify-center gap-1 text-xs text-zinc-400 mt-2">
-              <Mail size={10} />
-              <span className="truncate max-w-[150px]">{nodeData.attributes.email}</span>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  </div>
+    </Tree.Node>
   );
 };
 
-export default function OrganizationTree() {
-  if (typeof window === "undefined") return null;
+interface OrganizationTreeProps {
+  orgData: OrgNode;
+}
+
+export function OrganizationTree({ orgData }: OrganizationTreeProps) {
+  const [expandedIds, setExpandedIds] = React.useState<Set<string>>(new Set([orgData.name]));
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
   return (
-    <div className="w-full overflow-auto bg-zinc-900/50 rounded-xl border border-zinc-800 p-4">
-      <div id="treeWrapper" style={{ width: "100%", height: "500px" }}>
-        <Tree
-          data={orgChart}
-          renderCustomNodeElement={CustomTreeNode}
-          collapsible
-          collapsedLabel="▼"
-          expandedLabel="▶"
-          expandAllOnMount
-        />
-      </div>
+    <div className="w-full overflow-auto">
+      <Tree.Tree
+        data={orgData}
+        style={{ fontSize: "14px", defaultExpandDepth: 1, defaultExpand: false }}
+        node={OrgNode}
+        onNodeClick={() => {}} // Removed unused click handler
+      />
     </div>
   );
 }
+
+export default OrganizationTree;

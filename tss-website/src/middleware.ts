@@ -37,7 +37,7 @@ const BOT_PATTERNS = [
   /sqlmap|nikto|nuclei|nmap/i,
 ];
 
-function detectBot(request: NextRequest): { isBot: boolean; botType: string | null } => {
+async function detectBot(request: NextRequest): Promise<{ isBot: boolean; botType: string | null }> {
   const ua = request.headers.get("user-agent") || "";
 
   // Check for bot patterns
@@ -107,8 +107,36 @@ const securityLog = (endpoint: string, action: string, user?: string, ip?: strin
 export async function middleware(request: NextRequest) {
   const ip = getClientIp(request);
 
+  // Add secure headers
+  const headers: HeadersInit = {
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "geolocation=(), camera=(), microphone=()",
+    "Cache-Control": "public, max-age=31536000, stale-while-revalidate=31536000",
+  };
+
+  // Production: add HSTS
+  if (process.env.NODE_ENV === "production") {
+    headers["Strict-Transport-Security"] =
+      "max-age=31536000; includeSubDomains; preload";
+    headers["Content-Security-Policy"] =
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-src 'none'; object-src 'none';";
+  }
+
+  // Apply security headers
+  headers[
+    "X-Download-Options"
+  ] = "noopen";
+  headers[
+    "X-XSS-Protection"
+  ] = "1; mode=block";
+  headers[
+    "X-Permitted-Cross-Domain-Policies"
+  ] = "none";
+
   // Detect bots before rate limiting
-  const botDetection = detectBot(request);
+  const botDetection = await detectBot(request);
   if (botDetection.isBot) {
     return handleBotRequest(request, botDetection.botType || '');
   }
@@ -194,6 +222,21 @@ export const config = {
      * - manifest.webmanifest (PWA manifest)
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|manifest.webmanifest).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest)$|manifest.webmanifest).*)",
   ],
 };
+
+// Register service worker at runtime
+if (process.env.NODE_ENV === 'production') {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(registration => {
+          console.log('SW registered: ', registration);
+        })
+        .catch(registrationError => {
+          console.log('SW registration failed: ', registrationError);
+        });
+    });
+  }
+}

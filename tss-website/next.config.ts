@@ -146,6 +146,12 @@ const nextConfig: NextConfig = {
         destination: '/ustawienia',
         permanent: true,
       },
+      // Przekieruj /games do /
+      {
+        source: '/games',
+        destination: '/',
+        permanent: true,
+      },
     ];
   },
 };

@@ -5,7 +5,7 @@ All notable changes to Two Steps Studio will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [Unreleased] - 2026-03-16
 
 ### Added
 - Initial release with website and Discord bot
@@ -18,19 +18,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Events management system
 - Admin dashboard
 - Shop system
+- **Security**: Private avatar storage with signed URL generation
+- **Security**: Environment variable templates for secure deployment
 
 ### Changed
 - Upgraded from Next.js 14 to 15
 - Upgraded from Tailwind CSS 3 to 4
 - Upgraded React from 18 to 19
 - Bot configuration updates
+- Avatar storage: public → private with signed URLs
 
 ### Fixed
 - Initial bug fixes and improvements
 - Authentication flow improvements
 - Profile card generation issues
+- **Security**: Avatar bucket changed from public to private with signed URL retrieval (2026-03-16)
+- **Security**: OrganizationTree component useMemo hook error fixed
+- **Security**: Discord bot .env.example template added for secure deployment
 
-## [1.0.0] - 2026-03-13
+## [1.0.1] - 2026-03-16
 
 ### Security Fixes
 
@@ -157,6 +163,7 @@ None at this time.
 
 | Version | Date | Changes | Type |
 |---------|------|---------|------|
+| 1.0.1 | 2026-03-16 | Avatar storage private, OrganizationTree fix, bot env template | Security |
 | Unreleased | TBD | In progress | - |
 | 1.0.0 | 2026-03-13 | Security fixes, features, API | Initial |
 | 0.1.0 | 2026-01-01 | Project start | Alpha |

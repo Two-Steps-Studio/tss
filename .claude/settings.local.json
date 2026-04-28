@@ -30,7 +30,9 @@
       "Bash(start-sleep -s 10)",
       "Bash(rm -rf .next)",
       "Bash(npm run *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(Get-ChildItem C:\\\\tss *)",
+      "Bash(npx tsc *)"
     ]
   }
 }

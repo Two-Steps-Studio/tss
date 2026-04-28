@@ -514,17 +514,11 @@ client.on('interactionCreate', async interaction => {
                 await interaction.editReply({ embeds: [embed], components: rows });
             } else if (action === 'heal') {
                 if (profile.rpg?.hp >= 100) {
-                    return interaction.reply({
-                        content: '🩺 Twoja postać jest już w pełni wyleczona!',
-                        ephemeral: true,
-                    });
+                    return interaction.reply({ content: '🩺 Twoja postać jest już w pełni wyleczona!', ephemeral: true });
                 }
                 const healCost = 50;
                 if (profile.money < healCost) {
-                    return interaction.reply({
-                        content: `❌ Nie masz wystarczająco monet! Potrzebujesz **${healCost} ${COIN}**`,
-                        ephemeral: true,
-                    });
+                    return interaction.reply({ content: `❌ Nie masz wystarczająco monet! Potrzebujesz **${healCost} ${COIN}**`, ephemeral: true });
                 }
                 const newMoney = profile.money - healCost;
                 await supabase.from('profiles').update({ money: newMoney }).eq('id', profile.id);
@@ -624,16 +618,8 @@ client.on('interactionCreate', async interaction => {
     const NO_DEFER_COMMANDS = [];
 
     if (!NO_DEFER_COMMANDS.includes(interaction.commandName)) {
-        try {
-            await interaction.deferReply();
-        } catch (e) {
-            // Interakcja wygasła zanim zdążyliśmy odpowiedzieć — porzuć
-            console.error('[DEFER] Nie udało się zdeferować interakcji:', e.message);
-            return;
-        }
+        await interaction.deferReply();
     }
-
-    if (!interaction.isChatInputCommand()) return;
 
     const roles   = interaction.member?.roles.cache.filter(r => r.name !== '@everyone').map(r => r.name) || [];
     const profile = await getProfile(interaction.user.id, interaction.user.username, roles);

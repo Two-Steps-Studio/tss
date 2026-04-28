@@ -62,6 +62,11 @@ export interface BaseTranslations {
       projects: string;
       status: string;
     };
+    codAnalyzer: {
+      title: string;
+      desc: string;
+      stats: string;
+    };
   };
   home: {
     newsTitle: string;
@@ -206,6 +211,11 @@ export const translations = {
         subtitle: "Nasze projekty i narzędzia deweloperskie.",
         projects: "Projekty",
         status: "Status"
+      },
+      codAnalyzer: {
+        title: "COD Analyzer",
+        desc: "Analityk taktyczny.",
+        stats: "Dostępny"
       }
     },
     home: {
@@ -350,6 +360,11 @@ export const translations = {
         subtitle: "Our projects and development tools.",
         projects: "Projects",
         status: "Status"
+      },
+      codAnalyzer: {
+        title: "COD Analyzer",
+        desc: "Tactical analyst.",
+        stats: "Available"
       }
     },
     home: {
@@ -494,6 +509,11 @@ export const translations = {
         subtitle: "Unsere Projekte und Entwicklungstools.",
         projects: "Projekte",
         status: "Status"
+      },
+      codAnalyzer: {
+        title: "COD Analyzer",
+        desc: "Taktischer Analyst.",
+        stats: "Verfügbar"
       }
     },
     home: {
@@ -1148,5 +1168,11 @@ export const it = {
   }
 } as const;
 
-// Wygenerowany typ na podstawie powyższego obiektu - obejmuje wszystkie dostępne języki
-export type TranslationKey = typeof translations.pl;
+// Lista języków z tłumaczeniami
+export const ru = ru;
+export const es = es;
+export const fr = fr;
+export const it = it;
+
+// Typ na podstawie obiektu translations - obejmuje wszystkie dostępne języki
+export type TranslationKey = "pl" | "en" | "de" | "ru" | "es" | "fr" | "it";

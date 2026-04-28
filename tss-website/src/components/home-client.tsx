@@ -2,10 +2,43 @@
 
 import dynamic from "next/dynamic";
 import { useLanguage } from "../hooks/use-language";
-import { Star, ArrowRight, Rocket, Gamepad2, Mic2, Code2, Trophy } from "lucide-react";
+import { Star, ArrowRight, Rocket, Gamepad2, Mic2, Code2, Trophy, Library, FileVideo } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { HomeHero } from "./home-hero";
+
+export const metadata = {
+  title: 'Two Steps Studio — Beatmapy, Gry i Społeczność',
+  description: 'Strona internetowa Two Steps Studio — platforma z beatmapami, grami, podcastami, turniejami e-sportowymi i warsztatami programistycznymi. Dołącz do tysięcy użytkowników i odkryj świat rhythm games!',
+  keywords: ['beatmapy', 'gracz', 'discord', 'muzyka', 'podcasty', 'esport', 'turnieje', 'rhythm games'],
+  openGraph: {
+    type: 'website',
+    locale: 'pl_PL',
+    url: 'https://tss.net',
+    siteName: 'Two Steps Studio',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Two Steps Studio',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@two_stepstudio',
+    creator: '@two_stepstudio',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+};
 const HomeSiteStats = dynamic(() => import("./home-site-stats").then(mod => mod.HomeSiteStats), {
   ssr: false,
   loading: () => <div className="h-40 rounded-[2.5rem] bg-white/5 animate-pulse" />
@@ -28,6 +61,10 @@ const DiscordStatsLive = dynamic(() => import("./discord-stats-live").then(mod =
 const NewsletterForm = dynamic(() => import("./newsletter-form").then(mod => mod.NewsletterForm), {
   ssr: false
 });
+const WarzoneAnalyzer = dynamic(() => import("./WarzoneAnalyzer").then(mod => mod.WarzoneAnalyzer), {
+  ssr: false,
+  loading: () => <div className="h-96 rounded-[3rem] bg-white/5 animate-pulse" />
+});
 
 const t = {
     pl: {
@@ -39,12 +76,13 @@ const t = {
           ctaPrimary: "POBIERZ APLIKACJĘ",
           ctaSecondary: "DOŁĄCZ DO NAS",
         },
-      marquee: ["Nowe projekty", "E-sport", "Games", "Records", "Dev", "Community"],
+      marquee: ["Nowe projekty", "E-sport", "Games", "Records", "Dev", "Community", "COD Analyzer"],
       sections: {
         games: { title: "Games", desc: "Interaktywne światy.", stats: "0 gier" },
         esport: { title: "E-sport", desc: "Duch rywalizacji.", stats: "0 turniejów" },
         records: { title: "Records", desc: "Brzmienie pasji.", stats: "0 utwory" },
         dev: { title: "Dev", desc: "Kod przyszłości.", stats: "1 projektów" },
+        codAnalyzer: { title: "COD Analyzer", desc: "Analityk taktyczny.", stats: "Dostępny" },
       }
     },
     en: {
@@ -56,12 +94,13 @@ const t = {
         ctaPrimary: "DOWNLOAD APP",
         ctaSecondary: "JOIN US",
       },
-      marquee: ["New projects", "E-sport", "Games", "Records", "Dev", "Community"],
+      marquee: ["New projects", "E-sport", "Games", "Records", "Dev", "Community", "COD Analyzer"],
       sections: {
         games: { title: "Games", desc: "Interactive worlds.", stats: "0 games" },
         esport: { title: "E-sport", desc: "Competitive spirit.", stats: "0 tournaments" },
         records: { title: "Records", desc: "Sound of passion.", stats: "0 tracks" },
         dev: { title: "Dev", desc: "Code of tomorrow.", stats: "1 projects" },
+        codAnalyzer: { title: "COD Analyzer", desc: "Tactical analyst.", stats: "Available" },
       }
     }
 };
@@ -178,7 +217,7 @@ export function HomeClient() {
                 </div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               whileHover={{ scale: 1.01, rotate: 0.2 }}
@@ -194,6 +233,52 @@ export function HomeClient() {
                   <p className="text-xl font-medium opacity-80">{content.sections.esport.desc}</p>
                 </div>
             </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.01, rotate: 0.2 }}
+              viewport={{ once: true }}
+              className="md:col-span-1 relative group cursor-pointer overflow-hidden rounded-[3rem] bg-[var(--color-dev)]/80 text-white p-8 flex flex-col justify-between transition-all duration-500 hover:shadow-[0_0_50px_rgba(255,203,47,0.3)] hover:bg-[var(--color-dev)]"
+            >
+              <Link href="/e-sport/cod-analyzer" className="group/link">
+                <div
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white/10 group-hover:scale-125 transition-transform duration-500"
+                  style={{
+                    maskImage: 'url(/assets/Icons/code_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg)',
+                    maskSize: 'contain',
+                    maskRepeat: 'no-repeat',
+                    WebkitMaskImage: 'url(/assets/Icons/code_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg)',
+                    WebkitMaskSize: 'contain',
+                    WebkitMaskRepeat: 'no-repeat',
+                  }}
+                />
+                <div className="relative z-10 flex flex-col items-center">
+                  <span className="inline-block px-3 py-1 rounded-full bg-black/20 text-[9px] font-black tracking-widest mb-3">{content.sections.codAnalyzer.stats}</span>
+                  <h2 className="text-3xl font-black tracking-tight mb-2 italic pr-2 group-hover/link:text-[var(--color-e-sport)] transition-colors">{content.sections.codAnalyzer.title}</h2>
+                  <p className="text-sm font-medium opacity-80 text-center">{content.sections.codAnalyzer.desc}</p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-black uppercase group-hover/link:gap-3 transition-all">
+                    Analityk <ArrowRight className="group-hover/link:translate-x-2 transition-transform" />
+                  </span>
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* Warzone Analyzer Section - Full width below */}
+            <section className="px-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="mb-20"
+              >
+                <div className="flex items-center gap-3 mb-8">
+                  <FileVideo className="text-[var(--color-general)] w-6 h-6" />
+                  <h2 className="text-3xl font-bold">Warzone Analyzer</h2>
+                </div>
+                <WarzoneAnalyzer userId="guest" />
+              </motion.div>
+            </section>
         </div>
       </section>
 
