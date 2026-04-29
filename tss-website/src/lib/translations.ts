@@ -1167,12 +1167,3 @@ export const it = {
     backToHome: "Torna alla home"
   }
 } as const;
-
-// Lista języków z tłumaczeniami
-export const ru = ru;
-export const es = es;
-export const fr = fr;
-export const it = it;
-
-// Typ na podstawie obiektu translations - obejmuje wszystkie dostępne języki
-export type TranslationKey = "pl" | "en" | "de" | "ru" | "es" | "fr" | "it";

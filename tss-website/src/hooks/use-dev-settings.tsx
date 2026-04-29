@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import type { Task, TaskStatus } from "@/types/kanban";
 
 export function useDevSettings() {
   const [isDevEnabled, setIsDevEnabled] = useState(false);
@@ -10,6 +11,15 @@ export function useDevSettings() {
   useEffect(() => {
     const loadDevSettings = async () => {
       try {
+        if (!supabase) {
+          console.warn("[DEV-SETTINGS] Supabase not configured, disabling dev mode");
+          setIsDevEnabled(false);
+          setDevCode(null);
+          localStorage.setItem("dev-mode", "off");
+          localStorage.removeItem("dev-access-code");
+          return;
+        }
+
         const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
 
         if (!user) {

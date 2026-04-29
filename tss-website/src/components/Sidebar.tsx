@@ -34,7 +34,7 @@ function SidebarStats({ translations, stats }: { translations: any; stats: { onl
                 </div>
                 <span className="text-xs font-bold opacity-60 text-[var(--text)]">{translations.nav.channels}</span>
               </div>
-              <span className="text-xs font-black text-[var(--text)]">{stats.online_users}</span>
+              <span className="text-xs font-black text-[var(--text)]">{(stats.online_users || 0).toString()}</span>
             </div>
 
             <div className="flex items-center justify-between">
@@ -44,7 +44,7 @@ function SidebarStats({ translations, stats }: { translations: any; stats: { onl
                 </div>
                 <span className="text-xs font-bold opacity-60 text-[var(--text)]">{translations.nav.online}</span>
               </div>
-              <span className="text-xs font-black text-[var(--text)]">{stats.total_members.toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]">{(stats.total_members || 0).toLocaleString()}</span>
             </div>
 
             <div className="flex items-center justify-between">
@@ -54,7 +54,7 @@ function SidebarStats({ translations, stats }: { translations: any; stats: { onl
                 </div>
                 <span className="text-xs font-bold opacity-60 text-[var(--text)]">{translations.nav.newProject || "Wiadomości"}</span>
               </div>
-              <span className="text-xs font-black text-[var(--text)]">{stats.messages_today.toLocaleString()}</span>
+              <span className="text-xs font-black text-[var(--text)]">{(stats.messages_today || 0).toLocaleString()}</span>
             </div>
           </div>
         </div>

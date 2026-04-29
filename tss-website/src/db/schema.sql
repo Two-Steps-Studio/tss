@@ -20,182 +20,285 @@ CREATE TABLE IF NOT EXISTS profiles (
     money INTEGER DEFAULT 0,              -- Discord bot coins
     pln_balance DECIMAL(10,2) DEFAULT 0.00, -- Polity walutowy balans w PLN
     bank INTEGER DEFAULT 0,
-    vip_status BOOLEAN DEFAULT FALSE,
-    svip_status BOOLEAN DEFAULT FALSE,
-    mvip_status BOOLEAN DEFAULT FALSE,
-    rank TEXT DEFAULT 'Novice',
-    weekly_xp INTEGER DEFAULT 0,
-    badges_unlocked INTEGER DEFAULT 0,
+    is_bot_active BOOLEAN DEFAULT FALSE,
+    is_banned BOOLEAN DEFAULT FALSE,
+    last_activity TIMESTAMP WITH TIME ZONE,
     settings JSONB DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    discord_id TEXT UNIQUE,
-    discord_roles TEXT[] DEFAULT '{}'::text[],
-    fishing_gear JSONB DEFAULT '{}'::jsonb,
-    background TEXT DEFAULT 'default'::text,
-    last_work TIMESTAMP WITH TIME ZONE
-);
-
--- Fishing catches
-CREATE TABLE IF NOT EXISTS fishing_catches (
-    id BIGSERIAL PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES profiles(discord_id) ON DELETE SET NULL,
-    fish_name TEXT NOT NULL,
-    rarity TEXT NOT NULL DEFAULT 'common',
-    weight NUMERIC NOT NULL,
-    value INTEGER NOT NULL DEFAULT 0,
-    caught_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Fishing gear progress
-CREATE TABLE IF NOT EXISTS fishing_gear (
-    user_id TEXT PRIMARY KEY REFERENCES profiles(discord_id) ON DELETE CASCADE,
-    zylka INTEGER DEFAULT 0,
-    kolowrotek INTEGER DEFAULT 0,
-    haczyk INTEGER DEFAULT 0,
-    przynet INTEGER DEFAULT 0,
-    wedka INTEGER DEFAULT 0,
-    zaneta INTEGER DEFAULT 0,
-    lodz INTEGER DEFAULT 0,
-    skrzynka INTEGER DEFAULT 0,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Voice chat sessions
-CREATE TABLE IF NOT EXISTS voice_sessions (
-    user_id TEXT PRIMARY KEY REFERENCES profiles(discord_id) ON DELETE CASCADE,
-    guild_id TEXT NOT NULL,
-    joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    xp_earned INTEGER DEFAULT 0
+-- Level thresholds (XP required for each level)
+CREATE TABLE IF NOT EXISTS level_thresholds (
+    level INTEGER PRIMARY KEY,
+    xp_required INTEGER NOT NULL
 );
 
--- E-Sport events
-CREATE TABLE IF NOT EXISTS e_sport_events (
+-- Badges and achievements system
+CREATE TABLE IF NOT EXISTS badges (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    icon TEXT,
+    rarity VARCHAR(20) DEFAULT 'common',
+    xp_reward INTEGER DEFAULT 0,
+    pln_reward DECIMAL(10,2) DEFAULT 0.00,
+    image_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Award badges to users
+CREATE TABLE IF NOT EXISTS user_badges (
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    badge_id INTEGER REFERENCES badges(id) ON DELETE CASCADE,
+    earned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, badge_id),
+    PRIMARY KEY (user_id, badge_id)
+);
+
+-- Daily quests system
+CREATE TABLE IF NOT EXISTS daily_quests (
+    id SERIAL PRIMARY KEY,
+    quest_name VARCHAR(100) NOT NULL,
+    quest_type VARCHAR(50),
+    reward_xp INTEGER DEFAULT 0,
+    reward_pln DECIMAL(10,2) DEFAULT 0.00,
+    description TEXT,
+    icon VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (quest_name)
+);
+
+-- User daily quest progress
+CREATE TABLE IF NOT EXISTS user_daily_progress (
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    quest_id INTEGER REFERENCES daily_quests(id) ON DELETE CASCADE,
+    completed BOOLEAN DEFAULT FALSE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    PRIMARY KEY (user_id, quest_id)
+);
+
+-- Weekly quests (7-day quests)
+CREATE TABLE IF NOT EXISTS weekly_quests (
+    id SERIAL PRIMARY KEY,
+    quest_name VARCHAR(100) NOT NULL,
+    quest_type VARCHAR(50),
+    reward_xp INTEGER DEFAULT 0,
+    reward_pln DECIMAL(10,2) DEFAULT 0.00,
+    description TEXT,
+    icon VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    UNIQUE (quest_name)
+);
+
+-- User weekly quest progress
+CREATE TABLE IF NOT EXISTS user_weekly_progress (
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    quest_id INTEGER REFERENCES weekly_quests(id) ON DELETE CASCADE,
+    completed BOOLEAN DEFAULT FALSE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    PRIMARY KEY (user_id, quest_id)
+);
+
+-- Seasonal leaderboards and tournaments
+CREATE TABLE IF NOT EXISTS seasons (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    theme VARCHAR(100),
+    start_date TIMESTAMP WITH TIME ZONE,
+    end_date TIMESTAMP WITH TIME ZONE,
+    reward_xp INTEGER,
+    reward_pln DECIMAL(10,2),
+    bonus_xp INTEGER DEFAULT 0,
+    active BOOLEAN DEFAULT TRUE
+);
+
+-- Seasonal quests
+CREATE TABLE IF NOT EXISTS season_quests (
+    id SERIAL PRIMARY KEY,
+    season_id INTEGER REFERENCES seasons(id) ON DELETE CASCADE,
+    quest_name VARCHAR(100),
+    quest_type VARCHAR(50),
+    reward_xp INTEGER,
+    reward_pln DECIMAL(10,2),
+    description TEXT,
+    icon VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Seasonal rewards and achievements
+CREATE TABLE IF NOT EXISTS season_rewards (
+    id SERIAL PRIMARY KEY,
+    season_id INTEGER REFERENCES seasons(id) ON DELETE CASCADE,
+    rank INTEGER NOT NULL,
+    name VARCHAR(100),
+    description TEXT,
+    image_url TEXT,
+    reward_xp INTEGER,
+    reward_pln DECIMAL(10,2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Leaderboard rankings
+CREATE TABLE IF NOT EXISTS season_rankings (
+    id SERIAL PRIMARY KEY,
+    season_id INTEGER REFERENCES seasons(id) ON DELETE CASCADE,
+    rank INTEGER NOT NULL,
+    user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    score INTEGER NOT NULL,
+    xp INTEGER,
+    pln DECIMAL(10,2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (season_id, rank)
+);
+
+-- Monthly challenges (monthly quests)
+CREATE TABLE IF NOT EXISTS monthly_challenges (
+    id SERIAL PRIMARY KEY,
+    challenge_name VARCHAR(100) UNIQUE NOT NULL,
+    challenge_type VARCHAR(50),
+    reward_xp INTEGER,
+    reward_pln DECIMAL(10,2),
+    description TEXT,
+    icon VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User monthly challenge progress
+CREATE TABLE IF NOT EXISTS user_monthly_progress (
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    challenge_id INTEGER REFERENCES monthly_challenges(id) ON DELETE CASCADE,
+    completed BOOLEAN DEFAULT FALSE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    PRIMARY KEY (user_id, challenge_id)
+);
+
+-- Special achievements (milestones, rare accomplishments)
+CREATE TABLE IF NOT EXISTS achievements (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    event_date TIMESTAMP WITH TIME ZONE NOT NULL,
     description TEXT,
-    max_participants INT
+    icon VARCHAR(50),
+    rarity VARCHAR(20) DEFAULT 'common',
+    xp_reward INTEGER DEFAULT 0,
+    pln_reward DECIMAL(10,2) DEFAULT 0.00,
+    image_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (name)
 );
 
--- Event participants
-CREATE TABLE IF NOT EXISTS event_participants (
-    id BIGSERIAL PRIMARY KEY,
-    event_id INT NOT NULL REFERENCES e_sport_events(id) ON DELETE CASCADE,
-    user_id TEXT NOT NULL,
-    username TEXT NOT NULL,
-    joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- User achievements
+CREATE TABLE IF NOT EXISTS user_achievements (
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    achievement_id INTEGER REFERENCES achievements(id) ON DELETE CASCADE,
+    unlocked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, achievement_id),
+    PRIMARY KEY (user_id, achievement_id)
 );
 
--- DEV tasks
-CREATE TYPE task_status AS ENUM ('pending', 'in_progress', 'completed');
-CREATE TABLE IF NOT EXISTS dev_tasks (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(100) NOT NULL,
-    description TEXT,
-    assigned_to INT REFERENCES users(id) ON DELETE SET NULL,
-    status task_status DEFAULT 'pending',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+-- Daily login streak tracking
+CREATE TABLE IF NOT EXISTS daily_logins (
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    login_date DATE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, login_date),
+    PRIMARY KEY (user_id, login_date)
+);
+
+-- Weekly activity tracking
+CREATE TABLE IF NOT EXISTS weekly_activity (
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    week_start DATE NOT NULL,
+    activity_type VARCHAR(50),
+    count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, week_start, activity_type),
+    PRIMARY KEY (user_id, week_start)
+);
+
+-- Monthly activity tracking
+CREATE TABLE IF NOT EXISTS monthly_activity (
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    month_start DATE NOT NULL,
+    activity_type VARCHAR(50),
+    count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, month_start, activity_type),
+    PRIMARY KEY (user_id, month_start)
+);
+
+-- User preferences (JSONB)
+CREATE TABLE IF NOT EXISTS user_preferences (
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    preferences JSONB DEFAULT '{"theme":"ocean","notifications":true,"language":"pl"}',
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id),
+    PRIMARY KEY (user_id)
 );
 
 -- Notifications
 CREATE TABLE IF NOT EXISTS notifications (
     id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     message TEXT NOT NULL,
-    is_read BOOLEAN DEFAULT FALSE,
+    type VARCHAR(20) DEFAULT 'info',
+    read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Site sessions (presence tracking)
-CREATE TABLE IF NOT EXISTS site_sessions (
-    session_id UUID PRIMARY KEY,
-    user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
-    last_seen TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+-- Developer tasks (DEV board) - MULTI-PROJECT SUPPORT
+-- Typ statusów (jeśli nie istnieje w bazie)
+CREATE TYPE task_status AS ENUM ('pending', 'in_progress', 'completed');
 
--- Presence events (for time series)
-CREATE TABLE IF NOT EXISTS site_presence (
-    session_id UUID NOT NULL REFERENCES site_sessions(session_id) ON DELETE CASCADE,
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-    seen_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Discord stats (for logging)
-CREATE TABLE IF NOT EXISTS discord_stats (
+-- Projects table (nowe podejście - każdy użytkownik może mieć własny projekt)
+CREATE TABLE IF NOT EXISTS dev_projects (
     id SERIAL PRIMARY KEY,
-    online_users INT,
-    member_count INT,
-    active_channels INT,
-    messages_today INT,
-    recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Games
-CREATE TABLE IF NOT EXISTS games (
-    id SERIAL PRIMARY KEY,
+    owner_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    release_date DATE,
-    category VARCHAR(50)
+    color VARCHAR(7) DEFAULT '#ffcb2f',
+    status VARCHAR(20) DEFAULT 'active',
+    columns JSONB DEFAULT '[]',  -- Kolumny: [{id, name, color, position, icon}]
+    settings JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Records (podcasts, beats)
-CREATE TYPE record_type AS ENUM ('podcast', 'beat');
-CREATE TABLE IF NOT EXISTS records (
+-- Project columns (kanban kolumny dla każdego projektu)
+CREATE TABLE IF NOT EXISTS dev_project_columns (
     id SERIAL PRIMARY KEY,
-    type record_type NOT NULL,
-    title VARCHAR(100) NOT NULL,
-    description TEXT,
-    file_path VARCHAR(255),
-    upload_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- News
-CREATE TABLE IF NOT EXISTS news (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(200) NOT NULL,
-    content TEXT NOT NULL,
-    image_url TEXT,
-    category VARCHAR(50),
-    published_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Temporary roles (for events)
-CREATE TABLE IF NOT EXISTS temp_roles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id TEXT NOT NULL,
-    role_id TEXT NOT NULL,
-    expires_at TIMESTAMP WITH TIME ZONE NOT NULL
-);
-
--- PLN Transactions log
-CREATE TABLE IF NOT EXISTS pln_transactions (
-    id SERIAL PRIMARY KEY,
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-    amount DECIMAL(10,2) NOT NULL,
-    coin_amount BIGINT NOT NULL,        -- odpowiadające coinow (0,01 PLN = 10000 coinów)
-    type VARCHAR(20) NOT NULL,          -- 'credit', 'debit'
-    description TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
--- Shop products
-CREATE TABLE IF NOT EXISTS shop_products (
-    id SERIAL PRIMARY KEY,
+    project_id INT NOT NULL REFERENCES dev_projects(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
-    coin_price INTEGER NOT NULL,         -- w coinach
-    category VARCHAR(50),
-    is_active BOOLEAN DEFAULT TRUE,
-    stock INTEGER DEFAULT 999,
+    color VARCHAR(7) DEFAULT '#3b82f6',
+    position INT DEFAULT 0,
+    icon VARCHAR(50),
+    settings JSONB DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Indexes for performance
-CREATE INDEX IF NOT EXISTS profiles_xp_idx ON profiles(xp);
-CREATE INDEX IF NOT EXISTS profiles_level_idx ON profiles(level);
-CREATE INDEX IF NOT EXISTS notifications_user_read_idx ON notifications(user_id, is_read);
-CREATE INDEX IF NOT EXISTS fishing_catches_user_id_idx ON fishing_catches(user_id);
-CREATE INDEX IF NOT EXISTS dev_tasks_status_idx ON dev_tasks(status);
+-- Tasks (z rozszerzonymi polami)
+CREATE TABLE IF NOT EXISTS dev_tasks (
+    id SERIAL PRIMARY KEY,
+    project_id INT DEFAULT 1 REFERENCES dev_projects(id) ON DELETE SET DEFAULT,
+    title VARCHAR(200),
+    description TEXT,
+    assigned_to INT REFERENCES users(id) ON DELETE SET NULL,
+    status task_status DEFAULT 'pending',
+    priority VARCHAR(20) DEFAULT 'medium',  -- low, medium, high, critical
+    tags TEXT[] DEFAULT '{}',  -- Tagi: feature, bug, chore, design, etc.
+    due_date TIMESTAMP WITH TIME ZONE,
+    estimated_hours DECIMAL(5,2),
+    actual_hours DECIMAL(5,2),
+    completed_at TIMESTAMP WITH TIME ZONE,
+    custom_fields JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indices for performance
+CREATE INDEX IF NOT EXISTS dev_tasks_project_status_idx ON dev_tasks(project_id, status);
+CREATE INDEX IF NOT EXISTS dev_tasks_priority_idx ON dev_tasks(priority);
+CREATE INDEX IF NOT EXISTS dev_tasks_assigned_idx ON dev_tasks(assigned_to);
+CREATE INDEX IF NOT EXISTS dev_tasks_due_date_idx ON dev_tasks(due_date);
+CREATE INDEX IF NOT EXISTS dev_project_columns_project_id_idx ON dev_project_columns(project_id);

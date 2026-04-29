@@ -1,12 +1,10 @@
-import { DocumentProps, Head, Html, Main, NextScript } from "next/document";
+import Document, { Html, Head, Main, NextScript } from "next/document";
 
-export const documentProps = {};
-
-export default function Document(props: DocumentProps) {
+export default function Document() {
   return (
     <Html lang="pl">
       <Head />
-      <body>
+      <body className="antialiased">
         <Main />
         <NextScript />
       </body>

@@ -3,22 +3,22 @@ import { Space_Grotesk, Outfit } from "next/font/google";
 import { motion } from "framer-motion";
 import "./globals.css";
 import { VisualEditsMessenger } from "orchids-visual-edits";
-import ErrorReporter from "../components/ErrorReporter";
+import ErrorReporter from "@/components/ErrorReporter";
 import Script from "next/script";
-import { Providers } from "../components/Providers";
-import AdminConsole from "../components/AdminConsole";
-import { TopBar } from "../components/TopBar";
-import { MobileHeader } from "../components/MobileHeader";
-import PWAController from "../components/PWAController";
-import { PageTransition } from "../components/PageTransition";
-import { NoiseOverlay } from "../components/ui/noise-overlay";
-import ServiceWorkerRegister from "../components/ServiceWorkerRegister";
-import InstallPrompt from "../components/InstallPrompt";
-import { PresencePing } from "../components/presence-ping";
-import { Footer } from "../components/Footer";
-import { LanguageProvider } from "../hooks/use-language";
-import { SidebarProvider } from "../hooks/use-sidebar";
-import { SidebarLayout } from "../components/SidebarLayout";
+import { Providers } from "@/components/Providers";
+import AdminConsole from "@/components/AdminConsole";
+import { TopBar } from "@/components/TopBar";
+import { MobileHeader } from "@/components/MobileHeader";
+import PWAController from "@/components/PWAController";
+import { PageTransition } from "@/components/PageTransition";
+import { NoiseOverlay } from "@/components/ui/noise-overlay";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import InstallPrompt from "@/components/InstallPrompt";
+import { PresencePing } from "@/components/presence-ping";
+import { Footer } from "@/components/Footer";
+import { LanguageProvider } from "@/hooks/use-language";
+import { SidebarProvider } from "@/hooks/use-sidebar";
+import { SidebarLayout } from "@/components/SidebarLayout";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],

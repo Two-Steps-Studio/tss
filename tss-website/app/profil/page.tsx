@@ -1,10 +1,5 @@
 "use client";
 
-export const metadata = {
-  title: 'Profil Użytkownika — Two Steps Studio',
-  description: 'Zarządzaj profilem, sprawdzaj swoje statystyki, poziom i pozycję na tabelach wyników. Two Steps Studio — Twój hub społecznościowy.',
-};
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
