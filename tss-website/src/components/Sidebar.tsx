@@ -110,7 +110,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
     { id: "dev", type: "expandable", href: "/dev", label: t.nav.dev || "Dev", icon: Code, items: [
       { href: "/dev/managment", label: t.nav.management || "Management", icon: Clipboard },
       { href: "/dev/white-board", label: "Whiteboard", icon: Layout },
-      { href: "/dev/taski", label: "Zadania", icon: Terminal },
+      { href: "/dev/tasks", label: "Zadania", icon: Terminal },
     ]},
     { id: "notifications", type: "single", href: "/powiadomienia", label: t.nav.notifications || "Powiadomienia", icon: Bell },
   ];
