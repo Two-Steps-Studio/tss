@@ -31,22 +31,47 @@ export default async function ESportPage() {
 
   return (
     <div className="container mx-auto p-6 mt-20 max-w-7xl">
-       <div className="relative mb-16 p-8 md:p-12 rounded-[2.5rem] overflow-hidden bg-white dark:bg-black/40 border border-[var(--color-e-sport)]/10 dark:border-white/10 backdrop-blur-md shadow-xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-e-sport)]/10 via-transparent to-transparent opacity-70" />
-          <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-[var(--color-e-sport)]/20 blur-3xl" />
-          
-          <div className="relative z-10 space-y-4">
-             <Badge className="bg-[var(--color-e-sport)]/20 text-[var(--color-e-sport)] border-0 px-4 py-1.5 text-sm font-medium rounded-full backdrop-blur-sm">
-                Two Steps Studio
-             </Badge>
-             <h1 className="text-4xl md:text-6xl font-bold text-black dark:text-white font-[family-name:var(--font-space)] tracking-tight">
-                <span className="text-[var(--color-e-sport)]">E-Sport</span>
-             </h1>
-             <p className="text-zinc-600 dark:text-zinc-300 max-w-2xl font-[family-name:var(--font-outfit)] text-lg md:text-xl leading-relaxed">
-                Śledź nasze drużyny, turnieje i osiągnięcia. Walczymy o najwyższe cele na arenach międzynarodowych.
-             </p>
+       <div className="relative mb-16 rounded-[2.5rem] overflow-hidden shadow-xl">
+          {/* 🖼️ TŁO OBRAZ */}
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: "url('/images/esport-bg.jpg')" // 👈 wrzuć obraz do /public/images
+            }}
+          />
+
+          {/* 🌑 OVERLAY (przyciemnienie) */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+          {/* 💡 GLOW EFFECT */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-e-sport)]/20 via-transparent to-transparent" />
+
+          {/* ✨ CONTENT */}
+          <div className="relative z-10 p-10 md:p-16 text-center">
+
+            <Badge className="mb-4 bg-[var(--color-e-sport)]/20 text-[var(--color-e-sport)] border-0 px-4 py-1.5 rounded-full">
+              Two Steps Studio
+            </Badge>
+
+            {/* 🔥 GLOW TEXT */}
+            <h1 className="text-5xl md:text-7xl font-black tracking-tight">
+              <span className="block text-white/90">
+                TWO STEPS
+              </span>
+
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-e-sport)] to-pink-500
+                drop-shadow-[0_0_20px_var(--color-e-sport)]
+                [text-shadow:0_0_30px_var(--color-e-sport)]">
+                E-SPORT
+              </span>
+            </h1>
+
+            <p className="mt-6 text-zinc-300 max-w-2xl mx-auto text-lg">
+              Śledź nasze drużyny, turnieje i osiągnięcia. Walczymy o najwyższe cele.
+            </p>
+
           </div>
-       </div>
+        </div>
 
         {/* Quick Navigation */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
