@@ -319,14 +319,13 @@ export default function AddGamePage() {
                       Anuluj edycję
                     </Button>
                   )}
-                  <Button
-                    onClick={() => router.push("/games")}
-                    variant="outline"
-                    className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-2 transition-colors"
+                  <Link
+                    href="/games"
+                    className="inline-flex items-center gap-2 px-6 py-3 text-zinc-400 hover:text-zinc-300 bg-transparent rounded-full font-medium transition-colors"
                   >
                     <ArrowLeft size={16} />
                     Wróć do launchera
-                  </Button>
+                  </Link>
                   <Button
                     type="submit"
                     disabled={loading}

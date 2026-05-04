@@ -30,7 +30,7 @@ Before contributing, ensure you have:
 
 1. **Fork the Repository**
    ```bash
-   git clone https://github.com/<your-username>/tss.git
+   git clone https://github.com/kenic___/tss.git
    cd tss
    ```
 

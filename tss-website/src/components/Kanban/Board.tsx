@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { DndContext, PointerSensor, useSensor, addSensor } from "@dnd-kit/core";
+import { DndContext, PointerSensor, useSensor } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Task, TaskStatus } from "@/types/kanban";
@@ -207,7 +207,7 @@ export default function KanbanBoard({
             activationConstraint: {
               distance: 8,
             },
-          })]}
+          })}]
           onDragEnd={handleDragEnd}
           onDragStart={handleDragStart}
           onDrag={handleDrag}
