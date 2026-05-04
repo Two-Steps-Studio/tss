@@ -32,23 +32,60 @@ export default async function RecordsPage() {
 
   return (
     <div className="container mx-auto p-6 mt-20 max-w-7xl">
-       {/* Hero Section */}
-       <div className="relative mb-16 p-8 md:p-12 rounded-[2.5rem] overflow-hidden bg-black/40 border border-white/10 backdrop-blur-md shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-records)]/20 via-transparent to-transparent opacity-50" />
-          <div className="absolute -right-20 -top-20 h-96 w-96 rounded-full bg-[var(--color-records)]/20 blur-3xl animate-pulse" />
-          
-          <div className="relative z-10 space-y-4">
-             <Badge className="bg-[var(--color-records)]/20 text-[var(--color-records)] hover:bg-[var(--color-records)]/30 border-0 px-4 py-1.5 text-sm font-medium rounded-full backdrop-blur-sm">
-                Two Steps Studio
-             </Badge>
-             <h1 className="text-4xl md:text-6xl font-bold text-white font-[family-name:var(--font-space)] tracking-tight">
-                <span className="text-[var(--color-records)]">Records</span>
-             </h1>
-             <p className="text-zinc-400 max-w-2xl font-[family-name:var(--font-outfit)] text-lg md:text-xl leading-relaxed">
-                Podcasty, beaty i muzyka. Posłuchaj tego, co tworzymy w naszym studio.
-             </p>
-          </div>
-       </div>
+      <div className="relative mb-16 rounded-[2.5rem] overflow-hidden shadow-2xl">
+
+        {/* 🖼️ TŁO */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: "url('/images/records-bg.jpg')" // 👈 dodaj obraz
+          }}
+        />
+
+        {/* 🌑 OVERLAY */}
+        <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+
+        {/* 🎨 GRADIENT */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-records)]/30 via-transparent to-transparent" />
+
+        {/* ✨ NOISE (opcjonalne ale fajne) */}
+        <div className="absolute inset-0 opacity-20 mix-blend-overlay bg-[url('/noise.png')]" />
+
+        {/* CONTENT */}
+        <div className="relative z-10 p-10 md:p-16 text-center">
+
+          <Badge className="mb-4 bg-[var(--color-records)]/20 text-[var(--color-records)] border-0 px-4 py-1.5 rounded-full">
+            Two Steps Studio
+          </Badge>
+
+          {/* 🔥 GLOW TEXT */}
+          <h1 className="text-5xl md:text-7xl font-black tracking-tight">
+            
+            <span className="block text-white/90">
+              TWO STEPS
+            </span>
+
+            <span className="
+              block
+              text-transparent 
+              bg-clip-text 
+              bg-gradient-to-r 
+              from-[var(--color-records)] 
+              to-pink-500
+              drop-shadow-[0_0_25px_var(--color-records)]
+              [text-shadow:0_0_40px_var(--color-records)]
+            ">
+              RECORDS
+            </span>
+
+          </h1>
+
+          <p className="mt-6 text-zinc-300 max-w-2xl mx-auto text-lg">
+            Podcasty, beaty i muzyka. Posłuchaj tego, co tworzymy w naszym studio.
+          </p>
+
+        </div>
+      </div>
 
         {/* Quick Navigation */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">

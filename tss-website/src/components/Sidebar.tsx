@@ -112,7 +112,10 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
       { href: "/dev/white-board", label: "Whiteboard", icon: Layout },
       { href: "/dev/tasks", label: "Zadania", icon: Terminal },
     ]},
-    { id: "notifications", type: "single", href: "/powiadomienia", label: t.nav.notifications || "Powiadomienia", icon: Bell },
+    { id: "notifications", type: "single", href: "/ankiety/rating", label: t.nav.notifications || "Powiadomienia", icon: Bell },
+
+    
+
   ];
 
   const sections = useMemo(() => defaultSections, [t]);
