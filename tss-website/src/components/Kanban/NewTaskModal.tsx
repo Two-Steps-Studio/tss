@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Tag, Plus, Calendar, User, Clock, Trash2 } from "lucide-react";
+import { Tag, Plus, Calendar, Trash2, X } from "lucide-react";
 
 interface NewTaskModalProps {
   project: { id: number; name: string; color: string };
@@ -74,7 +74,7 @@ export default function NewTaskModal({
             onClick={onClose}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
-            <X className="w-5 h-5" /> from "lucide-react";
+            <X className="w-5 h-5" />
           </button>
         </div>
 

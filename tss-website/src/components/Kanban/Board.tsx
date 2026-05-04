@@ -17,6 +17,7 @@ interface Project {
   settings?: Record<string, any>;
 }
 import TaskCard from "./TaskCard";
+import NewTaskModal from "./NewTaskModal";
 import {
   Plus,
   Trash2,
@@ -203,11 +204,11 @@ export default function KanbanBoard({
       <div className="flex-1 overflow-x-auto p-4">
         <DndContext
           collisionDetection={null}
-          sensors={[useSensor(PointerSensor, {
+          sensors={useSensor(PointerSensor, {
             activationConstraint: {
               distance: 8,
             },
-          })}]
+          })}
           onDragEnd={handleDragEnd}
           onDragStart={handleDragStart}
           onDrag={handleDrag}

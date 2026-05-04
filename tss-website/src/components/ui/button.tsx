@@ -47,7 +47,7 @@ function Button({
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {
-  const Comp = asChild ? (Slot as any).default : "button"
+  const Comp = "button"
   const audioCtxRef = React.useRef<AudioContext | null>(null)
   const playClick = React.useCallback(() => {
     try {

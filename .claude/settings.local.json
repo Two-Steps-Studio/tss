@@ -32,7 +32,13 @@
       "Bash(npm run *)",
       "Bash(node *)",
       "Bash(Get-ChildItem C:\\\\tss *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(npm list *)",
+      "Bash(Select-Object -First 5)",
+      "Bash(npm install *)",
+      "Bash(Select-String -Pattern \"Error\")",
+      "Bash(Select-Object -First 10)",
+      "Bash(npx eslint *)"
     ]
   }
 }
