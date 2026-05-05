@@ -86,13 +86,6 @@ export default function DevHomePage() {
     }
   }, [isDevEnabled, setIsDevEnabled, setDevCode, error]);
 
-  if (isDevEnabled) {
-    const tasks = [
-      { title: "UI Dashboard", status: "W trakcie", progress: 72 },
-      { title: "System notatek", status: "Gotowe", progress: 100 },
-      { title: "Hierarchia zespołu", status: "Plan", progress: 35 },
-    ];
-
     return (
       <div className="min-h-screen bg-transparent">
         <div className="container mx-auto p-6 mt-20 max-w-7xl">
