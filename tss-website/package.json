@@ -107,6 +107,7 @@
     "react-syntax-highlighter": "^16.1.1",
     "react-wrap-balancer": "^1.1.1",
     "recharts": "^3.8.1",
+    "resend": "^4.2.0",
     "simplex-noise": "^4.0.3",
     "sonner": "^2.0.6",
     "stripe": "^19.3.0",

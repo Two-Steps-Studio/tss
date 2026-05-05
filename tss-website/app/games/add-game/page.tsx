@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Gamepad2, ArrowLeft, CheckCircle, Edit3, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import Link from "next/link";
 
 export default function AddGamePage() {
   const [name, setName] = useState("");
@@ -341,6 +342,15 @@ export default function AddGamePage() {
                     )}
                   </Button>
                 </div>
+                <div>
+                  <Link
+                    href="/games"
+                    className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-2 transition-colors"
+                  >
+                    <ArrowLeft size={16} />
+                    Wróć do launchera
+                  </Link>
+                </div>
               </form>
 
               {/* Demo Game Info */}
@@ -437,13 +447,13 @@ export default function AddGamePage() {
               <p className="text-zinc-400 mb-4">
                 Gry "{name}" został(a) dodana do launchera.
               </p>
-              <a
+              <Link
                 href="/games"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-full font-medium transition-colors shadow-lg"
               >
                 <ArrowLeft size={18} />
                 Wróć do Launchera
-              </a>
+              </Link>
             </CardContent>
           </Card>
         </div>
