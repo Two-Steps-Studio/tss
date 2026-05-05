@@ -317,13 +317,6 @@ export default function AddGamePage() {
                       Anuluj edycję
                     </Button>
                   )}
-                  <a
-                    href="/games"
-                    className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-2 transition-colors"
-                  >
-                    <ArrowLeft size={16} />
-                    Wróć do launchera
-                  </a>
                   <Button
                     type="submit"
                     disabled={loading}
@@ -341,15 +334,15 @@ export default function AddGamePage() {
                       </>
                     )}
                   </Button>
-                </div>
-                <div>
-                  <Link
-                    href="/games"
-                    className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-2 transition-colors"
-                  >
-                    <ArrowLeft size={16} />
-                    Wróć do launchera
-                  </Link>
+                  <div>
+                    <Link
+                      href="/games"
+                      className="text-zinc-400 hover:text-zinc-300 text-sm flex items-center gap-2 transition-colors"
+                    >
+                      <ArrowLeft size={16} />
+                      Wróć do launchera
+                    </Link>
+                  </div>
                 </div>
               </form>
 
