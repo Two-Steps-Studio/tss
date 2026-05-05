@@ -394,14 +394,12 @@ const response = await fetch('/api/shop/buy', {
 });
 
 const result = await response.json();
-console.log(result);
 // {
 //   success: true,
 //   message: 'Purchase successful',
 //   remainingMoney: 400,
 //   transactionId: 'txn-123'
 // }
-```
 
 ### Example: Get Profile
 
@@ -414,7 +412,6 @@ const response = await fetch(`/api/profile/${userId}`, {
 });
 
 const profile = await response.json();
-console.log(profile);
 // {
 //   id: 'uuid-123',
 //   discord_id: '876543210987654321',
@@ -465,7 +462,7 @@ Real-time data streaming via Supabase Realtime:
 supabase
   .channel('profile-updates')
   .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, (payload) => {
-    console.log('Profile updated:', payload);
+    // Profile update logged by Supabase
   })
   .subscribe();
 ```

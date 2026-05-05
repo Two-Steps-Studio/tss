@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       try {
         supabase = await createClient();
       } catch {
-        console.log('[Webhook] Supabase not configured - skipping order processing');
+        console.error('[Webhook] Supabase connection failed - skipping order processing');
         return NextResponse.json({ received: true });
       }
 
