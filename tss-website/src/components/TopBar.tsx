@@ -58,15 +58,21 @@ export function TopBar() {
       setDisplayName(user.user_metadata?.full_name || emailName);
       const metaAvatar = (user.user_metadata as any)?.avatar_url || (user.user_metadata as any)?.picture || null;
       if (metaAvatar) setAvatarUrl(metaAvatar);
-      const { data } = await supabase
+      const { data, error } = await supabase
           .from("profiles")
           .select("avatar_url,username,pln_balance")
           .eq("id", user.id)
-          .single();
-      setAvatarUrl(data?.avatar_url ?? metaAvatar ?? null);
-      setDisplayName((data?.username as string) || user.user_metadata?.full_name || emailName);
-      if (data?.pln_balance) {
-        localStorage.setItem("pln_balance", String(data.pln_balance));
+          .maybeSingle();
+      // Handle error (PGRST116 = 0 rows, or other errors)
+      if (error || !data) {
+        console.log('[TopBar] Profile not found, using fallback values');
+      }
+      // Use data if available, otherwise use fallbacks
+      const profileData = data || { avatar_url: metaAvatar, username: null, pln_balance: 0 };
+      setAvatarUrl(profileData.avatar_url ?? null);
+      setDisplayName((profileData.username as string) || user.user_metadata?.full_name || emailName);
+      if (profileData.pln_balance !== undefined) {
+        localStorage.setItem("pln_balance", String(profileData.pln_balance));
       }
     };
     loadProfile();

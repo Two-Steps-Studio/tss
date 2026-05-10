@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, User, Settings, Bell, Gamepad, Trophy, Mic2, Music2, FolderOpen, Mail, Code, BookOpen, Book, Server, Layout, Database, Shield, Clipboard, Terminal, Search } from "lucide-react";
+import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, User, Settings, Bell, Gamepad, Trophy, Mic2, Music2, FolderOpen, Mail, Code, BookOpen, Book, Server, Layout, Database, Shield, Clipboard, Terminal, Search, TreePine } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "../lib/utils";
 import { useSidebar } from "@/hooks/use-sidebar";
@@ -80,13 +80,24 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
     messages_today: 0
   });
 
+  // Pobierz dane od razu, potem co 30 sekund
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetch("/api/stats")
-        .then((res) => res.json())
-        .then((data) => setStats(data))
-        .catch(() => setStats({ online_users: 0, total_members: 0, messages_today: 0 }));
-    }, 30000);
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/stats");
+        const data = await res.json();
+        setStats({
+          online_users: data.online_users || 0,
+          total_members: data.member_count || data.online_users || 0,
+          messages_today: data.messages_today || 0,
+        });
+      } catch (error) {
+        console.error('[Sidebar] Fetch stats failed:', error);
+      }
+    };
+
+    fetchStats(); // Immediate fetch
+    const interval = setInterval(fetchStats, 30000); // Then polling
 
     return () => clearInterval(interval);
   }, []);
@@ -355,14 +366,12 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
                     </AnimatePresence>
                   </Button>
 
-                  <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLanguage({ pl: "en", en: "de", de: "pl" }[language])}
-                className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 font-black text-[10px] text-[var(--text)]"
+                  <Link
+                href="/community-tree"
+                className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 font-black text-[10px] text-[var(--text)] flex items-center justify-center gap-2"
                   >
-                    {(t.settings.language || "Language").toUpperCase()}
-                  </Button>
+                    <TreePine size={16} /> <span>COMMUNITY TREE</span>
+                  </Link>
                 </>
             )}
           </div>

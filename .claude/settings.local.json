@@ -38,7 +38,8 @@
       "Bash(npm install *)",
       "Bash(Select-String -Pattern \"Error\")",
       "Bash(Select-Object -First 10)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "PowerShell(Get-Content \"C:\\\\tss\\\\tss-dc-bot\\\\rpg\\\\index.js\" | Select-Object -Index 185 | ForEach-Object { $_.Trim\\(\\) })"
     ]
   }
 }

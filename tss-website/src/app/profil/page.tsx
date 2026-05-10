@@ -139,67 +139,27 @@ export default function ProfilePage() {
     const [topTab, setTopTab] = useState<"level" | "money">("level");
 
     useEffect(() => {
-        let channel: any = null;
+        const discordId = user?.user_metadata?.provider_id || user?.id;
 
-        const fetchData = async (currentUser: any) => {
-            const discordId = currentUser.user_metadata?.provider_id || currentUser.id;
+        // Fetch ranking data FIRST
+        const rankingData = await fetchRankingData();
+        setRankingData(rankingData);
 
-            // Fetch ranking data FIRST (outside realtime callback)
-            const rankingData = await fetchRankingData();
-            setRankingData(rankingData);
+        // Get profile with fallback
+        const { data: initialProfile, error } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", discordId)
+            .maybeSingle();
 
-            // Get profile with fallback
-            const { data: initialProfile } = await supabase
-                .from("profiles")
-                .select("*")
-                .eq("id", discordId)
-                .maybeSingle();
+        if (error) console.error('[ProfilePage] Fetch error:', error);
 
-            const profileData = initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [], pln_balance: 0 };
+        const profileData = initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [], pln_balance: 0 };
 
-            // Set profile (but don't call setProfile twice for same event)
-            setProfile(profileData);
-
-            // Subscribe AFTER setting initial state
-            if (channel && typeof channel.unsubscribe === 'function') {
-                supabase.removeChannel(channel);
-            }
-            const freshChannel = supabase.channel(`profile-${discordId}`);
-            const subscription = freshChannel.on("postgres_changes", {
-                event: "UPDATE",  // Only UPDATE, not INSERT/DELETE for profile
-                schema: "public",
-                table: "profiles",
-                filter: `id=eq.${discordId}`
-            }, (payload) => {
-                // Update only if new profile has different data
-                setProfile(prev => {
-                    if (!prev) return payload.new;
-                    return { ...prev, ...payload.new };
-                });
-            });
-            freshChannel.subscribe();
-            channel = freshChannel;
-
-            setLoading(false);
-        };
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_OUT') { router.push('/login'); return; }
-            if (session?.user) {
-                setUser(session.user);
-                setAuthChecked(true);
-                await fetchData(session.user);
-            } else if (event === 'INITIAL_SESSION' && !session) {
-                setAuthChecked(true);
-                if (!window.location.search.includes("code=")) router.push("/login");
-            }
-        });
-
-        return () => {
-            subscription.unsubscribe();
-            if (channel) supabase.removeChannel(channel);
-        };
-    }, [router]);
+        // Set profile
+        setProfile(profileData);
+        setLoading(false);
+    }, [user]);
 
     if (!authChecked || (loading && !user)) {
         return <div className="p-20 text-center italic">Wczytywanie...</div>;

@@ -15,4 +15,17 @@ export const supabase = supabaseUrl && supabaseAnonKey
  * - access_token: 15-60 minutes (default)
  * - refresh_token: 7-30 days (default)
  * - auto-renewal enabled for seamless sessions
+ * - Session expiry can be controlled via Supabase Dashboard
+ * - Default: 24 hours for access tokens in production
  */
+export const SESSION_EXPIRY_HOURS = parseInt(process.env.SUPABASE_SESSION_EXPIRY || '24', 10);
+
+/**
+ * Session security settings
+ */
+export const SESSION_SECURITY = {
+  maxFailedAttempts: 5,
+  lockoutDurationMinutes: 15,
+  requireEmailVerification: true,
+  sessionTimeoutMinutes: SESSION_EXPIRY_HOURS * 60,
+};
