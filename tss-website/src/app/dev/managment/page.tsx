@@ -41,11 +41,6 @@ export default function Page() {
             </a>
         ))}
       </div>
-
-      <section className="mb-12">
-        <h2 className="text-xl font-bold mb-4 text-zinc-300">Zespół</h2>
-        <OrgChartTree />
-      </section>
     </div>
   );
 }

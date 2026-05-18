@@ -7,7 +7,7 @@ export default function DevPage() {
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-4xl font-black text-black dark:text-white mb-2">
-                    <span className="text-[var(--color-dev)]">DEV</span> Tasks
+                    <span className="text-[var(--color-dev)]">DEV</span> 
                 </h1>
             </div>
         </div>

@@ -197,6 +197,11 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 15px 30px -8px rgba(var(--color-general-rgb), 0.6);
 }
 
+.space-grotesk {
+  font-family: var(--font-space-grotesk);
+  font-weight: 800;
+}
+
 /* Mobile-first responsive styles */
 @media (max-width: 1023px) {
   /* Optimalizacja pod touch */
