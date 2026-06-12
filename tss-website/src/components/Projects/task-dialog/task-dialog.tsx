@@ -67,6 +67,27 @@ export default function TaskDialog({ isOpen, onClose, projects, onAddTask }: Tas
                     </Button>
                     <Button className="ml-5 px-5" onClick={() => {
                         // Form submission logic would go here
+                        // Task name, description, and project must be filled before adding
+                        const taskName = document.querySelector('#task-name-input')?.value?.trim();
+                        const taskDescription = document.querySelector('#task-description-input')?.value?.trim();
+                        const selectedProject = document.querySelector('#project-select')?.getAttribute('data-value');
+
+                        if (taskName && taskDescription && selectedProject) {
+                            const task: Omit<Task, 'id'> = {
+                                title: taskName,
+                                description: taskDescription,
+                                priority: 'medium',
+                                status: 'todo',
+                                project: {
+                                    id: selectedProject,
+                                    name: selectedProject,
+                                    icon: (p) => <svg {...p}><circle cx="12" cy="12" r="10" /></svg>,
+                                    createdAt: new Date(),
+                                    tasks: []
+                                }
+                            };
+                            onAddTask(task);
+                        }
                         onClose();
                     }}>
                         Add Task

@@ -9,10 +9,15 @@ type ProjectAreaBoardsProps = {
 };
 
 export default function ProjectAreaBoards({ projects, setProjects, tasks, setTasks }: ProjectAreaBoardsProps) {
+    // Filter tasks by status instead of hardcoded empty arrays
+    const todo = tasks.filter(t => t.status === "todo");
+    const inProgress = tasks.filter(t => t.status === "in-progress");
+    const completed = tasks.filter(t => t.status === "completed");
+
     const boards: Board[] = [
-        { name: "To Do", createdAt: new Date(), tasks: [] },
-        { name: "In Progress", createdAt: new Date(), tasks: [] },
-        { name: "Completed", createdAt: new Date(), tasks: [] },
+        { name: "To Do", createdAt: new Date(), tasks: todo },
+        { name: "In Progress", createdAt: new Date(), tasks: inProgress },
+        { name: "Completed", createdAt: new Date(), tasks: completed },
     ];
 
     return (

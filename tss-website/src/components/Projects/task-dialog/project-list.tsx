@@ -25,13 +25,15 @@ const ProjectsArray: ProjectItem[] = [
 ];
 
 export default function ProjectList({ projects }: { projects: Project[] }) {
-    const [selectedProject, setSelectedProject] = useState<ProjectItem>(ProjectsArray[0]);
+    const [selectedProject, setSelectedProject] = useState<ProjectItem>(
+        projects.length > 0 ? ({ name: projects[0].name, icon: projects[0].icon } as ProjectItem) : ProjectsArray[0]
+    );
     const [searchQuery, setSearchQuery] = useState("");
     const [isOpen, setIsOpen] = useState(false);
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const filterBySearchQuery = ProjectsArray.filter((project) =>
+    const filterBySearchQuery = projects.filter((project) =>
         project.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -80,9 +82,13 @@ export default function ProjectList({ projects }: { projects: Project[] }) {
 
                 <span>{projectItem.name}</span>
 
-                {projectItem.name === selectedProject.name && (
-                    <IoCheckmark className="ml-auto" />
-                )}
+                {/* Show checkmark if this project matches selectedProject from props */}
+                {(() => {
+                    const selected = projects.find(p => p.id === projectItem.name);
+                    return selected && selected.name === projectItem.name && (
+                        <IoCheckmark className="ml-auto" />
+                    );
+                })()}
             </div>
         );
     }

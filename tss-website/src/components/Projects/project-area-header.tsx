@@ -23,7 +23,8 @@ export default function ProjectAreaHeader({ onAddTask }: ProjectAreaHeaderProps)
 
                 <SortingDropDown />
 
-                {onAddTask && (
+                {/* Button is shown if onAddTask is provided and it's a valid function */}
+                {onAddTask && typeof onAddTask === 'function' && (
                     <Button
                         onClick={onAddTask}
                         className="rounded-3xl px-4"

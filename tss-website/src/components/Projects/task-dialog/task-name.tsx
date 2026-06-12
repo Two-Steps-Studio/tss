@@ -10,13 +10,17 @@ export default function TaskName({ initialValue = "" }: { initialValue?: string 
             <Label className="opacity-75 text-sm font-medium">Task Title</Label>
             <Input
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
+                onChange={(e) => {
+                    const newValue = e.target.value.substring(0, 100);
+                    setValue(newValue);
+                }}
                 placeholder="Joe Doe..."
                 className="h-11"
+                maxLength={100}
             />
 
             <div className="text-slate-500 text-[12px] flex items-center gap-1">
-                <span className="truncate">Max 50 characters</span>
+                <span className="truncate">Max 100 characters</span>
             </div>
         </div>
     )

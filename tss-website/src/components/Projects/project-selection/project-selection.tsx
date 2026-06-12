@@ -27,39 +27,32 @@ export type Task = {
     status: "todo" | "in-progress" | "completed";
     project: Project;
 };
-    id: string;
-    title: string;
-    description: string;
-    priority: "low" | "medium" | "high";
-    status: "todo" | "in-progress" | "completed";
-    project: Project;
-};
 
-export const projects: Project[] = [
+export const mockProjects: Project[] = [
     {
         id: "1",
         name: "Project 1",
         icon: FaMobileRetro,
         createdAt: new Date(),
-        tasks: [{id: "1", title: "Task 1", description: "Create content", priority: "low", status: "todo", project: projects[0]}],
+        tasks: [{id: "1", title: "Task 1", description: "Create content", priority: "low", status: "todo", project: {id: "1", name: "Project 1", icon: FaMobileRetro, createdAt: new Date(), tasks: []}}],
     },
     {
         id: "2",
         name: "Project 2",
         icon: FaMobileRetro,
         createdAt: new Date(),
-        tasks: [{id: "2", title: "Task 2", description: "Review code", priority: "medium", status: "in-progress", project: projects[1]}],
+        tasks: [{id: "2", title: "Task 2", description: "Review code", priority: "medium", status: "in-progress", project: {id: "2", name: "Project 2", icon: FaMobileRetro, createdAt: new Date(), tasks: []}}],
     },
     {
         id: "3",
         name: "Project 3",
         icon: FaMobileRetro,
         createdAt: new Date(),
-        tasks: [{id: "3", title: "Task 3", description: "Deploy app", priority: "high", status: "completed", project: projects[2]}],
-    },
+        tasks: [{id: "3", title: "Task 3", description: "Deploy app", priority: "high", status: "completed", project: {id: "3", name: "Project 3", icon: FaMobileRetro, createdAt: new Date(), tasks: []}}],
+    }
 ];
 
-type ProjectSelectionDropDownProps = {
+export type ProjectSelectionDropDownProps = {
     projects: Project[];
     setProjects: (projects: Project[]) => void;
     selectedProject: Project;

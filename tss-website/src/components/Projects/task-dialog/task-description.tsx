@@ -6,11 +6,7 @@ export default function TaskDescription({ initialValue = "" }: { initialValue?: 
     const [textCounter, setTextCounter] = useState(initialValue);
 
     function handleTextChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-        const textInput = e.target.value;
-
-        if (textInput.length <= 50) {
-            setTextCounter(textInput);
-        }
+        setTextCounter(e.target.value);
     }
 
     return (
@@ -28,12 +24,12 @@ export default function TaskDescription({ initialValue = "" }: { initialValue?: 
 
             <div className="flex justify-between items-center">
                 <div className="text-slate-500 text-[12px] flex items-center gap-1">
-                    <span className="truncate">Max 50 characters</span>
+                    <span className="truncate">Max 300 characters</span>
                 </div>
             </div>
 
             <p className="text-[12px] text-gray-500">
-                {textCounter.length}/50 Characters
+                {textCounter.length}/300 Characters
             </p>
         </div>
     );

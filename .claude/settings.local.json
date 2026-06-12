@@ -39,7 +39,11 @@
       "Bash(Select-String -Pattern \"Error\")",
       "Bash(Select-Object -First 10)",
       "Bash(npx eslint *)",
-      "PowerShell(Get-Content \"C:\\\\tss\\\\tss-dc-bot\\\\rpg\\\\index.js\" | Select-Object -Index 185 | ForEach-Object { $_.Trim\\(\\) })"
+      "PowerShell(Get-Content \"C:\\\\tss\\\\tss-dc-bot\\\\rpg\\\\index.js\" | Select-Object -Index 185 | ForEach-Object { $_.Trim\\(\\) })",
+      "Bash(npx next *)",
+      "Bash(Select-Object -First 50)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'Update: Fix TaskDialog props, character limits, project list filtering, and board task distribution *)"
     ]
   }
 }
