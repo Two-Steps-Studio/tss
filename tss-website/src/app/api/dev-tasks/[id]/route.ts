@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
-import { normalizeTask, toDbStatus } from "@/lib/dev/status-utils";
-import type { TaskStatus } from "@/lib/types/dev-types";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(_request: Request, { params }: RouteParams) {
+export async function GET(request: Request, { params }: RouteParams) {
   let supabase;
   try {
     supabase = await createClient();
   } catch {
-    return NextResponse.json({ error: "Dev tasks disabled" }, { status: 503 });
+    return NextResponse.json(
+      { error: "Dev tasks disabled - contact administrator" },
+      { status: 503 }
+    );
   }
 
   const { id } = await params;
@@ -27,7 +28,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(normalizeTask(data));
+  return NextResponse.json(data);
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
@@ -35,34 +36,55 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   try {
     supabase = await createClient();
   } catch {
-    return NextResponse.json({ error: "Dev tasks disabled" }, { status: 503 });
+    return NextResponse.json(
+      { error: "Dev tasks disabled - contact administrator" },
+      { status: 503 }
+    );
   }
 
   const { id } = await params;
   const body = await request.json();
-  const updateData: Record<string, unknown> = {};
 
-  if (body.title !== undefined) updateData.title = body.title?.trim() || body.title;
-  if (body.description !== undefined) updateData.description = body.description ?? "";
-  if (body.status !== undefined) {
-    const valid: TaskStatus[] = ["todo", "in_progress", "testing", "completed"];
-    if (!valid.includes(body.status)) {
+  const {
+    title,
+    description,
+    status,
+    assigned_to,
+    priority,
+    tags,
+    due_date,
+    estimated_hours,
+    actual_hours,
+    completed_at,
+    custom_fields,
+    project_id,
+  } = body;
+
+  const updateData: any = {};
+
+  if (title !== undefined) updateData.title = title?.trim() || title;
+  if (description !== undefined) updateData.description = description || "";
+  if (status) {
+    const validStatuses = ["pending", "in_progress", "completed"];
+    if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
-    updateData.status = toDbStatus(body.status);
-    if (body.status === "completed") {
-      updateData.completed_at = new Date().toISOString();
-    }
+    updateData.status = status;
   }
-  if (body.priority !== undefined) updateData.priority = body.priority;
-  if (body.tags !== undefined) updateData.tags = body.tags;
-  if (body.due_date !== undefined) updateData.due_date = body.due_date;
-  if (body.progress_percent !== undefined) updateData.progress_percent = body.progress_percent;
-  if (body.assignee_name !== undefined) updateData.assignee_name = body.assignee_name;
-  if (body.estimated_hours !== undefined) updateData.estimated_hours = body.estimated_hours;
-  if (body.project_id !== undefined) updateData.project_id = body.project_id;
+  if (assigned_to !== undefined) updateData.assigned_to = assigned_to;
+  if (priority !== undefined) updateData.priority = priority;
+  if (tags) updateData.tags = tags;
+  if (due_date) updateData.due_date = due_date;
+  if (estimated_hours !== undefined) updateData.estimated_hours = estimated_hours;
+  if (actual_hours !== undefined) updateData.actual_hours = actual_hours;
+  if (completed_at !== undefined) updateData.completed_at = completed_at;
+  if (custom_fields) updateData.custom_fields = custom_fields;
+  if (project_id !== undefined) updateData.project_id = project_id;
 
-  updateData.updated_at = new Date().toISOString();
+  // Jeśli status jest 'completed', ustaw completed_at
+  if (status === "completed" && !completed_at) {
+    updateData.completed_at = new Date().toISOString();
+  }
 
   const { data, error } = await supabase
     .from("dev_tasks")
@@ -75,20 +97,17 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(normalizeTask(data));
+  return NextResponse.json(data);
 }
 
-export async function DELETE(_request: Request, { params }: RouteParams) {
-  let supabase;
-  try {
-    supabase = await createClient();
-  } catch {
-    return NextResponse.json({ error: "Dev tasks disabled" }, { status: 503 });
-  }
-
+export async function DELETE(request: Request, { params }: RouteParams) {
   const { id } = await params;
+  const supabase = await createClient();
 
-  const { error } = await supabase.from("dev_tasks").delete().eq("id", Number(id));
+  const { error } = await supabase
+    .from("dev_tasks")
+    .delete()
+    .eq("id", Number(id));
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

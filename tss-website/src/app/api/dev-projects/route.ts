@@ -31,19 +31,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Dev mode disabled" }, { status: 503 });
   }
 
-  const { name, description, color, columns, settings, planned_end_date } = await request.json();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { name, description, color, columns, settings } = await request.json();
 
   const { data, error } = await supabase
     .from("dev_projects")
     .insert({
       name,
       description,
-      color: color || "#ffcb2f",
+      color: color || "#3b82f6",
       columns: columns || [],
       settings: settings || {},
-      planned_end_date: planned_end_date ?? null,
-      owner_id: user?.id ?? null,
     })
     .select()
     .single();

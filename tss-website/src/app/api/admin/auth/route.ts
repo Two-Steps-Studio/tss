@@ -44,8 +44,18 @@
      if (password !== secret) {
        return NextResponse.json({ error: "Hasło nieprawidłowe" }, { status: 401 });
      }
-      // Debug headers only in development env (DEBUG_MODE removed)
-      return NextResponse.json({ ok: true }, {});
 
+     // Add debug headers if enabled
+     let headers: HeadersInit = {};
+     if (process.env.NODE_ENV === 'development' || process.env.DEBUG_MODE === 'true') {
+       headers = {
+         "X-Debug-Mode": "enabled",
+         "X-Environment": process.env.NODE_ENV || 'unknown',
+       };
+     }
+
+     return NextResponse.json({ ok: true }, headers);
+   } catch {
+     return NextResponse.json({ error: "Błąd serwera" }, { status: 500 });
    }
  }

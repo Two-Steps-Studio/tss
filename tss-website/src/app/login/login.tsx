@@ -42,7 +42,7 @@ export default function LoginPage() {
         password: formData.password,
       });
 
-      // console.log("Login attempt result:", { data, error });
+      console.log("Login attempt result:", { data, error });
 
       if (error) {
         toast.error(t.auth.loginError, {
@@ -58,7 +58,7 @@ export default function LoginPage() {
       toast.error(isFetchError ? "Błąd połączenia z serwerem" : "Wystąpił nieoczekiwany błąd", {
           description: isFetchError ? "Sprawdź połączenie internetowe lub spróbuj za chwilę." : err.message
       });
-      // console.error(err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -83,15 +83,14 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-200px)] w-full items-center justify-center p-4">
-      <Card className="w-full max-w-lg glass rounded-[2.5rem] shadow-2xl overflow-hidden relative ">
+      <Card className="w-full max-w-lg glass rounded-[2.5rem] shadow-2xl overflow-hidden relative border-black/10 dark:border-white/5">
         <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-general)]/15 via-transparent to-[var(--color-records)]/10 opacity-60 dark:opacity-60" />
         <CardHeader className="space-y-2 relative z-10 text-center pb-8">
-          <div className="w-20 h-20 bg-white/10 rounded-3xl mx-auto flex items-center justify-center mb-6 border  shadow-inner group">
-             <Image
-               src={process.env.NODE_ENV === 'development' ? '/assets/Logo/Glowne/Two Steps Studio Bez Tła.png' : '/assets/Logo/Glowne/Two Steps Studio Bez Tła.png'}
-               alt="TSS" width={50} height={50}
+          <div className="w-20 h-20 bg-white/10 rounded-3xl mx-auto flex items-center justify-center mb-6 border border-white/10 shadow-inner group">
+             <Image 
+               src="/assets/Logo/Glowne/Two Steps Studio Bez Tła.png" 
+               alt="TSS" width={50} height={50} 
                className="group-hover:scale-110 transition-transform duration-500"
-               priority
              />
           </div>
           <CardTitle className="text-4xl font-black italic tracking-tighter text-[var(--text)] font-[family-name:var(--font-space)]">
@@ -113,7 +112,7 @@ export default function LoginPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="h-12 rounded-2xl  bg-black/5 dark:bg-black/20 text-[var(--text)] focus:border-[var(--color-general)] focus:ring-1 focus:ring-[var(--color-general)] transition-all"
+                className="h-12 rounded-2xl border-black/10 dark:border-white/10 bg-black/5 dark:bg-black/20 text-[var(--text)] focus:border-[var(--color-general)] focus:ring-1 focus:ring-[var(--color-general)] transition-all"
               />
             </div>
             <div className="space-y-2">
@@ -133,13 +132,13 @@ export default function LoginPage() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="h-12 rounded-2xl  bg-black/5 dark:bg-black/20 text-[var(--text)] focus:border-[var(--color-general)] focus:ring-1 focus:ring-[var(--color-general)] transition-all"
+                className="h-12 rounded-2xl border-black/10 dark:border-white/10 bg-black/5 dark:bg-black/20 text-[var(--text)] focus:border-[var(--color-general)] focus:ring-1 focus:ring-[var(--color-general)] transition-all"
               />
             </div>
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-14 rounded-2xl bg-black text-white border-b-[6px] dark:border-transparent hover:bg-[var(--color-general)] dark:hover:bg-[var(--color-general)] hover:text-white font-black text-xl transition-all shadow-xl dark:shadow-none"
+              className="w-full h-14 rounded-2xl bg-black text-white dark:bg-white dark:text-black hover:bg-[var(--color-general)] dark:hover:bg-[var(--color-general)] hover:text-white font-black text-xl transition-all shadow-xl shadow-black/5 dark:shadow-white/5"
             >
               {loading ? (
                 <div className="flex items-center gap-2">
@@ -154,7 +153,7 @@ export default function LoginPage() {
           
           <div className="relative my-10">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t "></div>
+              <div className="w-full border-t border-white/10"></div>
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-transparent px-2 text-zinc-500 font-bold tracking-[0.3em]">LUB ZALOGUJ PRZEZ</span>
@@ -166,7 +165,7 @@ export default function LoginPage() {
               onClick={handleGoogleLogin}
               disabled={loading}
               variant="outline"
-              className="h-12 rounded-2xl  bg-black/5 dark:bg-white/5 text-[var(--text)] hover:bg-black/10 dark:hover:bg-white/10 font-bold text-sm tracking-tight transition-all"
+              className="h-12 rounded-2xl border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 text-[var(--text)] hover:bg-black/10 dark:hover:bg-white/10 font-bold text-sm tracking-tight transition-all"
             >
               Google
             </Button>
