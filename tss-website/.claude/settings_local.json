@@ -1,9 +1,0 @@
-{
-  "developerFeatures": {
-    "**description**": {"pl": "Dostęp do funkcji deweloperskich (kanban board dla tasków w projekcie)", "en": "Developer features access"},
-    "**access_method**": "Settings-based permissions instead of DEV_MODE env var",
-    "**enabled_by_default**: false,
-    "**config_key**": "devFeatures: [\"database\", \"api\"]",
-    "**notes**": ["All /api/dev/* endpoints are now directly accessible without environment variable checks"]
-  }
-}

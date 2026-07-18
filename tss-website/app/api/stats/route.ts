@@ -10,13 +10,13 @@ export async function GET() {
     supabase = await createClient();
   } catch {
     return NextResponse.json(
-      { online_users: 0, member_count: 0, messages_today: 0 },
+      { online_users: 0, member_count: 0, site_accounts: 0 },
       { status: 503 }
     );
   }
 
   try {
-    // Pobierz najnowsze statystyki z discord_stats
+    // Pobierz najnowsze statystyki Discorda z bazy danych
     const { data: discordStats, error: dsError } = await supabase
       .from('discord_stats')
       .select('*')
@@ -24,24 +24,29 @@ export async function GET() {
       .limit(1)
       .single();
 
-    if (dsError) {
-      console.error('Discord stats error:', dsError);
-    }
+    // Pobierz całkowitą liczbę użytkowników z bazy profiles (nie z Discorda)
+    const { count: siteAccounts } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
 
-    // Zwróć wszystkie pola z discord_stats lub wartości domyślne gdy tabela jest pusta
+    // Zwróć dane w nowym formacie
     const response: any = {
-      online_users: dsError ? 0 : (discordStats?.online_users || 0),
-      member_count: dsError ? 0 : (discordStats?.member_count || discordStats?.online_users || 0),
-      messages_today: dsError ? 0 : (discordStats?.messages_today || 0),
+      online_users: discordStats?.online_users || 0,
+      total_members: discordStats?.member_count || 0,
+      messages_today: discordStats?.messages_today || 0,
     };
+
+    if (dsError) {
+      console.error('Supabase error:', dsError);
+    }
 
     return NextResponse.json(response);
   } catch (err: any) {
     console.error('Unexpected stats error:', err);
     return NextResponse.json({
       online_users: 0,
-      total_members: 0,
-      messages_today: 0,
+      member_count: 0,
+      site_accounts: 0,
     });
   }
 }

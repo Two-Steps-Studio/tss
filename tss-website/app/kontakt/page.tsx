@@ -80,28 +80,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="font-bold text-[var(--text)] mb-1">Email</h3>
                   <p className="text-zinc-400 font-[family-name:var(--font-outfit)]">
-                    kontakt@twosteps.studio
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <Phone className="w-6 h-6 text-[var(--color-general)] flex-shrink-0" />
-                <div>
-                  <h3 className="font-bold text-[var(--text)] mb-1">Telefon</h3>
-                  <p className="text-zinc-400 font-[family-name:var(--font-outfit)]">
-                    +48 123 456 789
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <MapPin className="w-6 h-6 text-[var(--color-general)] flex-shrink-0" />
-                <div>
-                  <h3 className="font-bold text-[var(--text)] mb-1">Adres</h3>
-                  <p className="text-zinc-400 font-[family-name:var(--font-outfit)]">
-                    ul. Programistyczna 123<br />
-                    00-001 Warszawa
+                    two.steps.studio.contact@gmail.com
                   </p>
                 </div>
               </div>
@@ -110,12 +89,6 @@ export default function ContactPage() {
 
           <Card className="glass rounded-[2rem] p-6 border border-[var(--color-general)]/20">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-[var(--text)]">Godziny Office:</span>
-                <Badge className="bg-[var(--color-general)] text-white">
-                  Pn-Pt: 9:00 - 18:00
-                </Badge>
-              </div>
               <div className="flex items-center justify-between">
                 <span className="font-bold text-[var(--text)]">Czas odpowiedzi:</span>
                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
@@ -130,9 +103,6 @@ export default function ContactPage() {
         <Card className="glass rounded-[2rem] p-8 h-fit">
           <CardHeader className="pb-4">
             <CardTitle className="text-2xl">Wyślij Wiadomość</CardTitle>
-            <CardDescription>
-              Wypełnij formularz poniżej a my się do Ciebie odzwonimy!
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {sent && (

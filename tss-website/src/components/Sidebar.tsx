@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, User, Settings, Bell, Gamepad, Trophy, Mic2, Music2, FolderOpen, Mail, Code, BookOpen, Book, Server, Layout, Database, Shield, Clipboard, Terminal, Search, TreePine, Cpu, File, NotebookText, CalendarFold,} from "lucide-react";
+import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, User, Settings, Bell, Gamepad, Trophy, Mic2, Music2, FolderOpen, Mail, Code, BookOpen, Book, Server, Layout, Database, Shield, Clipboard, Terminal, Search, TreePine } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "../lib/utils";
 import { useSidebar } from "@/hooks/use-sidebar";
@@ -11,6 +11,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { useSectionTheme } from "../hooks/use-section-theme";
 import { useLanguage } from "../hooks/use-language";
 import { useTheme } from "next-themes";
+import { Button } from "./ui/button";
 import { BottomNavigation } from "./BottomNavigation";
 
 function SidebarStats({ translations, stats }: { translations: any; stats: { online_users: number; total_members: number; messages_today: number } }) {
@@ -106,24 +107,25 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
     { id: "home", type: "single", href: "/", label: t.nav.home || "Strona główna", icon: Home },
     { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: User },
     { id: "games", type: "expandable", href: "/games", label: t.nav.games || "Games", icon: Gamepad, items: [
-        { href: "/games/loucher-gier", label: t.nav.Loucher || "Loucher Gier", icon: Gamepad },
-        { href: "/games/info-o-grach", label: "Info o grach", icon: BookOpen },
-      ]},
+      { href: "/games/loucher-gier", label: t.nav.Loucher || "Loucher Gier", icon: Gamepad },
+      { href: "/games/info-o-grach", label: "Info o grach", icon: BookOpen },
+    ]},
+    { id: "esport", type: "expandable", href: "/e-sport", label: t.nav.esport || "E-sport", icon: Trophy, items: [
+      { href: "/e-sport/szukanie-do-gry", label: "Szukanie do gry", icon: Search },
+      { href: "/e-sport/turnieje", label: "Turnieje", icon: Trophy },
+    ]},
     { id: "records", type: "expandable", href: "/records", label: t.nav.records || "Records", icon: Music2, items: [
-        { href: "/records/podcasty", label: "Podcasty", icon: Book },
-        { href: "/records/beaty", label: "Beaty", icon: Mic2 },
-      ]},
+      { href: "/records/podcasty", label: "Podcasty", icon: Book },
+      { href: "/records/beaty", label: "Beaty", icon: Mic2 },
+    ]},
     { id: "dev", type: "expandable", href: "/dev", label: t.nav.dev || "Dev", icon: Code, items: [
-        { href: "/dev/projects", label: t.nav.project || "Projects", icon: Clipboard },
-        { href: "/dev/tasks", label: t.nav.tasks || "Tasks", icon: Layout },
-        { href: "/dev/roadmap", label: t.nav.roadmap || "Roadmap", icon: CalendarFold  },
-        { href: "/dev/files", label: t.nav.files ||"Files", icon: File },
-        { href: "/dev/description", label: t.nav.description || "Description", icon: NotebookText },
-        { href: "/dev/technology", label: t.nav.technology ||"Technology", icon: Cpu },
-      ]},
+      { href: "/dev/managment", label: t.nav.management || "Management", icon: Clipboard },
+      { href: "/dev/white-board", label: "Whiteboard", icon: Layout },
+      { href: "/dev/tasks", label: "Zadania", icon: Terminal },
+    ]},
     { id: "notifications", type: "single", href: "/ankiety/rating", label: t.nav.notifications || "Powiadomienia", icon: Bell },
 
-
+    
 
   ];
 
@@ -167,9 +169,9 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
   // Client-side navigation w Next.js nie powinien resetować stanu sidebara
 
   const SidebarContent = (
-      <div className="flex flex-col h-full py-4">
-        {/* Logo Section */}
-        <div className="px-6 mb-8 flex items-center justify-center relative">
+    <div className="flex flex-col h-full py-4">
+          {/* Logo Section */}
+          <div className="px-6 mb-8 flex items-center justify-center relative">
           <Link href="/" className="block relative group w-full">
             <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -178,12 +180,12 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
             >
               {mounted && (
                   <Image
-                      src={logo}
-                      alt="Two Steps Studio Logo"
-                      width={240}
-                      height={140}
-                      className="transition-opacity duration-500 object-contain w-auto h-full max-h-[90px]"
-                      unoptimized
+   	   	    src={logo}
+   	   	    alt="Two Steps Studio Logo"
+   	   	    width={240}
+   	   	    height={140}
+   	   	    className="transition-opacity duration-500 object-contain w-auto h-full max-h-[90px]"
+   	   	    unoptimized
                   />
               )}
             </motion.div>
@@ -209,41 +211,41 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
                 const isActive = isPathActive(section.href);
                 return (
                     <li key={section.id}>
-                      <Link
-                          href={section.href}
-                          className={cn(
-                              "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all relative group overflow-hidden",
-                              isActive
-                                  ? "text-white"
-                                  : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
-                          )}
-                      >
-                        {mounted && isActive && (
-                            <motion.div
-                                layoutId={`active-bg-${section.id}`}
-                                className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)] to-[var(--color-records)] shadow-[0_0_20px_rgba(var(--color-general-rgb),0.3)] opacity-90"
-                                initial={false}
-                                transition={{ type: "spring", bounce: 0.1, duration: 0.5 }}
-                            />
-                        )}
+              <Link
+                href={section.href}
+                className={cn(
+                    "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all relative group overflow-hidden",
+                    isActive
+                        ? "text-white"
+                        : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
+                )}
+              >
+                            {mounted && isActive && (
+   	   	   	 <motion.div
+   	   	   	    layoutId={`active-bg-${section.id}`}
+   	   	   	    className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)] to-[var(--color-records)] shadow-[0_0_20px_rgba(var(--color-general-rgb),0.3)] opacity-90"
+   	   	   	    initial={false}
+   	   	   	    transition={{ type: "spring", bounce: 0.1, duration: 0.5 }}
+   	   	   	   />
+                            )}
 
-                        <div className="relative z-10 flex items-center gap-2 w-full">
-                          <section.icon className="w-4 h-4 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
-                          <span className={cn(
-                              "text-sm tracking-tight transition-all duration-300",
-                              isActive ? "font-black" : "font-bold opacity-60 group-hover:opacity-100"
-                          )}>{section.label}</span>
-                          {isActive && mounted && (
-                              <motion.div
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  className="ml-auto"
-                              >
-                                <ChevronRight size={14} className="opacity-50" />
-                              </motion.div>
-                          )}
-                        </div>
-                      </Link>
+                            <div className="relative z-10 flex items-center gap-2 w-full">
+    <section.icon className="w-4 h-4 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
+    <span className={cn(
+        "text-sm tracking-tight transition-all duration-300",
+        isActive ? "font-black" : "font-bold opacity-60 group-hover:opacity-100"
+    )}>{section.label}</span>
+    {isActive && mounted && (
+        <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="ml-auto"
+            >
+            <ChevronRight size={14} className="opacity-50" />
+        </motion.div>
+    )}
+                            </div>
+              </Link>
                     </li>
                 );
               }
@@ -254,128 +256,133 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
 
               return (
                   <li
-                      key={section.id}
-                      onMouseEnter={() => handleMouseEnter(section.id)}
-                      onMouseLeave={handleMouseLeave}
-                  >
-                    <Link
-                        href={section.href}
-                        className={cn(
-                            "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all relative group overflow-hidden w-full text-left",
-                            isSectionActive
-                                ? "text-white"
-                                : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
-                        )}
-                    >
-                      {mounted && isSectionActive && (
-                          <motion.div
-                              layoutId={`active-bg-${section.id}`}
-                              className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)] to-[var(--color-records)] shadow-[0_0_20px_rgba(var(--color-general-rgb),0.3)] opacity-90"
-                              initial={false}
-                              transition={{ type: "spring", bounce: 0.1, duration: 0.5 }}
-                          />
-                      )}
+                key={section.id}
+                onMouseEnter={() => handleMouseEnter(section.id)}
+                onMouseLeave={handleMouseLeave}
+                >
+                <Link
+                    href={section.href}
+                    className={cn(
+                        "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all relative group overflow-hidden w-full text-left",
+                        isSectionActive
+                            ? "text-white"
+                            : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
+                    )}
+                >
+          {mounted && isSectionActive && (
+            <motion.div
+              layoutId={`active-bg-${section.id}`}
+              className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)] to-[var(--color-records)] shadow-[0_0_20px_rgba(var(--color-general-rgb),0.3)] opacity-90"
+              initial={false}
+              transition={{ type: "spring", bounce: 0.1, duration: 0.5 }}
+            />
+          )}
 
-                      <div className="relative z-10 flex items-center gap-2 w-full">
-                        <section.icon className="w-4 h-4 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
-                        <span className={cn(
-                            "text-sm tracking-tight transition-all duration-300",
-                            isSectionActive ? "font-black" : "font-bold opacity-60 group-hover:opacity-100"
-                        )}>{section.label}</span>
+          <div className="relative z-10 flex items-center gap-2 w-full">
+    <section.icon className="w-4 h-4 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
+    <span className={cn(
+        "text-sm tracking-tight transition-all duration-300",
+        isSectionActive ? "font-black" : "font-bold opacity-60 group-hover:opacity-100"
+    )}>{section.label}</span>
 
-                        <div className={cn("ml-auto relative z-10 transition-transform duration-200", isExpanded && "rotate-90")}>
-                          <ChevronRight size={14} />
-                        </div>
-                      </div>
-                    </Link>
+    <div className={cn("ml-auto relative z-10 transition-transform duration-200", isExpanded && "rotate-90")}>
+        <ChevronRight size={14} />
+    </div>
+          </div>
+                </Link>
 
-                    <AnimatePresence>
-                      {isExpanded && (
-                          <motion.div
-                              initial={{ opacity: 0, y: -6 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -6 }}
-                              transition={{ duration: 0.18 }}
-                              className="mt-1 pl-0"
-                          >
-                            <ul className="space-y-1">
-                              {isExpandable && section.items?.map((item) => {
-                                const isActive = isPathActive(item.href);
-                                return (
-                                    <li key={item.href}>
-                                      <Link
-                                          href={item.href}
-                                          className={cn(
-                                              "flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all relative group overflow-hidden",
-                                              isActive ? "text-white" : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
-                                          )}
-                                      >
-                                        {mounted && isActive && (
-                                            <motion.div
-                                                layoutId={`active-bg-${item.href}`}
-                                                className="absolute inset-0 bg-black/10 dark:bg-white/10"
-                                                initial={false}
-                                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                            />
-                                        )}
+                <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18 }}
+              className="mt-1 pl-0"
+            >
+              <ul className="space-y-1">
+          {isExpandable && section.items?.map((item) => {
+            const isActive = isPathActive(item.href);
+            return (
+              <li key={item.href}>
+                <Link
+   	   	    href={item.href}
+   	   	    className={cn(
+                            "flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all relative group overflow-hidden",
+                            isActive ? "text-white" : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
+   	   	    )}
+                >
+                  {mounted && isActive && (
+                    <motion.div
+                        layoutId={`active-bg-${item.href}`}
+                        className="absolute inset-0 bg-black/10 dark:bg-white/10"
+                        initial={false}
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
 
-                                        <div className="relative z-10 flex items-center gap-3 w-full pl-3">
-                                          <item.icon className="w-4 h-4 shrink-0 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
-                                          <span className="text-sm font-bold tracking-tight truncate">{item.label}</span>
-                                        </div>
-                                      </Link>
-                                    </li>
-                                );
-                              })}
-                            </ul>
-                          </motion.div>
-                      )}
-                    </AnimatePresence>
+                  <div className="relative z-10 flex items-center gap-3 w-full pl-3">
+                    <item.icon className="w-4 h-4 shrink-0 transition-all duration-300 group-hover:scale-110" strokeWidth={2.5} />
+                    <span className="text-sm font-bold tracking-tight truncate">{item.label}</span>
+                  </div>
+                </Link>
+              </li>
+            );
+          })}
+              </ul>
+            </motion.div>
+          )}
+                </AnimatePresence>
                   </li>
               );
             })}
           </ul>
         </nav>
 
-        {/* Footer */}
+        {/* Settings Footer */}
         <div className="px-4 pt-4 border-t border-[var(--border-color)] space-y-2">
-          {mounted && (
-              <button
-                  onClick={() => {
+          <div className="flex items-center gap-2 mb-2">
+            {mounted && (
+                <>
+                  <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
                     const current = resolvedTheme === "dark" ? "light" : "dark";
                     setTheme(current);
-                  }}
-                  className={cn(
-                      "w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all group relative overflow-hidden border",
-                      "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5 border-black/10 dark:border-white/10"
-                  )}
-              >
-                <div className="w-[18px] h-[18px] flex items-center justify-center relative z-10 opacity-70 group-hover:opacity-100 transition-opacity">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                        key={resolvedTheme}
-                        initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
-                        animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                        exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                      {resolvedTheme === "light" ? <Sun size={18} /> : <Moon size={18} />}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-                <span className="text-sm font-bold tracking-tight relative z-10">
-                {resolvedTheme === "light" ? (t.nav.lightMode || "Tryb Jasny") : (t.nav.darkMode || "Tryb Ciemny")}
-              </span>
-              </button>
-          )}
+                }}
+                className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 text-[var(--text)]"
+                  >
+                    <AnimatePresence mode="wait">
+          <motion.div
+            key={resolvedTheme}
+            initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
+            animate={{ opacity: 1, rotate: 0, scale: 1 }}
+            exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
+            transition={{ duration: 0.2 }}
+          >
+            {resolvedTheme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </motion.div>
+                    </AnimatePresence>
+                  </Button>
+
+                  <Link
+                href="/community-tree"
+                className="flex-1 h-10 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all border border-black/10 dark:border-white/10 font-black text-[10px] text-[var(--text)] flex items-center justify-center gap-2"
+                  >
+                    <TreePine size={16} /> <span>COMMUNITY TREE</span>
+                  </Link>
+                </>
+            )}
+          </div>
 
           <Link
               href="/ustawienia"
               className={cn(
                   "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all group relative overflow-hidden border",
                   pathname === "/ustawienia"
-                      ? "text-white bg-[var(--color-general)] shadow-lg shadow-[var(--color-general)]/20 font-black border-transparent"
-                      : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5 border-black/10 dark:border-white/10"
+                    ? "text-white bg-[var(--color-general)] shadow-lg shadow-[var(--color-general)]/20 font-black border-transparent"
+                    : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5 border-black/10 dark:border-white/10"
               )}
           >
             <div

@@ -43,27 +43,7 @@
       "Bash(npx next *)",
       "Bash(Select-Object -First 50)",
       "Bash(git add *)",
-      "Bash(git commit -m 'Update: Fix TaskDialog props, character limits, project list filtering, and board task distribution *)",
-      "PowerShell(Get-ChildItem -Path tss-website\\\\src\\\\app -Directory | Where-Object { $_.Name -match \"ustawi\" } | Select-Object Name, FullName)",
-      "Bash(findstr /N \".\")",
-      "Bash(grep -E \"^import\\\\s+.*from ['\\\\\"]\\(@/|\\\\.\\\\.\\\\/\\)\" /c/tss/app/api/admin/auth/route.ts)",
-      "Read(//C:/**)",
-      "Read(//C:/tss/**)",
-      "Bash('\\\\.\\\\.\\\\/hooks|'\\\\.\\\\.\\\\/libs?)",
-      "Bash(\\\\.\\\\./utils?\" tss-website/app --include=\"*.ts*\" 2>/dev/null | head -50 || \\(echo \"Sprawdzam w podfolderze app/:\"\\) && find ./tss-website/app/ -name \"*.tsx\" -o -name \"*.ts\" 2>/dev/null | xargs grep -lE \"\\\\.\\\\./\\\\.\\\\.?\\\\w+)",
-      "Bash(@\\\\//components)",
-      "Bash(@/\\\\//\" 2>/dev/null || echo \"Sprawdzam importy względne do src/\")",
-      "Bash(grep -rnE \"\\\\.\\\\./\\\\.\\\\.?components|'\\\\.\\\\.*/hooks|\\\\.\\\\..*/libs?|'\\\\.\\\\./utils?\" tss-website/app --include=\"*.tsx\" --include=\"*.ts\")",
-      "Bash(Select-String -Pattern \"available\" -Context 0,50)",
-      "Bash(findstr \"available\")",
-      "Bash(Select-String -Pattern \"error\" -Context 0,5)",
-      "Bash(@echo off *)",
-      "Bash(findstr /i \"build dev electron\")",
-      "Bash(Select-Object -First 60)",
-      "Bash(findstr /i \"/api/\")"
+      "Bash(git commit -m 'Update: Fix TaskDialog props, character limits, project list filtering, and board task distribution *)"
     ]
-  },
-  "enabledMcpjsonServers": [
-    "supabase"
-  ]
+  }
 }

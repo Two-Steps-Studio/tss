@@ -1,88 +1,271 @@
 @import "tailwindcss";
 
+@theme {
+  --color-general: var(--color-general-current, #1bbdbd);
+  --color-primary: var(--color-general);
+  --color-primary-foreground: var(--text);
+  --color-games: #dc3545;
+  --color-records: #ad83f8;
+  --color-dev: #ffcb2f;
+  --color-e-sport: #06e402;
+  --color-light: #e6e6e6;
+  --color-dark: #000000;
+  --color-border: var(--border-color);
+
+  --font-space: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  --font-space-grotesk: "Space Grotesk", sans-serif;
+  --font-outfit: var(--font-outfit), "Outfit", sans-serif;
+}
+
 :root {
-  background-color: #0F172A !important; /* Czarne tło dla wszystkich stron od razu! */
+  /* Default color scheme for Tailwind v4 */
+  --color-text-foreground: var(--text);
+  --color-muted-foreground: var(--text);
 }
 
-html[data-theme="dark"], html.theme-dark, .theme-ocean.dark, body:not(.light) * {
-  all: unset !important;
-  transition-property: none !important;
-  box-sizing: inherit !important;
-  max-width: none !important;
-  min-height: 100%;
+.space-grotesk {
+  font-family: var(--font-space-grotesk);
+  font-weight: 800;
 }
 
-.dark * {
-  border-color: var(--border-dark);   /* Biała/transparentna obwódka w ciemnym trybie */
+:root {
+  --color-general-current: #1bbdbd;
+  --color-general-rgb: 27, 189, 189;
+  --bg: #e6e6e6; /* Tryb Jasny: #e6e6e6 */
+  --text: #0F172A;
+  --sidebar-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --border-color: rgba(0, 0, 0, 0.08);
+  --selection-bg: var(--color-general);
+  --selection-text: #ffffff;
+  --transition-speed: 0.4s;
+  --transition-timing: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Domyślne wartości trybu jasnego dla wszystkich motywów */
+:root.theme-general {
+  --bg: #e6e6e6;
+  --text: #0F172A;
+  --sidebar-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(0, 0, 0, 0.75);
+  --border-color: rgba(0, 0, 0, 0.08);
+}
+
+/* Globalny dark mode - nadpisuje wszystkie motywy */
+.dark {
+  --color-dark: #000000;
+  --bg: #000000;
+  --text: #F1F5F9;
+  --sidebar-bg: rgba(0, 0, 0, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.6);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --selection-bg: var(--color-general);
 }
 
 
 /* --- THEME DEFINITIONS --- */
 
-/* Ocean (Default / Ogólny) - Light mode with black borders */
-.theme-ocean *, .theme-general:not(.dark), :root {
-  border-color: var(--border-light); /* Czarna obwódka w trybie jasnym dla wszystkich motywów ocean/general */
+/* Ocean (Default / Ogólny) */
+:root.theme-ocean {
+  --bg: #e6e6e6;
+  --text: #0F172A;
+  --sidebar-bg: rgba(255, 255, 255, 0.9);
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --border-color: rgba(0, 0, 0, 0.08);
+}
+.dark.theme-ocean {
+  --bg: #000000;
+  --card-bg: rgba(10, 10, 10, 0.7);
 }
 
-
-/* Crimson (Games) - Light mode only, no dark override needed separately from above global rule */
-.theme-crimson *, .theme-games:not(.dark):not(:has([class*="dark"])) {
-  border-color: var(--border-light); /* Czarna obwódka w trybie jasnym */
+/* Crimson (Games) */
+.theme-crimson {
+  --color-general-current: #dc3545;
+  --color-general-rgb: 220, 53, 69;
+}
+:root.theme-crimson {
+  --text: #332228;
+  --sidebar-bg: rgba(255, 241, 242, 0.9);
+  --card-bg: rgba(255, 241, 242, 0.75);
+  --border-color: rgba(51, 34, 40, 0.08);
+}
+.dark.theme-crimson {
+  --bg: #000000;
+  --card-bg: rgba(28, 5, 8, 0.7);
 }
 
-/* Emerald (E-Sport) - Light mode only with black borders */
-.theme-emerald *, .theme-esports:not(.dark):not(:has([class*="dark"])) {
-  --bg: #F0FDF4; /* Jasny motyw green */
-  border-color: var(--border-light); /* Czarna obwódka w trybie jasnym */
+/* Emerald (E-Sport) */
+.theme-emerald {
+  --color-general-current: #06e402;
+  --color-general-rgb: 6, 228, 2;
+}
+:root.theme-emerald {
+  --text: #064E03;
+  --sidebar-bg: rgba(240, 253, 244, 0.9);
+  --card-bg: rgba(240, 253, 244, 0.75);
+  --border-color: rgba(6, 78, 3, 0.08);
+}
+.dark.theme-emerald {
+  --card-bg: rgba(5, 28, 12, 0.7);
 }
 
-/* Violet (Records) - Light mode only with black borders */
-.theme-violet *, .theme-records:not(.dark):not(:has([class*="dark"])) {
-  --bg: #F5F3FF;   /* Jasny motyw purple */
-  border-color: var(--border-light); /* Czarna obwódka w trybie jasnym */
+/* Violet (Records) */
+.theme-violet {
+  --color-general-current: #ad83f8;
+  --color-general-rgb: 173, 131, 248;
+}
+:root.theme-violet {
+  --text: #2E1065;
+  --sidebar-bg: rgba(245, 243, 255, 0.9);
+  --card-bg: rgba(245, 243, 255, 0.75);
+  --border-color: rgba(46, 16, 101, 0.08);
+}
+.dark.theme-violet {
+  --card-bg: rgba(12, 5, 28, 0.7);
 }
 
-/* Amber (Dev) - Light mode only with black borders */
-.theme-amber *, .theme-dev:not(.dark):not(:has([class*="dark"])) {
-  --bg: #FFFBEB;   /* Jasny motyw yellow */
-  border-color: var(--border-light); /* Czarna obwódka w trybie jasnym */
+/* Amber (Dev) */
+.theme-amber {
+  --color-general-current: #ffcb2f;
+  --color-general-rgb: 255, 203, 47;
+}
+:root.theme-amber {
+  --text: #422006;
+  --sidebar-bg: rgba(255, 251, 235, 0.9);
+  --card-bg: rgba(255, 251, 235, 0.75);
+  --border-color: rgba(66, 32, 6, 0.08);
+}
+.dark.theme-amber {
+  --card-bg: rgba(28, 15, 5, 0.7);
 }
 
-
-/* Dark theme overrides for ALL themes with white borders (transparent) */
-.dark *, body[class*="-dark"].*, html[data-theme~="light"] *[role*=button], dark * > :not(.border-white):has([class^=.-glass]) button,
-html:not(.theme-dark), .sidebar[data-state] *:matches(div[aria-label]), [style$=".btn-premium"]:is(button)[data-state]:not(:empty) {
-  --bg: #0F172A;   /* Ciemny bg dla wszystkich tematów w dark mode */
+/* Base Styles */
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-space);
+  transition: background-color var(--transition-speed) var(--transition-timing), color var(--transition-speed) var(--transition-timing);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow-x: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-
-/* Glass effect - black border in light, transparent in dark */
-.glass:not([class*="-dark"]), .glass[style$=""], [data-theme] {
-  background: rgba(var(--color-primary), var(--card-opacity)) !important;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-space);
+  letter-spacing: -0.05em;
+  font-weight: 800
 }
 
-.dark .glass *, [class*="dark"].glass * {
-  --border-color: transparent !important; /* Transparentna obwódka w trybie ciemnym */
+.glass {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  transition: all var(--transition-speed) var(--transition-timing);
 }
 
-
-/* Sidebar exception - no borders in dark theme for sidebars only (keep it clean) */
-.sidebar:not([class*="dark"]), aside:not([class*="-bg-"]) {
-  border-color: var(--border-light);   /* Czarna obwódka w trybie jasnym dla sidebaru */
+.dark .glass {
+  box-shadow: 0 20px 60px -15px rgba(var(--text-rgb), 0.6);
 }
 
-.dark .sidebar, body[class*="dark"] aside {
-  --border-color: transparent !important; /* Bez obwódki w ciemnym trybie dla sidebary */
+/* Custom Effects */
+.bg-mesh {
+  position: fixed;
+  inset: 0;
+  background-image:
+          radial-gradient(at 0% 0%, rgba(var(--color-general-rgb), 0.15) 0px, transparent 45%),
+          radial-gradient(at 100% 100%, rgba(var(--color-general-rgb), 0.1) 0px, transparent 45%);
+  pointer-events: none;
+  z-index: -1;
 }
 
+/* Interactive elements */
+.btn-premium {
+  background: var(--color-general);
+  color: var(--text);
+  font-weight: 800;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px -5px rgba(var(--color-general-rgb), 0.4);
+}
 
-/* Mobile-first responsive styles (no special handling needed) - just media query wrapper for touch targets */
+.btn-premium:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 15px 30px -8px rgba(var(--color-general-rgb), 0.6);
+}
+
+/* Mobile-first responsive styles */
 @media (max-width: 1023px) {
-  button, a { min-height: 44px; }
-  h1 { font-size: 1.75rem; } h2 { font-size: 1.5rem; }
+  /* Optimalizacja pod touch */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Font sizes dla mobile */
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+
+  /* Hide desktop sidebar on mobile */
+  aside[aria-hidden="true"] {
+    display: none !important;
+  }
+
+  /* Hide MobileHeader on desktop (dla starszych przeglądarek bez JS) */
+  .hidden-mobile-desktop {
+    display: none !important;
+  }
 }
 
+/* Ukryj MobileHeader na desktopach (dla JS fallback) */
+@media (min-width: 1024px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
 
 /* WebP & AVIF Optimization */
-img[data-lazy], picture img[src*=".avif"], picture img[src*=".webp"]
-{ opacity: 0 !important; transition: opacity 0.3s ease; content: ""; display: block;}
+img {
+  content: "";
+}
+
+/* Lazy loading dla wszystkich obrazków */
+[data-lazy] {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+[data-lazy].loaded {
+  opacity: 1;
+}
+
+/* Next.js img tag optimization hints */
+picture {
+  display: block;
+}
+
+picture img {
+  display: block;
+}
+
+picture:has(img[src$=".avif"]) {
+  display: block;
+}
+
+picture:has(img[src$=".webp"]) {
+  display: block;
+}
+
+picture:has(img[src$=".png"]) {
+  display: block;
+}
+
+picture:has(img[src$=".avif"]) {
+  display: block;
+}
