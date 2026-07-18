@@ -1,10 +1,5 @@
 "use client";
 
-export const metadata = {
-  title: 'Login — Two Steps Studio',
-  description: 'Zaloguj się na swoje konto w Two Steps Studio. Zweryfikowany Discord, zarządzanie profilem i dostęp do wszystkich funkcji platformy.',
-};
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -37,21 +32,27 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      console.log("Login attempt result:", { data, error });
-
-      if (error) {
-        toast.error(t.auth.loginError, {
-          description: error.message,
+      if (!supabase) {
+        toast.error("Błąd połączenia z serwerem", {
+          description: "Supabase nie jest skonfigurowany"
         });
       } else {
-        toast.success(t.auth.loginSuccess);
-        // Force hard refresh to ensure session is fully loaded
-        window.location.href = "/profil";
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        console.log("Login attempt result:", { data, error });
+
+        if (error) {
+          toast.error(t.auth.loginError, {
+            description: error.message,
+          });
+        } else {
+          toast.success(t.auth.loginSuccess);
+          // Force hard refresh to ensure session is fully loaded
+          window.location.href = "/profil";
+        }
       }
     } catch (err: any) {
       const isFetchError = err.message?.includes("fetch");
@@ -66,14 +67,20 @@ export default function LoginPage() {
   
   const handleGoogleLogin = async () => {
     try {
-      setLoading(true);
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/profil`,
-        },
-      });
-      console.log("Google login result:", { data, error });
+      if (!supabase) {
+        toast.error("Błąd logowania Google", {
+          description: "Supabase nie jest skonfigurowany"
+        });
+      } else {
+        setLoading(true);
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: `${window.location.origin}/profil`,
+          },
+        });
+        console.log("Google login result:", { data, error });
+      }
     } catch (err) {
       toast.error("Błąd logowania Google");
     } finally {
@@ -171,12 +178,18 @@ export default function LoginPage() {
             </Button>
             <Button
               onClick={async () => {
-                setLoading(true);
-                await supabase.auth.signInWithOAuth({
-                  provider: "discord",
-                  options: { redirectTo: `${window.location.origin}/profil` }
-                });
-                setLoading(false);
+                if (!supabase) {
+                  toast.error("Błąd logowania Discord", {
+                    description: "Supabase nie jest skonfigurowany"
+                  });
+                } else {
+                  setLoading(true);
+                  await supabase.auth.signInWithOAuth({
+                    provider: "discord",
+                    options: { redirectTo: `${window.location.origin}/profil` }
+                  });
+                  setLoading(false);
+                }
               }}
               disabled={loading}
               className="h-12 rounded-2xl bg-[#5865F2] text-white hover:bg-[#4752C4] font-bold text-sm tracking-tight transition-all shadow-lg shadow-[#5865F2]/20"

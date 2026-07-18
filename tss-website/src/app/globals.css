@@ -13,11 +13,19 @@
   --color-border: var(--border-color);
 
   --font-space: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  --font-space-grotesk: "Space Grotesk", sans-serif;
   --font-outfit: var(--font-outfit), "Outfit", sans-serif;
+}
 
+:root {
   /* Default color scheme for Tailwind v4 */
   --color-text-foreground: var(--text);
   --color-muted-foreground: var(--text);
+}
+
+.space-grotesk {
+  font-family: var(--font-space-grotesk);
+  font-weight: 800;
 }
 
 :root {
@@ -76,7 +84,6 @@
   --color-general-rgb: 220, 53, 69;
 }
 :root.theme-crimson {
-  --bg: #FFF1F2;
   --text: #332228;
   --sidebar-bg: rgba(255, 241, 242, 0.9);
   --card-bg: rgba(255, 241, 242, 0.75);
@@ -93,14 +100,12 @@
   --color-general-rgb: 6, 228, 2;
 }
 :root.theme-emerald {
-  --bg: #F0FDF4;
   --text: #064E03;
   --sidebar-bg: rgba(240, 253, 244, 0.9);
   --card-bg: rgba(240, 253, 244, 0.75);
   --border-color: rgba(6, 78, 3, 0.08);
 }
 .dark.theme-emerald {
-  --bg: #000000; /* Zmienione na czarny */
   --card-bg: rgba(5, 28, 12, 0.7);
 }
 
@@ -110,14 +115,12 @@
   --color-general-rgb: 173, 131, 248;
 }
 :root.theme-violet {
-  --bg: #F5F3FF;
   --text: #2E1065;
   --sidebar-bg: rgba(245, 243, 255, 0.9);
   --card-bg: rgba(245, 243, 255, 0.75);
   --border-color: rgba(46, 16, 101, 0.08);
 }
 .dark.theme-violet {
-  --bg: #000000; /* Zmienione na czarny */
   --card-bg: rgba(12, 5, 28, 0.7);
 }
 
@@ -127,14 +130,12 @@
   --color-general-rgb: 255, 203, 47;
 }
 :root.theme-amber {
-  --bg: #FFFBEB;
   --text: #422006;
   --sidebar-bg: rgba(255, 251, 235, 0.9);
   --card-bg: rgba(255, 251, 235, 0.75);
   --border-color: rgba(66, 32, 6, 0.08);
 }
 .dark.theme-amber {
-  --bg: #000000; /* Zmienione na czarny */
   --card-bg: rgba(28, 15, 5, 0.7);
 }
 
@@ -195,11 +196,6 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-2px);
   filter: brightness(1.1);
   box-shadow: 0 15px 30px -8px rgba(var(--color-general-rgb), 0.6);
-}
-
-.space-grotesk {
-  font-family: var(--font-space-grotesk);
-  font-weight: 800;
 }
 
 /* Mobile-first responsive styles */
