@@ -3,7 +3,7 @@ import { HomeClient } from "@/components/home-client";
 
 export const metadata: Metadata = {
   title: 'Two Steps Studio — Beatmapy, Gry i Społeczność',
-  description: 'Strona internetowa Two Steps Studio — platforma z beatmapami, grami, podcastami, turniejami e-sportowymi i warsztatami programistycznymi. Dołącz do tysięcy użytkowników i odkryj świat rhythm games!',
+  description: 'Strona internetowa Two Steps Studio — platforma z beatmapami, grami, podcastami, turniejami e-sportowymi i warsztatami programistycznymi. Dołącz do tysięcy użytkowników i odkryj świat!',
   keywords: ['beatmapy', 'gracz', 'discord', 'muzyka', 'podcasty', 'esport', 'turnieje', 'rhythm games'],
   openGraph: {
     type: 'website',

@@ -1,0 +1,6 @@
+{
+  "permissions": {
+    "devFeatures": ["database", "api"]
+  },
+  "hooks": {}
+}

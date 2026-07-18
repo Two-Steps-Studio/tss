@@ -21,6 +21,11 @@ const setLocalStorage = (key: string, value: string) => {
 const NOTIF_KEYS = ['notif-news', 'notif-esport', 'notif-dev'] as const;
 const UI_KEYS = ['ui-animations', 'ui-sounds', 'ui-quality'] as const;
 
+// Nowy klucz do filtrowania widoku sidebara (domyślnie true = pokazuj wszystkie kategorie)
+export const setShowAllCategoriesStorage = (value: boolean | undefined) => {
+  setLocalStorage('show-all-categories', value ?? true ? 'on' : 'off'); // domyślnie włączone=true
+};
+
 /**
  * Saves notification preference to localStorage
  */

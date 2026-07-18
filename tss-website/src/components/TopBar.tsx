@@ -131,7 +131,6 @@ export function TopBar() {
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/5 dark:bg-white/10 border border-white/5 opacity-50 group-focus-within:opacity-100 transition-opacity">
                 <Command size={10} className="font-bold" />
-                <span className="text-[10px] font-black">K</span>
               </div>
             </div>
           </div>
@@ -155,27 +154,6 @@ export function TopBar() {
                   )}
                 </Button>
               </Link>
-
-              {mounted && (
-                  <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                      className="rounded-2xl w-11 h-11 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-none transition-all hover:scale-105 active:scale-95"
-                  >
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                          key={theme}
-                          initial={{ opacity: 0, rotate: -90, scale: 0.5 }}
-                          animate={{ opacity: 1, rotate: 0, scale: 1 }}
-                          exit={{ opacity: 0, rotate: 90, scale: 0.5 }}
-                          transition={{ duration: 0.2 }}
-                      >
-                        {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-                      </motion.div>
-                    </AnimatePresence>
-                  </Button>
-              )}
             </div>
 
             <div className="w-px h-8 bg-[var(--border-color)] mx-1" />

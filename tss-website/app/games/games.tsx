@@ -138,10 +138,15 @@ export default function GamesPage() {
             >
               {categories.map((category) => (
                 <option key={category} value={category} className="bg-black/50">
-                  {category}
+                  {/* Show emoji only if not a developer category */}
+                  {(typeof category === "string") && !/^DEV-|API-/i.test(category.replace(" ", ""))
+                    ? `${category}`
+                    : category
+                  }
                 </option>
               ))}
             </select>
+
           </div>
         </div>
       </div>

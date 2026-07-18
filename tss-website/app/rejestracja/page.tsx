@@ -1,5 +1,10 @@
 "use client";
 
+export const metadata = {
+  title: 'Rejestracja — Two Steps Studio',
+  description: 'Załóż konto w Two Steps Studio. Zweryfikuj z Discordem, odblokuj dostęp do beatmapy, gry i e-sportu. Dołącz do społeczności!',
+};
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
