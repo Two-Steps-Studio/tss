@@ -1,0 +1,71 @@
+import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
+
+// Stripe requires a configured instance
+if (!process.env.STRIPE_SECRET_KEY) {
+  // Stripe is not configured - this route will fail gracefully in the catch block
+}
+
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-02-24.acacia",
+    })
+  : null;
+
+export async function POST(req: NextRequest) {
+  // Check if Stripe is configured
+  if (!stripe) {
+    console.log('[Stripe] Checkout disabled - Stripe not configured');
+    return NextResponse.json(
+      { error: "Płatności Stripe nie są skonfigurowane" },
+      { status: 503 }
+    );
+  }
+
+  try {
+    const { beatId, beatTitle, price, tier } = await req.json();
+
+    if (!beatId || !beatTitle || !price || !tier) {
+      return NextResponse.json(
+        { error: "Brak wymaganych danych" },
+        { status: 400 }
+      );
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card", "blik"],
+      line_items: [
+        {
+          price_data: {
+            currency: "pln",
+            product_data: {
+              name: `Beat: ${beatTitle}`,
+              description: `Licencja ${tier.toUpperCase()}`,
+              metadata: {
+                beat_id: beatId,
+                tier: tier,
+              },
+            },
+            unit_amount: Math.round(price * 100), // Cena w groszach
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/beaty?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/beaty?canceled=true`,
+      metadata: {
+        beat_id: beatId,
+        tier: tier,
+      },
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (error) {
+    console.error("Stripe checkout error:", error);
+    return NextResponse.json(
+      { error: "Błąd tworzenia sesji płatności" },
+      { status: 500 }
+    );
+  }
+}

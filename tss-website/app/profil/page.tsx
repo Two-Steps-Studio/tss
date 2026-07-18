@@ -1,0 +1,372 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import ProfileForm from "./profile-form";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Mail, Shield, Trophy, Star, Bell, Link as LinkIcon, CheckCircle2 } from "lucide-react";
+import LogoutButton from "./logout-button";
+import Image from "next/image";
+import { BottomNavigation } from "@/components/BottomNavigation";
+
+const ROLE_PRIORITY: Array<{ key: string; color: string; label: string }> = [
+    { key: "〔 👑︱Owner 〕", color: "#dc3545", label: "OWNER" },
+    { key: "〔 👑︱Owner Records 〕", color: "#9b59b6", label: "OWNER RECORDS" },
+    { key: "〔 👑︱ Co-Owner Games 〕", color: "#3cd5d3", label: "CO-OWNER GAMES" },
+    { key: "〔 🛡️︱Administrator 〕", color: "#f6db6f", label: "ADMIN" },
+    { key: "〔 🌐︱Moderator 〕", color: "#2da4f3", label: "MOD" },
+    { key: "〔 💜︱Server Booster 〕", color: "#a61cb3", label: "BOOSTER" },
+    { key: "〔 🦣 ︱ MVIP〕", color: "#ee1616", label: "MVIP" },
+    { key: "〔 🐄 ︱ SVIP〕", color: "#cea009", label: "SVIP" },
+    { key: "〔 🐨 ︱ VIP〕", color: "#a7b11a", label: "VIP" },
+    { key: "〔 🎙️︱Wykonawca 〕", color: "#c8a800", label: "EXEC" },
+    { key: "〔 💽︱Producent 〕", color: "#e09000", label: "PROD" },
+    { key: "〔 📢︱Główny Marketingowiec 〕", color: "#e81313", label: "HEAD MKT" },
+    { key: "〔 📢︱Marketingowiec 〕", color: "#e81313", label: "MKT" },
+    { key: "〔 💻︱Główny Programista 〕", color: "#00bcd4", label: "HEAD DEV" },
+    { key: "〔 💻︱Programista 〕", color: "#2979ff", label: "DEV" },
+    { key: "〔 🗺️︱Główny Projektantant Poziomów 〕", color: "#43a047", label: "HEAD LD" },
+    { key: "〔 🎨︱Główny Artysta 2D 〕", color: "#8d4e1a", label: "HEAD 2D" },
+    { key: "〔 🧱︱ Główny Artysta 3D 〕", color: "#8d4e1a", label: "HEAD 3D" },
+    { key: "〔✨︱Główny Artysta Efektów 〕", color: "#d4c400", label: "HEAD VFX" },
+    { key: "〔 🎧︱Główny Dzwiękowiec 〕", color: "#9e9e9e", label: "HEAD SFX" },
+    { key: "〔 🕺︱Główny Animator  〕", color: "#1565c0", label: "HEAD ANIM" },
+    { key: "〔 🎮︱ Główny Tester  〕", color: "#9c27b0", label: "HEAD QA" },
+    { key: "〔 💀︱ Call Of Duty 〕", color: "#607d8b", label: "COD" },
+];
+
+const ROLE_MAP = new Map(ROLE_PRIORITY.map((r, i) => [r.key.trim(), { priority: i, color: r.color, label: r.label }]));
+
+function findRole(raw: string): { priority: number; color: string; label: string } | null {
+    const t = raw.trim();
+
+    if (ROLE_MAP.has(t)) return ROLE_MAP.get(t)!;
+
+    const match = raw.match(/︱\s*(.+?)\s*〕/);
+    if (!match) return null;
+
+    const inner = match[1]?.trim().toLowerCase();
+    if (!inner) return null;
+
+    for (const [key, val] of ROLE_MAP) {
+        const keyMatch = key.match(/︱\s*(.+?)\s*〕/);
+        if (keyMatch) {
+            const ki = keyMatch[1]?.trim().toLowerCase();
+            if (ki === inner) return val;
+        }
+    }
+    return null;
+}
+
+function DiscordRolesPanel({ discordRoles }: { discordRoles: string[] }) {
+    const matched = discordRoles
+        .map((raw) => ({ raw, info: findRole(raw) }))
+        .filter((x): x is { raw: string; info: { priority: number; color: string; label: string } } => x.info !== null)
+        .sort((a, b) => a.info.priority - b.info.priority);
+
+    if (matched.length === 0) return null;
+
+    return (
+        <div className="space-y-2 pt-1">
+            <p className="text-[10px] uppercase tracking-[0.14em] font-black text-white/35 select-none">Role — {matched.length}</p>
+            <div className="flex flex-wrap gap-1.5">
+                {matched.map(({ raw, info }) => (
+                    <span key={raw} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[12px] font-semibold border cursor-default select-none transition-all hover:brightness-125"
+                          style={{ color: info.color, borderColor: `${info.color}55`, backgroundColor: `${info.color}1a` }}>
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: info.color }} />
+                        {info.label}
+                    </span>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+const ROLE_MAP_BADGE: Record<string, { color: string; label: string }> = Object.fromEntries(
+    ROLE_PRIORITY.map((r) => [r.key, { color: r.color, label: r.label }])
+);
+
+interface RankedUser {
+    id: string;
+    discord_id: string;
+    username?: string;
+    discord_name?: string;
+    level?: number;
+    xp?: number;
+    money?: number;
+    rank: number;
+}
+
+const fetchRankingData = async () => {
+    const { data: levelUsers } = await supabase.from("profiles").select("id, discord_id, username, level, xp").order("level", { ascending: false }).limit(100);
+    const { data: moneyUsers } = await supabase.from("profiles").select("id, discord_id, username, money").order("money", { ascending: false }).limit(100);
+
+    const usersByLevel: RankedUser[] = (levelUsers || []).map((u, idx: number) => ({
+        ...u,
+        rank: idx + 1,
+        discord_id: u.discord_id || u.id
+    }));
+    const usersByMoney: RankedUser[] = (moneyUsers || []).map((u, idx: number) => ({
+        ...u,
+        rank: idx + 1,
+        discord_id: u.discord_id || u.id
+    }));
+
+    console.log('[PROFILE] Ranking data:', { level: usersByLevel.length, money: usersByMoney.length });
+    console.log('[PROFILE] Level users:', JSON.stringify(usersByLevel.slice(0, 3)));
+
+    return { usersByLevel, usersByMoney };
+};
+
+export default function ProfilePage() {
+    const router = useRouter();
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<any>(null);
+    const [profile, setProfile] = useState<any>(null);
+    const [authChecked, setAuthChecked] = useState(false);
+    const [rankingData, setRankingData] = useState<{ usersByLevel: any[]; usersByMoney: any[] }>({ usersByLevel: [], usersByMoney: [] });
+    const [topTab, setTopTab] = useState<"level" | "money">("level");
+
+    useEffect(() => {
+        let channel: any = null;
+
+        const fetchData = async (currentUser: any) => {
+            const discordId = currentUser.user_metadata?.provider_id || currentUser.id;
+
+            // Fetch ranking data FIRST (outside realtime callback)
+            const rankingData = await fetchRankingData();
+            setRankingData(rankingData);
+
+            // Get profile with fallback
+            const { data: initialProfile } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", discordId)
+                .maybeSingle();
+
+            const profileData = initialProfile || { xp: 0, money: 0, bank: 0, level: 1, rank: "", discord_roles: [], pln_balance: 0 };
+
+            // Set profile (but don't call setProfile twice for same event)
+            setProfile(profileData);
+
+            // Subscribe AFTER setting initial state
+            if (channel && typeof channel.unsubscribe === 'function') {
+                supabase.removeChannel(channel);
+            }
+            const freshChannel = supabase.channel(`profile-${discordId}`);
+            const subscription = freshChannel.on("postgres_changes", {
+                event: "UPDATE",  // Only UPDATE, not INSERT/DELETE for profile
+                schema: "public",
+                table: "profiles",
+                filter: `id=eq.${discordId}`
+            }, (payload) => {
+                // Update only if new profile has different data
+                setProfile(prev => {
+                    if (!prev) return payload.new;
+                    return { ...prev, ...payload.new };
+                });
+            });
+            freshChannel.subscribe();
+            channel = freshChannel;
+
+            setLoading(false);
+        };
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_OUT') { router.push('/login'); return; }
+            if (session?.user) {
+                setUser(session.user);
+                setAuthChecked(true);
+                await fetchData(session.user);
+            } else if (event === 'INITIAL_SESSION' && !session) {
+                setAuthChecked(true);
+                if (!window.location.search.includes("code=")) router.push("/login");
+            }
+        });
+
+        return () => {
+            subscription.unsubscribe();
+            if (channel) supabase.removeChannel(channel);
+        };
+    }, [router]);
+
+    if (!authChecked || (loading && !user)) {
+        return <div className="p-20 text-center italic">Wczytywanie...</div>;
+    }
+
+    const discordId = user?.user_metadata?.provider_id || user?.id;
+    const isDiscordLinked = user?.app_metadata?.provider === 'discord' || user?.identities?.some((id: any) => id.provider === 'discord');
+    const roleInfo = ROLE_MAP_BADGE[profile?.rank] || { color: "var(--color-general)", label: `LEVEL ${profile?.level || 1}` };
+    const discordName = user?.user_metadata?.global_name || user?.user_metadata?.full_name || user?.email?.split("@")[0];
+    const xp = profile?.xp || 0;
+    const level = profile?.level || 1;
+    const currentLevelStartXP = Math.pow(level / 0.1, 2);
+    const nextLevelStartXP = Math.pow((level + 1) / 0.1, 2);
+    const neededXP = nextLevelStartXP - currentLevelStartXP;
+    const currentProgressXP = xp - currentLevelStartXP;
+    const progress = Math.min(Math.max((currentProgressXP / neededXP) * 100, 0), 100);
+    const nextLevelXp = Math.round(nextLevelStartXP);
+    const discordRoles = Array.isArray(profile?.discord_roles) ? profile.discord_roles : [];
+    const topList = topTab === "level" ? rankingData.usersByLevel : rankingData.usersByMoney;
+
+    return (
+        <div className="container mx-auto p-6 space-y-8 mt-20 max-w-6xl pb-16" suppressHydrationWarning>
+
+            {/* ── PROFIL ── */}
+            <Card className="relative overflow-hidden rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-2xl shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)]/15 via-transparent to-transparent opacity-90" />
+                <CardContent className="relative z-10 p-8 md:p-12">
+                    <div className="flex flex-col md:flex-row items-center gap-8">
+                        <div className="relative group flex-shrink-0">
+                            <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-[var(--color-general)] to-transparent opacity-60 blur-md" />
+                            <Avatar className="h-48 w-48 ring-4 ring-[var(--color-general)]/20 border-2 border-[var(--color-general)]/30">
+                                <AvatarImage src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture} />
+                                <AvatarFallback className="text-4xl bg-white text-black font-bold">{discordName?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <Badge className="absolute -bottom-2 -right-2 px-3 py-1 text-white font-bold rounded-full" style={{ backgroundColor: roleInfo.color }}>
+                                {roleInfo.label}
+                            </Badge>
+                        </div>
+
+                        <div className="text-center md:text-left space-y-3 flex-1 min-w-0">
+                            <div>
+                                <h1 className="text-4xl font-bold text-white tracking-tight">{discordName}</h1>
+                                {isDiscordLinked ? (
+                                    <Badge variant="outline" className="mt-2 border-emerald-500/30 bg-emerald-500/10 text-emerald-400 gap-1.5">
+                                        <CheckCircle2 size={12} /> Zweryfikowany Discord
+                                    </Badge>
+                                ) : (
+                                    <Button variant="outline" size="sm" className="mt-2 h-7 bg-indigo-500/10 border-indigo-500/30 text-indigo-400 text-xs rounded-full gap-2">
+                                        <LinkIcon size={12} /> Połącz z Discordem
+                                    </Button>
+                                )}
+                            </div>
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-zinc-300">
+                                <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10 text-sm"><Mail size={13} /> {user?.email}</span>
+                                <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10 text-sm"><Shield size={13} /> ID: {user?.id.slice(0, 8)}</span>
+                            </div>
+                            <DiscordRolesPanel discordRoles={discordRoles} />
+                        </div>
+
+                        <div className="w-full md:w-72 space-y-3 bg-white/5 p-5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                            <div className="flex items-center justify-between text-sm mb-1">
+                                <span className="font-bold flex items-center gap-2 text-white text-base"><Trophy size={15} className="text-[var(--color-general)]" /> Postęp Poziomu</span>
+                                <span className="font-black text-[var(--color-general)] text-base">{Math.round(progress)}%</span>
+                            </div>
+                            <Progress value={progress} className="h-4 rounded-full bg-white/10" />
+                            <div className="flex justify-between text-xs uppercase font-black opacity-40 text-white">
+                                <span>{xp} XP</span><span>{nextLevelXp} XP</span>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* ── STATYSTYKI + TOPKA ── */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                {/* Statystyki */}
+                <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl">
+                    <CardHeader className="border-b border-black/10 dark:border-white/5 text-black dark:text-white font-bold italic flex items-center">
+                        <Star size={18} className="mr-2 text-[var(--color-general)]" /> Statystyki
+                    </CardHeader>
+                    <CardContent className="p-6 space-y-4">
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
+                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">Portfel</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl font-black text-[var(--color-general)]">{(profile?.money ?? 0).toLocaleString()}</span>
+                                <Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} />
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
+                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">Bank</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl font-black text-[var(--color-general)]">{profile?.bank || 0}</span>
+                                <Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} className="opacity-80" />
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
+                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">Saldo PLN</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-xl font-black text-[var(--color-general)]">{profile?.pln_balance?.toFixed(2) || "0.00"} zł</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Topka */}
+                <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl flex flex-col h-[520px]">
+                    <CardHeader className="border-b border-black/10 dark:border-white/5 flex flex-col gap-3 pb-4">
+                        <div className="flex items-center text-black dark:text-white font-bold italic">
+                            <Trophy size={18} className="mr-2 text-[var(--color-general)]" /> Tabela Wyników
+                        </div>
+                        {/* Przełącznik */}
+                        <div className="flex gap-2 w-full">
+                            <button
+                                onClick={() => setTopTab("level")}
+                                className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "level" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
+                            >
+                                🏆 Poziomy
+                            </button>
+                            <button
+                                onClick={() => setTopTab("money")}
+                                className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "money" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
+                            >
+                                💰 Pieniądze
+                            </button>
+                        </div>
+                    </CardHeader>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar">
+                        {topList.length === 0 && (
+                            <div className="text-center opacity-40 text-sm pt-8">Wczytywanie...</div>
+                        )}
+                        {topList.map((u, idx) => (
+                            <div key={u.id} className={cn("w-full flex items-center justify-between p-4 rounded-xl border transition-colors",
+                                u.id === discordId ? "bg-[var(--color-general)]/10 border-[var(--color-general)]/30" : "",
+                                idx === 0 ? "bg-yellow-500/10" : "",
+                                idx === 1 ? "bg-zinc-500/10" : "",
+                                idx === 2 ? "bg-orange-600/10" : "",
+                                idx > 2 ? "bg-sky-500/10" : ""
+                            )}>
+                                <div className="flex items-center gap-4">
+                                    <span className={`font-black w-6 text-center`}>{u.rank}</span>
+                                    <div className="w-6"></div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className={cn("font-bold truncate text-sm", u.discord_id === discordId ? "text-[var(--color-general)]" : "")}>{u.username || u.discord_name || u.email?.split("@")[0] || (u.discord_id ? u.discord_id.slice(0, 14) : "Nieznany")}</div>
+                                        <div className="text-xs opacity-50">
+                                            {topTab === "level" ? `Poziom ${u.level}` : `${(u.money / 1000).toFixed(1)}K monet`}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </Card>
+            </div>
+
+            {/* ── USTAWIENIA ── */}
+            <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl shadow-xl">
+                <CardHeader className="border-b border-black/10 dark:border-white/5 text-black dark:text-white font-bold italic flex items-center">
+                    <Bell size={18} className="mr-2 text-[var(--color-general)]" /> Ustawienia
+                </CardHeader>
+                <CardContent className="p-8">
+                    <ProfileForm
+                        user={user}
+                        discordId={discordId}
+                        profile={profile}
+                        onUpdated={(p) => setProfile({ ...profile, ...p })}
+                    />
+                </CardContent>
+            </Card>
+
+            <LogoutButton />
+            <BottomNavigation />
+        </div>
+    );
+}
