@@ -1,3 +1,8 @@
+export const metadata = {
+  title: 'Aktualności — Nowości ze Studia Two Steps',
+  description: 'Przeglądaj ostatnie aktualności, ogłoszenia i wiadomości ze Studia. Śledź nowe release\'y, wydarzenia e-sportowe i aktualizacje techniczne.',
+};
+
 "use client";
 
 import { useEffect, useState } from "react";

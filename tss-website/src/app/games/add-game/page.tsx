@@ -271,25 +271,33 @@ export default function AddGamePage() {
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[var(--color-games)] focus:border-transparent transition-all"
                   >
-                    <option value="RPG">RPG</option>
-                    <option value="Action">Action</option>
-                    <option value="Strategy">Strategy</option>
-                    <option value="Puzzle">Puzzle</option>
-                    <option value="Adventure">Adventure</option>
-                    <option value="Simulation">Simulation</option>
-                    <option value="Sports">Sports</option>
-                    <option value="Casual">Casual</option>
-                    <option value="Horror">Horror</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
+                    {/* GRY */}
+                    <option value="RPG">🎮 RPG</option>
+                    <option value="Action">⚔️ Action</option>
+                    <option value="Strategy">💡 Strategy</option>
+                    <option value="Puzzle">🧩 Puzzle</option>
+                    <option value="Adventure">🗺️ Adventure</option>
+                    <option value="Simulation">🎪 Simulation</option>
+                    <option value="Sports">⚽ Sports</option>
+                    <option value="Casual">😊 Casual</option>
+                    <option value="Horror">😱 Horror</option>
+                    <option value="Other">❓ Other</option>
+
+                    {/* DEV CATEGORIES (NOWE!) */}
+                    <optgroup label="🔧 KATEGORIE DEVELOPERSCZE">
+                      <option value="DEV-TSS-UI">⚛️ UI Components TSS</option>
+                      <option value="NEXTJS-AVATAR">👤 Next.js Avatar System</option>
+                      <option value="REACT-HOOKS">🪝 React Hooks Examples</option>
+                      <option value="SHADCN-COMPONENTS">✨ Shadcn/ui Components</option>
+                      <option value="TAILWIND-CONFIG">🎨 Tailwind Config Setup</option>
+                      <option value="ELECTRON-WEBVIEW">💻 Electron Webview Apps</option>
+                      <option value="API-ENDPOINTS">🔌 Next.js API Routes</option>
+                      <option value="MIDDLEWARE-AUTH">⚡ Middleware Auth Protection
+                    </optgroup>
 
                 {/* Release Date */}
                 <div className="space-y-2">
-                  <label
-                    htmlFor="releaseDate"
-                    className="text-sm font-medium text-zinc-300 block"
-                  >
+                  <label htmlFor="releaseDate" className="text-sm font-medium text-zinc-300 block">
                     Data premiery
                   </label>
                   <Input
