@@ -1,6 +1,6 @@
+
 import type { Metadata } from "next";
 import { Space_Grotesk, Outfit } from "next/font/google";
-import { motion } from "framer-motion";
 import "./globals.css";
 import { VisualEditsMessenger } from "orchids-visual-edits";
 import ErrorReporter from "@/components/ErrorReporter";
