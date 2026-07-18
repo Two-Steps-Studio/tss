@@ -8,8 +8,8 @@ import { motion } from "framer-motion";
 import { HomeHero } from "./home-hero";
 
 export const metadata = {
-  title: 'Two Steps Studio — Beatmapy, Gry i Społeczność',
-  description: 'Strona internetowa Two Steps Studio — platforma z beatmapami, grami, podcastami, turniejami e-sportowymi i warsztatami programistycznymi. Dołącz do tysięcy użytkowników i odkryj świat rhythm games!',
+  title: 'Two Steps Studio - Beatmapy, Gry i Społeczność',
+  description: 'Strona internetowa Two Steps Studio - platforma z beatmapami, grami, podcastami, turniejami e-sportowymi i warsztatami programistycznymi!',
   keywords: ['beatmapy', 'gracz', 'discord', 'muzyka', 'podcasty', 'esport', 'turnieje', 'rhythm games'],
   openGraph: {
     type: 'website',
@@ -76,13 +76,12 @@ const t = {
           ctaPrimary: "POBIERZ APLIKACJĘ",
           ctaSecondary: "DOŁĄCZ DO NAS",
         },
-      marquee: ["Nowe projekty", "E-sport", "Games", "Records", "Dev", "Community", "COD Analyzer"],
+      marquee: ["Nowe projekty", "Games", "Records", "Dev", "Community"],
       sections: {
         games: { title: "Games", desc: "Interaktywne światy.", stats: "0 gier" },
         esport: { title: "E-sport", desc: "Duch rywalizacji.", stats: "0 turniejów" },
         records: { title: "Records", desc: "Brzmienie pasji.", stats: "0 utwory" },
-        dev: { title: "Dev", desc: "Kod przyszłości.", stats: "1 projektów" },
-        codAnalyzer: { title: "COD Analyzer", desc: "Analityk taktyczny.", stats: "Dostępny" },
+        dev: { title: "Dev", desc: "Kod przyszłości.", stats: "1 projektów" }
       }
     },
     en: {
@@ -94,7 +93,7 @@ const t = {
         ctaPrimary: "DOWNLOAD APP",
         ctaSecondary: "JOIN US",
       },
-      marquee: ["New projects", "E-sport", "Games", "Records", "Dev", "Community", "COD Analyzer"],
+      marquee: ["New projects", "E-sport", "Games", "Records", "Dev", "Community"],
       sections: {
         games: { title: "Games", desc: "Interactive worlds.", stats: "0 games" },
         esport: { title: "E-sport", desc: "Competitive spirit.", stats: "0 tournaments" },
@@ -135,7 +134,7 @@ export function HomeClient() {
 
       {/* Bento Grid Sections */}
       <section className="px-4">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-auto md:h-[800px]">
+          <div className="grid grid-cols-1 md:grid-cols-12 md:grid-rows-2 gap-6 h-auto md:h-[700px]">
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -144,7 +143,7 @@ export function HomeClient() {
               className="md:col-span-8 relative group cursor-pointer overflow-hidden rounded-[3rem] bg-[var(--color-games)] text-white p-10 md:p-16 flex flex-col justify-end transition-all duration-500 hover:shadow-[0_0_50px_rgba(220,53,69,0.3)]"
             >
 
-            <div className="absolute top-10 right-10 w-40 h-40 bg-white/20 blur-[60px] rounded-full group-hover:scale-150 transition-transform duration-700" />
+            <div className="absolute top-10 right-10 w-40 h-40 bg-white/20 blur-[60px] rounded-full group-hover:scale-150 transition-transform duration-00" />
             <div 
               className="absolute -top-10 -right-10 w-[120px] h-[120px] bg-white/10 rotate-12 group-hover:rotate-0 transition-transform duration-700"
               style={{
@@ -191,12 +190,12 @@ export function HomeClient() {
               </div>
           </motion.div>
 
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.02, rotate: -0.5 }}
-              viewport={{ once: true }}
-              className="md:col-span-5 relative group cursor-pointer overflow-hidden rounded-[3rem] bg-[var(--color-dev)] text-white p-10 flex flex-col justify-between transition-all duration-500 hover:shadow-[0_0_50px_rgba(255,203,47,0.3)]"
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.02, rotate: -0.5 }}
+                viewport={{ once: true }}
+                className="md:col-span-12 relative group cursor-pointer overflow-hidden rounded-[3rem] bg-[var(--color-dev)] text-white p-10 flex flex-col justify-between transition-all duration-500 hover:shadow-[0_0_50px_rgba(255,203,47,0.3)]"
             >
 
             <div 
@@ -216,69 +215,6 @@ export function HomeClient() {
                   <p className="text-lg font-medium opacity-80">{content.sections.dev.desc}</p>
                 </div>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.01, rotate: 0.2 }}
-              viewport={{ once: true }}
-              className="md:col-span-7 relative group cursor-pointer overflow-hidden rounded-[3rem] bg-[var(--color-e-sport)] text-white p-10 md:p-14 flex flex-col items-center justify-center text-center transition-all duration-500 hover:shadow-[0_0_50px_rgba(6,228,2,0.3)]"
-            >
-
-              <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent" />
-              <Trophy size={100} className="relative z-10 mb-6 group-hover:scale-110 group-hover:-rotate-6 transition-transform" />
-                <div className="relative z-10">
-                  <span className="inline-block px-4 py-1.5 rounded-full bg-black/20 text-[10px] font-black tracking-widest mb-4">{content.sections.esport.stats}</span>
-                  <h2 className="text-5xl font-black tracking-tight mb-4 italic pr-2">{content.sections.esport.title}</h2>
-                  <p className="text-xl font-medium opacity-80">{content.sections.esport.desc}</p>
-                </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.01, rotate: 0.2 }}
-              viewport={{ once: true }}
-              className="md:col-span-1 relative group cursor-pointer overflow-hidden rounded-[3rem] bg-[var(--color-dev)]/80 text-white p-8 flex flex-col justify-between transition-all duration-500 hover:shadow-[0_0_50px_rgba(255,203,47,0.3)] hover:bg-[var(--color-dev)]"
-            >
-              <Link href="/e-sport/cod-analyzer" className="group/link">
-                <div
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white/10 group-hover:scale-125 transition-transform duration-500"
-                  style={{
-                    maskImage: 'url(/assets/Icons/code_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg)',
-                    maskSize: 'contain',
-                    maskRepeat: 'no-repeat',
-                    WebkitMaskImage: 'url(/assets/Icons/code_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg)',
-                    WebkitMaskSize: 'contain',
-                    WebkitMaskRepeat: 'no-repeat',
-                  }}
-                />
-                <div className="relative z-10 flex flex-col items-center">
-                  <span className="inline-block px-3 py-1 rounded-full bg-black/20 text-[9px] font-black tracking-widest mb-3">{content.sections.codAnalyzer.stats}</span>
-                  <h2 className="text-3xl font-black tracking-tight mb-2 italic pr-2 group-hover/link:text-[var(--color-e-sport)] transition-colors">{content.sections.codAnalyzer.title}</h2>
-                  <p className="text-sm font-medium opacity-80 text-center">{content.sections.codAnalyzer.desc}</p>
-                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-black uppercase group-hover/link:gap-3 transition-all">
-                    Analityk <ArrowRight className="group-hover/link:translate-x-2 transition-transform" />
-                  </span>
-                </div>
-              </Link>
-            </motion.div>
-
-            {/* Warzone Analyzer Section - Full width below */}
-            <section className="px-4">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="mb-20"
-              >
-                <div className="flex items-center gap-3 mb-8">
-                  <FileVideo className="text-[var(--color-general)] w-6 h-6" />
-                  <h2 className="text-3xl font-bold">Warzone Analyzer</h2>
-                </div>
-                <WarzoneAnalyzer userId="guest" />
-              </motion.div>
-            </section>
         </div>
       </section>
 
@@ -341,14 +277,13 @@ export function HomeClient() {
               <NewsletterForm />
               
                   <div className="flex flex-wrap justify-center gap-8 mt-20 opacity-40">
-                    {["Games", "Records", "E-sport", "Dev"].map((item) => (
+                    {["Games", "Records", "Dev"].map((item) => (
                       <span key={item} className="text-sm font-black tracking-[0.4em] uppercase">{item}</span>
                     ))}
                   </div>
             </motion.div>
         </div>
       </section>
-
     </div>
   );
 }

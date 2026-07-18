@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { normalizeTask, toDbStatus } from "@/lib/dev/status-utils";
+import type { TaskStatus } from "@/lib/types/dev-types";
 
-// Pobierz zadania dla danego projektu
 export async function GET(request: Request) {
   let supabase;
   try {
@@ -11,17 +12,21 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const projectId = parseInt(searchParams.get("projectId") || "1");
-  const status = searchParams.get("status") || null;
+  const projectId = searchParams.get("projectId");
+
+  if (!projectId) {
+    return NextResponse.json({ error: "projectId is required" }, { status: 400 });
+  }
 
   let query = supabase
     .from("dev_tasks")
     .select("*")
-    .eq("project_id", projectId)
+    .eq("project_id", Number(projectId))
     .order("created_at", { ascending: false });
 
+  const status = searchParams.get("status");
   if (status) {
-    query = query.eq("status", status);
+    query = query.eq("status", toDbStatus(status as TaskStatus));
   }
 
   const { data, error } = await query;
@@ -30,10 +35,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data || []);
+  return NextResponse.json((data ?? []).map((t) => normalizeTask(t)));
 }
 
-// Stwórz nowe zadanie
 export async function POST(request: Request) {
   let supabase;
   try {
@@ -42,21 +46,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Dev mode disabled" }, { status: 503 });
   }
 
-  const { title, description, status = "pending", assigned_to, priority = "medium", tags = [], due_date, estimated_hours, custom_fields, project_id } = await request.json();
+  const body = await request.json();
+  const uiStatus = (body.status ?? "todo") as TaskStatus;
 
   const { data, error } = await supabase
     .from("dev_tasks")
     .insert({
-      title,
-      description: description || "",
-      assigned_to: assigned_to || null,
-      status,
-      priority,
-      tags: tags || [],
-      due_date: due_date || null,
-      estimated_hours: estimated_hours || null,
-      custom_fields: custom_fields || {},
-      project_id: project_id || 1,
+      title: body.title,
+      description: body.description ?? "",
+      status: toDbStatus(uiStatus),
+      priority: body.priority ?? "medium",
+      tags: body.tags ?? [],
+      due_date: body.due_date ?? null,
+      progress_percent: body.progress_percent ?? 0,
+      assignee_name: body.assignee_name ?? null,
+      estimated_hours: body.estimated_hours ?? null,
+      project_id: body.project_id,
     })
     .select()
     .single();
@@ -65,5 +70,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data, { status: 201 });
+  return NextResponse.json(normalizeTask(data), { status: 201 });
 }

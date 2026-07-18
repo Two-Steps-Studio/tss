@@ -1,10 +1,5 @@
-// Przekieruj /games do launchera
-import { NextResponse } from "next/server";
+import GamesPage from "./games";
 
-export async function GET() {
-  return NextResponse.redirect(new URL("/", import.meta.url || "http://localhost:3000"));
-}
-
-export default function HomePage() {
-  return null;
+export default function GamesPageWrapper() {
+  return <GamesPage />;
 }
