@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Plus, Trash2, Calendar, Pencil } from 'lucide-react';
+import { Plus, Trash2, Calendar, Flag, Pencil } from 'lucide-react';
 import type { RoadmapItem, RoadmapStatus } from '@/types/dev';
 
 const STATUS_LABELS: Record<RoadmapStatus, string> = {

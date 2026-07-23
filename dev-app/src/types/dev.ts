@@ -1,7 +1,7 @@
 export type TaskStatus = 'todo' | 'in-progress' | 'testing' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
 export type FileCategory = 'documentation' | 'graphics' | 'audio' | 'source-code' | 'other';
-export type TechCategory = 'Frontend' | 'Backend' | 'Game Engine' | 'Database' | 'AI' | 'DevOps' | 'Mobile' | 'Other' | 'Audio' | 'Graphics';
+export type TechCategory = 'Frontend' | 'Backend' | 'Game Engine' | 'Database' | 'AI' | 'DevOps' | 'Mobile' | 'Other';
 export type RoadmapStatus = 'planned' | 'in-progress' | 'completed' | 'delayed';
 
 export interface Comment {

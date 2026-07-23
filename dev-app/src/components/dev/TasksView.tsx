@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, MessageSquare, Calendar, User, Trash2, GripVertical } from 'lucide-react';
+import { Plus, MessageSquare, Calendar, User, Tag, Trash2, GripVertical } from 'lucide-react';
 import type { Task, TaskStatus, TaskPriority, Comment } from '@/types/dev';
 
 const COLUMNS: { key: TaskStatus; label: string; color: string }[] = [
