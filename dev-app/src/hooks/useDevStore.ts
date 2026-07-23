@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { Project, ProjectData, Task, RoadmapItem, ProjectFile, Technology } from '@/types/dev';
 
 const STORAGE_KEY = 'dev-projects';
@@ -6,10 +6,6 @@ const ACTIVE_KEY = 'dev-active-project';
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-}
-
-function nowDate(): string {
-  return new Date().toISOString().split('T')[0];
 }
 
 function createSampleProject1(): ProjectData {
@@ -162,11 +158,6 @@ export function useDevStore() {
     const first = Object.keys(loadProjects())[0];
     return first ?? '';
   });
-
-  const persist = useCallback((next: Record<string, ProjectData>) => {
-    setProjects(next);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  }, []);
 
   const setActiveProject = useCallback((id: string) => {
     setActiveProjectId(id);

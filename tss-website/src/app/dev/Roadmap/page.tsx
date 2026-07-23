@@ -13,7 +13,7 @@ export default function Page() {
           </Badge>
 
           <h1 className="text-4xl md:text-6xl font-bold text-black dark:text-white font-[family-name:var(--font-space)] tracking-tight">
-            <span className="text-[var(--color-dev)]">Template</span>
+            <span className="text-[var(--color-dev)]">Roadmap</span>
           </h1>
 
           <p className="text-zinc-600 dark:text-zinc-300 max-w-2xl font-[family-name:var(--font-outfit)] text-lg md:text-xl leading-relaxed">
