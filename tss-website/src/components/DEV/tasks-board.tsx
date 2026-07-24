@@ -43,8 +43,11 @@ function useDraggableTasks(status: TaskStatus) {
 function BoardColumn({ title, children }: { title: string; status?: TaskStatus; className?: string }, props: any): React.JSX.Element {
   const tasks = useDraggableTasks(props.status || "todo");
 
-  return (<>);
+  return <></>;
 }
 
 export function KanbanBoard() {
   if (!useDevProject().activeProjectId) return null;
+
+  return null;
+}

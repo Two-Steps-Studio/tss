@@ -8,7 +8,7 @@ import { Plus, Calendar, CheckCircle2, Clock, ListTodo, Loader2, TestTube2, Tras
 import { useState } from "react";
 
 export default function ProjectsView() {
-  const { activeProject, stats, isLoading, createProject, projects, deleteProject, updateProject } = useDevProject();
+  const { activeProject, stats, isLoading, createProject, projects, deleteProject, updateProject, setActiveProjectId } = useDevProject();
   const [isCreatingModalOpen, setIsCreatingModalOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [edittingId, setEditingId] = useState<number | null>(null);
@@ -31,11 +31,11 @@ export default function ProjectsView() {
           {projectCards.map((p) => p as any).map((project, idx) => (
             <div
               key={idx}
-              onClick={() => project && useDevProject().setActiveProjectId(project.id)}
+              onClick={() => project && setActiveProjectId(project.id)}
               className={`cursor-pointer rounded-xl border transition-all hover:shadow-md ${activeProject?.id === (project?.id || 0) ? 'ring-2 ring-[var(--color-dev)]' : ''}`}
             >
               <div
-                onClick={(e) => { e.stopPropagation(); if (!project) return; useDevProject().setActiveProjectId(project.id); }}
+                onClick={(e) => { e.stopPropagation(); if (!project) return; setActiveProjectId(project.id); }}
                 className="p-4 bg-card hover:bg-accent/50 transition-colors"
               >
                 <h3 className="font-bold truncate">{project?.name}</h3>
@@ -212,4 +212,18 @@ export default function ProjectsView() {
                   {stats[statKey as keyof DevProjectStats] || 0}
                 </p>
 
-                <span
+                <span className="text-sm text-muted-foreground">
+                  {labelKey === 'all' && 'Wszystkie'}
+                  {labelKey === 'done' && 'Ukończone'}
+                  {labelKey === 'doing' && 'W trakcie'}
+                  {labelKey === 'testing' && 'Testowanie'}
+                  {labelKey === 'wait' && 'Oczekujące'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

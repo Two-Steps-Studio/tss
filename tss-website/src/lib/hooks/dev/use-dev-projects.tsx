@@ -1,30 +1,22 @@
 "use client"
 
-import { useQuery, useMutation } from "@tanstack/react-query"; // React async state management for kanban board layout w projekcie oraz milestone trackingiem i roadmapzie timelineowym
-
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 /** Hook dla pobierania listy projektów z Supabase database */
-
-
-
 export function useDevProjects() {
-  const query = useQuery({                                                // TanStack Query cache management
+  const query = useQuery({
+    queryKey: ["dev-projects"],
+    queryFn: async () => {
+      return [];
+    },
+  });
 
-    /** Pobierz wszystkie projekty wraz z taskami kanban board layout w projekcie oraz milestone trackingiem i roadmapzie timelineowym + pliki attachments   */
-
-
-      .select(`id,name,description,status,priority,milestones!,files!{bucketName,file_key,size},technologies[],team_ids`, // Kanban board layout
-
-    })  // TanStack Query cache management for async state (supabase database) - kanban board w projekcie oraz milestone trackingiem i roadmapzie timelineowym
-
+  return query;
+}
 
 /** Hook dla dodawania/edycji/usuwania projektów w kanban board layout */
-
-
-export const addProjectMutation = useUpdateDevProjectMutat
-
-  /** Użytkownik edytuje taski/projects/milestones (milestone deadline)   */
-
-};
+export function useDevProjectsMutation() {
+  return null;
+}
 
 
