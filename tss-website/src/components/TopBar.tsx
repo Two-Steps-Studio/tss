@@ -25,6 +25,18 @@ export function TopBar() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string>("");
   const [unread, setUnread] = useState<number>(0);
+  const [plnBalance, setPlnBalance] = useState<string>("0,00");
+
+  // Hydratacja: czytaj localStorage tylko po stronie klienta
+  useEffect(() => {
+    const stored = localStorage.getItem("pln_balance");
+    if (stored !== null) {
+      const num = parseFloat(stored.replace(",", "."));
+      if (Number.isFinite(num)) {
+        setPlnBalance(num.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+      }
+    }
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -58,14 +70,20 @@ export function TopBar() {
       setDisplayName(user.user_metadata?.full_name || emailName);
       const metaAvatar = (user.user_metadata as any)?.avatar_url || (user.user_metadata as any)?.picture || null;
       if (metaAvatar) setAvatarUrl(metaAvatar);
-      const { data, error } = await supabase
+
+      // Profile jest zapisywany z id = discord provider_id (nie auth user.id).
+      // Próbujemy obu, żeby obsłużyć konta email-only.
+      const discordId = (user.user_metadata as any)?.provider_id;
+      const candidateIds = Array.from(new Set([discordId, user.id].filter(Boolean)));
+
+      let data: any = null;
+      for (const id of candidateIds) {
+        const { data: row } = await supabase
           .from("profiles")
           .select("avatar_url,username,pln_balance")
-          .eq("id", user.id)
+          .eq("id", id)
           .maybeSingle();
-      // Handle error (PGRST116 = 0 rows, or other errors)
-      if (error || !data) {
-        console.log('[TopBar] Profile not found, using fallback values');
+        if (row) { data = row; break; }
       }
       // Use data if available, otherwise use fallbacks
       const profileData = data || { avatar_url: metaAvatar, username: null, pln_balance: 0 };
@@ -73,6 +91,10 @@ export function TopBar() {
       setDisplayName((profileData.username as string) || user.user_metadata?.full_name || emailName);
       if (profileData.pln_balance !== undefined) {
         localStorage.setItem("pln_balance", String(profileData.pln_balance));
+        const num = Number(profileData.pln_balance);
+        if (Number.isFinite(num)) {
+          setPlnBalance(num.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        }
       }
     };
     loadProfile();
@@ -85,6 +107,10 @@ export function TopBar() {
       if (d.username) setDisplayName(d.username);
       if (d.pln_balance !== undefined) {
         localStorage.setItem("pln_balance", String(d.pln_balance));
+        const num = Number(d.pln_balance);
+        if (Number.isFinite(num)) {
+          setPlnBalance(num.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+        }
       }
     };
     window.addEventListener("profile:updated", handler as any);
@@ -164,11 +190,8 @@ export function TopBar() {
                   <div className="flex flex-col items-end mr-2">
                     <span className="text-xs text-muted-foreground font-medium">Saldo:</span>
                     <span className="text-sm font-black text-[var(--color-general)]">
-                  {(localStorage.getItem("pln_balance") || "0,00").toLocaleString("pl-PL", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })} zł
-                </span>
+                      {plnBalance} zł
+                    </span>
                   </div>
 
                   <Link href="/profil">

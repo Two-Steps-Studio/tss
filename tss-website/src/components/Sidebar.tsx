@@ -121,7 +121,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
         { href: "/dev/description", label: t.nav.description || "Description", icon: NotebookText },
         { href: "/dev/technology", label: t.nav.technology ||"Technology", icon: Cpu },
       ]},
-    { id: "notifications", type: "single", href: "/ankiety/rating", label: t.nav.notifications || "Powiadomienia", icon: Bell },
+    { id: "notifications", type: "single", href: "/powiadomienia", label: t.nav.notifications || "Powiadomienia", icon: Bell },
 
 
 

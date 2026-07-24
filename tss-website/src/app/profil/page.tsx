@@ -14,6 +14,8 @@ import { Mail, Shield, Trophy, Star, Bell, Link as LinkIcon, CheckCircle2 } from
 import LogoutButton from "./logout-button";
 import Image from "next/image";
 import { BottomNavigation } from "@/components/BottomNavigation";
+import { ProfileBanner as ProfileBannerSection } from "./profile-banner";
+const ProfileBanner = ProfileBannerSection;
 
 const ROLE_PRIORITY: Array<{ key: string; color: string; label: string }> = [
     { key: "〔 👑︱Owner 〕", color: "#dc3545", label: "OWNER" },
@@ -107,19 +109,20 @@ const fetchRankingData = async () => {
     const { data: levelUsers } = await supabase.from("profiles").select("id, discord_id, username, level, xp").order("level", { ascending: false }).limit(100);
     const { data: moneyUsers } = await supabase.from("profiles").select("id, discord_id, username, money").order("money", { ascending: false }).limit(100);
 
-    const usersByLevel: RankedUser[] = (levelUsers || []).map((u, idx: number) => ({
+    if (!levelUsers || !moneyUsers) return { usersByLevel: [], usersByMoney: [] };
+
+    const usersByLevel: RankedUser[] = levelUsers.map((u, idx: number) => ({
         ...u,
         rank: idx + 1,
         discord_id: u.discord_id || u.id
     }));
-    const usersByMoney: RankedUser[] = (moneyUsers || []).map((u, idx: number) => ({
+    const usersByMoney: RankedUser[] = moneyUsers.map((u, idx: number) => ({
         ...u,
         rank: idx + 1,
         discord_id: u.discord_id || u.id
     }));
 
     console.log('[PROFILE] Ranking data:', { level: usersByLevel.length, money: usersByMoney.length });
-    console.log('[PROFILE] Level users:', JSON.stringify(usersByLevel.slice(0, 3)));
 
     return { usersByLevel, usersByMoney };
 };
@@ -132,6 +135,7 @@ export default function ProfilePage() {
     const [authChecked, setAuthChecked] = useState(false);
     const [rankingData, setRankingData] = useState<{ usersByLevel: any[]; usersByMoney: any[] }>({ usersByLevel: [], usersByMoney: [] });
     const [topTab, setTopTab] = useState<"level" | "money">("level");
+    const [avatarBroken, setAvatarBroken] = useState(false);
 
     useEffect(() => {
         let channel: any = null;
@@ -226,8 +230,13 @@ export default function ProfilePage() {
                         <div className="relative group flex-shrink-0">
                             <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-[var(--color-general)] to-transparent opacity-60 blur-md" />
                             <Avatar className="h-48 w-48 ring-4 ring-[var(--color-general)]/20 border-2 border-[var(--color-general)]/30">
-                                <AvatarImage src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture} />
-                                <AvatarFallback className="text-4xl bg-white text-black font-bold">{discordName?.[0]}</AvatarFallback>
+                                <AvatarImage
+                                    src={profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture}
+                                    onError={() => setAvatarBroken(true)}
+                                />
+                                {avatarBroken && (
+                                    <AvatarFallback className="text-4xl bg-white text-black font-bold">{discordName?.[0]}</AvatarFallback>
+                                )}
                             </Avatar>
                             <Badge className="absolute -bottom-2 -right-2 px-3 py-1 text-white font-bold rounded-full" style={{ backgroundColor: roleInfo.color }}>
                                 {roleInfo.label}
@@ -267,6 +276,9 @@ export default function ProfilePage() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* ── PROFIL Z BANERem (min 1000 × 500) ── */}
+            <ProfileBanner userId={discordId} currentBanner={profile?.background || null} />
 
             {/* ── STATYSTYKI + TOPKA ── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

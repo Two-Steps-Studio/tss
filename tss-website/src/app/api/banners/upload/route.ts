@@ -11,12 +11,12 @@ async function validateFile(file: File | null): Promise<{ valid: boolean; extens
   const extension = file.name.split(".").pop()?.toLowerCase();
   const mime = file.type || "";
 
-  if (!ALLOWED_EXTENSIONS.includes(extension) || !ALLOWED_MIME_TYPES.includes(mime)) {
+  if (!ALLOWED_EXTENSIONS.includes(extension || "") || !ALLOWED_MIME_TYPES.includes(mime)) {
     return { valid: false };
   }
 
-  // Check file size (max 10MB)
-  if (file.size > 10 * 1024 * 1024) {
+  // Banner — większy limit (15MB)
+  if (file.size > 15 * 1024 * 1024) {
     return { valid: false };
   }
 
@@ -24,30 +24,21 @@ async function validateFile(file: File | null): Promise<{ valid: boolean; extens
 }
 
 export async function POST(req: Request) {
-  // Check if Supabase admin client is initialized
   if (!isSupabaseAdminInitialized || !supabaseAdmin) {
-    return NextResponse.json({
-      error: "Avatar upload is disabled - contact administrator"
-    }, { status: 503 });
+    return NextResponse.json({ error: "Banner upload is disabled - contact administrator" }, { status: 503 });
   }
 
   const form = await req.formData();
   const file = form.get("file") as File | null;
   const userId = (form.get("userId") as string) || "";
-  const username = (form.get("username") as string) || "";
 
-  if (!file) {
-    return NextResponse.json({ error: "Brak pliku" }, { status: 400 });
-  }
-  if (!userId) {
-    return NextResponse.json({ error: "Brak userId" }, { status: 400 });
-  }
+  if (!file) return NextResponse.json({ error: "Brak pliku" }, { status: 400 });
+  if (!userId) return NextResponse.json({ error: "Brak userId" }, { status: 400 });
 
-  // Validate file extension and mime type before upload
   const validation = await validateFile(file);
   if (!validation.valid) {
     return NextResponse.json(
-      { error: "Nieprawidłowy typ pliku. Dozwolone: PNG, JPG, GIF, WEBP (max 10MB)" },
+      { error: "Nieprawidłowy typ pliku. Dozwolone: PNG, JPG, GIF, WEBP (max 15MB)" },
       { status: 400 }
     );
   }
@@ -56,8 +47,8 @@ export async function POST(req: Request) {
   const exists = (buckets || []).some((b: any) => b.name === "avatars");
   if (!exists) {
     const { error: createError } = await supabaseAdmin.storage.createBucket("avatars", {
-      public: false,  // Private bucket - files are only accessible via authenticated requests
-      fileSizeLimit: 10 * 1024 * 1024,
+      public: false,
+      fileSizeLimit: 15 * 1024 * 1024,
       allowedMimeTypes: ALLOWED_MIME_TYPES,
     });
     if (createError) {
@@ -65,7 +56,7 @@ export async function POST(req: Request) {
     }
   }
 
-  const path = `${userId}/${Date.now()}-${file.name}`;
+  const path = `banners/${userId}/${Date.now()}-${file.name}`;
   const { error: uploadError } = await supabaseAdmin.storage.from("avatars").upload(path, file, {
     upsert: true,
     contentType: file.type,
@@ -74,11 +65,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 });
   }
 
-  // Bucket jest prywatny — getPublicUrl() zwraca URL, który NIE JEST publiczny (400/403).
-  // Używamy createSignedUrl() żeby wygenerować działający URL z ograniczonym czasem ważności.
+  // Bucket prywatny — tworzymy signed URL (1 rok)
   const { data: signedData, error: signedError } = await supabaseAdmin.storage
     .from("avatars")
-    .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 rok
+    .createSignedUrl(path, 60 * 60 * 24 * 365);
   if (signedError || !signedData?.signedUrl) {
     return NextResponse.json({ error: signedError?.message || "Failed to create signed URL" }, { status: 500 });
   }
@@ -86,8 +76,7 @@ export async function POST(req: Request) {
 
   await supabaseAdmin.from("profiles").upsert({
     id: userId,
-    username,
-    avatar_url: url,
+    background: url,
     updated_at: new Date().toISOString(),
   });
 
