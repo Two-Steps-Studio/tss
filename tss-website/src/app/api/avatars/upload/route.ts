@@ -74,15 +74,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: uploadError.message }, { status: 500 });
   }
 
-  // Bucket jest prywatny — getPublicUrl() zwraca URL, który NIE JEST publiczny (400/403).
-  // Używamy createSignedUrl() żeby wygenerować działający URL z ograniczonym czasem ważności.
-  const { data: signedData, error: signedError } = await supabaseAdmin.storage
-    .from("avatars")
-    .createSignedUrl(path, 60 * 60 * 24 * 365); // 1 rok
-  if (signedError || !signedData?.signedUrl) {
-    return NextResponse.json({ error: signedError?.message || "Failed to create signed URL" }, { status: 500 });
-  }
-  const url = signedData.signedUrl;
+  const { data: publicData } = supabaseAdmin.storage.from("avatars").getPublicUrl(path);
+  const url = publicData.publicUrl;
 
   await supabaseAdmin.from("profiles").upsert({
     id: userId,
