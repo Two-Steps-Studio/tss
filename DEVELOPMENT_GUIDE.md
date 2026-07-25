@@ -32,10 +32,7 @@ This guide covers development setup, debugging, build process, and deployment fo
 
 ### Optional Tools
 
-- [Docker](https://www.docker.com/) for containerization
 - [Vercel](https://vercel.com/) for deployment
-- [GitHub Actions](https://github.com/features/actions) for CI/CD
-- [Postman](https://www.postman.com/) for API testing
 
 ## Environment Setup
 
@@ -50,7 +47,7 @@ This guide covers development setup, debugging, build process, and deployment fo
 #### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Kenikusss/tss
 cd tss
 ```
 
@@ -58,11 +55,11 @@ cd tss
 
 ```bash
 # Install website dependencies
-cd tss-website
+cd .\tss-website
 npm install
 
 # Install bot dependencies
-cd ../tss-dc-bot
+cd .\tss-dc-bot
 npm install
 ```
 
@@ -559,5 +556,5 @@ For development-related questions:
 
 ---
 
-**Last Updated**: 2026-03-13  
-**Version**: 1.0.0  
+**Last Updated**: 2026-07-24
+**Version**: BETA - 0.1V  
