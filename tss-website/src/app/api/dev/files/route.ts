@@ -45,6 +45,12 @@ export async function POST(request: Request) {
     );
   }
 
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body: CreateFileData = await request.json();
   const { project_id, name, storage_path, file_url, category, size_bytes, mime_type } = body;
 
@@ -78,6 +84,12 @@ export async function DELETE(request: Request) {
       { error: "Dev files disabled - contact administrator" },
       { status: 503 }
     );
+  }
+
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);

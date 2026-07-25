@@ -17,6 +17,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     );
   }
 
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { id } = await params;
   const body: UpdateProjectData = await request.json();
 
@@ -25,10 +31,14 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     .update(body)
     .eq("id", Number(id))
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (!data) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
   return NextResponse.json(data);
@@ -43,6 +53,12 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       { error: "Dev projects disabled - contact administrator" },
       { status: 503 }
     );
+  }
+
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { id } = await params;

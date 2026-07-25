@@ -45,6 +45,12 @@ export async function POST(request: Request) {
     );
   }
 
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body: CreateTechnologyData = await request.json();
   const { project_id, name, icon_slug, version, category, description, sort_order } = body;
 
@@ -93,6 +99,12 @@ export async function PATCH(request: Request) {
     );
   }
 
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body: UpdateTechnologyData & { id?: number } = await request.json();
   const { id, ...updateData } = body;
 
@@ -123,6 +135,12 @@ export async function DELETE(request: Request) {
       { error: "Dev technologies disabled - contact administrator" },
       { status: 503 }
     );
+  }
+
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);

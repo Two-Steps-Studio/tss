@@ -45,6 +45,12 @@ export async function POST(request: Request) {
     );
   }
 
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body: CreatePhaseData = await request.json();
   const { project_id, name, description, start_date, planned_end_date, status, completion_percentage, sort_order } = body;
 
@@ -94,6 +100,12 @@ export async function PATCH(request: Request) {
     );
   }
 
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body: UpdatePhaseData & { id?: number } = await request.json();
   const { id, ...updateData } = body;
 
@@ -124,6 +136,12 @@ export async function DELETE(request: Request) {
       { error: "Dev roadmap disabled - contact administrator" },
       { status: 503 }
     );
+  }
+
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { searchParams } = new URL(request.url);
