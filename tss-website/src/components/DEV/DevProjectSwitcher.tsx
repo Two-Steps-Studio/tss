@@ -50,7 +50,7 @@ export function DevProjectSwitcher() {
             Create Project
           </Button>
         </DialogTrigger>
-        <DialogContent className="rounded-3xl">
+        <DialogContent className="rounded-3xl bg-white text-black">
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
           </DialogHeader>
@@ -104,7 +104,7 @@ export function DevProjectSwitcher() {
             <Plus className="h-4 w-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="rounded-3xl">
+        <DialogContent className="rounded-3xl bg-white text-black">
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
           </DialogHeader>

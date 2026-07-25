@@ -36,24 +36,24 @@ import {
 import type { TaskStatus, TaskPriority } from "@/lib/types/dev-types";
 
 const statusColors: Record<TaskStatus, string> = {
-  todo: "bg-gray-500",
-  in_progress: "bg-blue-500",
-  testing: "bg-yellow-500",
-  completed: "bg-green-500",
+  Todo: "bg-gray-500",
+  In_progress: "bg-blue-500",
+  Testing: "bg-yellow-500",
+  Completed: "bg-green-500",
 };
 
 const priorityColors: Record<TaskPriority, string> = {
-  low: "text-gray-500",
-  medium: "text-yellow-500",
-  high: "text-orange-500",
-  critical: "text-red-500",
+  Low: "text-gray-500",
+  Medium: "text-yellow-500",
+  High: "text-orange-500",
+  Critical: "text-red-500",
 };
 
 const statusIcons: Record<TaskStatus, React.ReactNode> = {
-  todo: <Circle size={16} className="text-gray-500" />,
-  in_progress: <Clock size={16} className="text-blue-500" />,
-  testing: <Clock size={16} className="text-yellow-500" />,
-  completed: <CheckCircle size={16} className="text-green-500" />,
+  Todo: <Circle size={16} className="text-gray-500" />,
+  In_progress: <Clock size={16} className="text-blue-500" />,
+  Testing: <Clock size={16} className="text-yellow-500" />,
+  Completed: <CheckCircle size={16} className="text-green-500" />,
 };
 
 export default function DevTasks() {
@@ -172,7 +172,7 @@ export default function DevTasks() {
           <h1 className="text-4xl font-bold text-black dark:text-white mb-2">
             <span className="text-[var(--color-dev)]">Tasks</span>
           </h1>
-          <p className="text-muted-foreground">Manage tasks for {activeProject.name}</p>
+          <p className="text-muted-foreground">Manage tasks for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
@@ -181,7 +181,7 @@ export default function DevTasks() {
               New Task
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl">
+            <DialogContent className="rounded-3xl bg-white text-black">
             <DialogHeader>
               <DialogTitle>Create New Task</DialogTitle>
             </DialogHeader>
@@ -210,10 +210,10 @@ export default function DevTasks() {
                 <div>
                   <Label htmlFor="status">Status</Label>
                   <Select value={newTaskStatus} onValueChange={(val: TaskStatus) => setNewTaskStatus(val)}>
-                    <SelectTrigger className="rounded-2xl">
+                    <SelectTrigger className="rounded-2xl bg-white text-black">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white text-black">
                       <SelectItem value="todo">To Do</SelectItem>
                       <SelectItem value="in_progress">In Progress</SelectItem>
                       <SelectItem value="testing">Testing</SelectItem>
@@ -224,10 +224,10 @@ export default function DevTasks() {
                 <div>
                   <Label htmlFor="priority">Priority</Label>
                   <Select value={newTaskPriority} onValueChange={(val: TaskPriority) => setNewTaskPriority(val)}>
-                    <SelectTrigger className="rounded-2xl">
+                    <SelectTrigger className="rounded-2xl bg-white text-black">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white text-black">
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
@@ -327,7 +327,7 @@ export default function DevTasks() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="rounded-3xl">
+          <DialogContent className="rounded-3xl bg-white text-black">
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
           </DialogHeader>

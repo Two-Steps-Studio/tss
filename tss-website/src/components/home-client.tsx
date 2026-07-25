@@ -9,8 +9,8 @@ import { HomeHero } from "./home-hero";
 
 export const metadata = {
   title: 'Two Steps Studio — Beatmapy, Gry i Społeczność',
-  description: 'Strona internetowa Two Steps Studio — platforma z beatmapami, grami, podcastami, turniejami e-sportowymi i warsztatami programistycznymi. Dołącz do tysięcy użytkowników i odkryj świat rhythm games!',
-  keywords: ['beatmapy', 'gracz', 'discord', 'muzyka', 'podcasty', 'esport', 'turnieje', 'rhythm games'],
+  description: 'Strona internetowa Two Steps Studio — platforma z beatmapami, grami, podcastami . Dołącz do innych użytkowników i odkryj świat!',
+  keywords: [ 'gry', 'discord', 'muzyka', 'podcasty'],
   openGraph: {
     type: 'website',
     locale: 'pl_PL',
@@ -75,7 +75,6 @@ const t = {
       marquee: ["Nowe projekty", "E-sport", "Games", "Records", "DEV", "Community",],
       sections: {
         games: { title: "Games", desc: "Interaktywne światy.", stats: "0 gier" },
-        esport: { title: "E-sport", desc: "Duch rywalizacji.", stats: "0 turniejów" },
         records: { title: "Records", desc: "Brzmienie pasji.", stats: "0 utwory" },
         dev: { title: "DEV", desc: "Kod przyszłości.", stats: "1 projektów" },
       }
@@ -89,10 +88,9 @@ const t = {
         ctaPrimary: "DOWNLOAD APP",
         ctaSecondary: "JOIN US",
       },
-      marquee: ["New projects", "E-sport", "Games", "Records", "DEV", "Community"],
+      marquee: ["New projects", "Games", "Records", "DEV", "Community"],
       sections: {
         games: { title: "Games", desc: "Interactive worlds.", stats: "0 games" },
-        esport: { title: "E-sport", desc: "Competitive spirit.", stats: "0 tournaments" },
         records: { title: "Records", desc: "Sound of passion.", stats: "0 tracks" },
         dev: { title: "DEV", desc: "Code of tomorrow.", stats: "1 projects" },
       }

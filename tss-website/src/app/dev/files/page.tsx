@@ -137,7 +137,7 @@ export default function DevFiles() {
           <h1 className="text-4xl font-bold text-black dark:text-white mb-2">
             <span className="text-[var(--color-dev)]">Files</span>
           </h1>
-          <p className="text-muted-foreground">Project files for {activeProject.name}</p>
+          <p className="text-muted-foreground">Manage tasks for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
@@ -146,7 +146,7 @@ export default function DevFiles() {
               Add File
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl">
+          <DialogContent className="rounded-3xl bg-white text-black">
             <DialogHeader>
               <DialogTitle>Add New File</DialogTitle>
             </DialogHeader>
@@ -177,7 +177,7 @@ export default function DevFiles() {
                   <SelectTrigger className="rounded-2xl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white text-black">
                     <SelectItem value="documentation">Documentation</SelectItem>
                     <SelectItem value="graphics">Graphics</SelectItem>
                     <SelectItem value="audio">Audio</SelectItem>

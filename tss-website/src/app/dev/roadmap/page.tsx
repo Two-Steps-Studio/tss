@@ -160,7 +160,7 @@ export default function DevRoadmap() {
           <h1 className="text-4xl font-bold text-black dark:text-white mb-2">
             <span className="text-[var(--color-dev)]">Roadmap</span>
           </h1>
-          <p className="text-muted-foreground">Project phases for {activeProject.name}</p>
+          <p className="text-muted-foreground">Manage tasks for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
@@ -169,7 +169,7 @@ export default function DevRoadmap() {
               New Phase
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl">
+          <DialogContent className="rounded-3xl bg-white text-black">
             <DialogHeader>
               <DialogTitle>Create New Phase</DialogTitle>
             </DialogHeader>
@@ -313,7 +313,7 @@ export default function DevRoadmap() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="rounded-3xl">
+        <DialogContent className="rounded-3xl bg-white text-black">
           <DialogHeader>
             <DialogTitle>Edit Phase</DialogTitle>
           </DialogHeader>

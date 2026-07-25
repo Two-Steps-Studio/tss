@@ -3,24 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { 
-  LayoutDashboard, 
-  FolderKanban, 
-  CheckSquare, 
-  Map, 
-  FileText, 
-  FileCode, 
-  Cpu 
+import {
+  LayoutDashboard,
+  FolderKanban,
+  CheckSquare,
+  Map,
+  FileText,
+  Cpu,
+  NotebookText
 } from "lucide-react";
 
 const navItems = [
   { href: "/dev", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dev/projects", label: "Projects", icon: FolderKanban },
   { href: "/dev/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/dev/Roadmap", label: "Roadmap", icon: Map },
+  { href: "/dev/roadmap", label: "Roadmap", icon: Map },
   { href: "/dev/files", label: "Files", icon: FileText },
-  { href: "/dev/Description", label: "Description", icon: FileCode },
-  { href: "/dev/Technology", label: "Technologies", icon: Cpu },
+  { href: "/dev/description", label: "Description", icon: NotebookText },
+  { href: "/dev/technology", label: "Technologies", icon: Cpu },
 ];
 
 export function DevNavigation() {

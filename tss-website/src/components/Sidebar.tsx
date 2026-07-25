@@ -2,7 +2,42 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { X, BarChart3, Users, MessageSquare, ChevronRight, Sun, Moon, Home, HomeIcon, User, Settings, Bell, Gamepad, Trophy, Mic2, Music2, FolderOpen, Mail, Code, BookOpen, Book, Server, Layout, Database, Shield, Clipboard, Terminal, Search, TreePine, Cpu, File, NotebookText, CalendarFold,} from "lucide-react";
+import {
+  X,
+  BarChart3,
+  Users,
+  MessageSquare,
+  ChevronRight,
+  Sun,
+  Moon,
+  Home,
+  HomeIcon,
+  User,
+  Settings,
+  Bell,
+  Gamepad,
+  Trophy,
+  Mic2,
+  Music2,
+  FolderOpen,
+  Mail,
+  Code,
+  BookOpen,
+  Book,
+  Server,
+  Layout,
+  Database,
+  Shield,
+  Clipboard,
+  Terminal,
+  Search,
+  TreePine,
+  Cpu,
+  File,
+  NotebookText,
+  CalendarFold,
+  FileText, Map, CheckSquare, FolderKanban,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "../lib/utils";
 import { useSidebar } from "@/hooks/use-sidebar";
@@ -114,10 +149,10 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
         { href: "/records/beaty", label: "Beaty", icon: Mic2 },
       ]},
     { id: "dev", type: "expandable", href: "/dev", label: t.nav.dev || "Dev", icon: Code, items: [
-        { href: "/dev/projects", label: t.nav.project || "Projects", icon: Clipboard },
-        { href: "/dev/tasks", label: t.nav.tasks || "Tasks", icon: Layout },
-        { href: "/dev/roadmap", label: t.nav.roadmap || "Roadmap", icon: CalendarFold  },
-        { href: "/dev/files", label: t.nav.files ||"Files", icon: File },
+        { href: "/dev/projects", label: t.nav.project || "Projects", icon: FolderKanban },
+        { href: "/dev/tasks", label: t.nav.tasks || "Tasks", icon: CheckSquare },
+        { href: "/dev/roadmap", label: t.nav.roadmap || "Roadmap", icon: Map  },
+        { href: "/dev/files", label: t.nav.files ||"Files", icon: FileText },
         { href: "/dev/description", label: t.nav.description || "Description", icon: NotebookText },
         { href: "/dev/technology", label: t.nav.technology ||"Technology", icon: Cpu },
       ]},

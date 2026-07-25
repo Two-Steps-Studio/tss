@@ -15,7 +15,8 @@ import {
   Database,
   Server,
   Brain,
-  Settings
+  Settings,
+  Music  
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -44,6 +45,7 @@ const categoryIcons: Record<TechCategory, React.ReactNode> = {
   database: <Database size={20} className="text-orange-500" />,
   ai: <Brain size={20} className="text-pink-500" />,
   devops: <Settings size={20} className="text-cyan-500" />,
+  audio: <Music size={20} className="text-red-500" />,
   other: <Cpu size={20} className="text-gray-500" />,
 };
 
@@ -54,6 +56,7 @@ const categoryColors: Record<TechCategory, string> = {
   database: "bg-orange-500/10 text-orange-500 border-orange-500/20",
   ai: "bg-pink-500/10 text-pink-500 border-pink-500/20",
   devops: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
+  audio: "bg-red-500/10 text-red-500 border-red-500/20",
   other: "bg-gray-500/10 text-gray-500 border-gray-500/20",
 };
 
@@ -167,6 +170,7 @@ export default function DevTechnologies() {
     database: technologies.filter((t) => t.category === "database"),
     ai: technologies.filter((t) => t.category === "ai"),
     devops: technologies.filter((t) => t.category === "devops"),
+    audio: technologies.filter((t) => t.category === "audio"),
     other: technologies.filter((t) => t.category === "other"),
   };
 
@@ -187,7 +191,7 @@ export default function DevTechnologies() {
               Add Technology
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl">
+          <DialogContent className="rounded-3xl bg-white text-black">
             <DialogHeader>
               <DialogTitle>Add New Technology</DialogTitle>
             </DialogHeader>
@@ -218,13 +222,14 @@ export default function DevTechnologies() {
                   <SelectTrigger className="rounded-2xl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white text-black">
                     <SelectItem value="frontend">Frontend</SelectItem>
                     <SelectItem value="backend">Backend</SelectItem>
                     <SelectItem value="game_engine">Game Engine</SelectItem>
                     <SelectItem value="database">Database</SelectItem>
                     <SelectItem value="ai">AI/ML</SelectItem>
                     <SelectItem value="devops">DevOps</SelectItem>
+                    <SelectItem value="audio">Audio</SelectItem>
                     <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
@@ -336,7 +341,7 @@ export default function DevTechnologies() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="rounded-3xl">
+        <DialogContent className="rounded-3xl bg-white text-black">
           <DialogHeader>
             <DialogTitle>Edit Technology</DialogTitle>
           </DialogHeader>
@@ -367,13 +372,14 @@ export default function DevTechnologies() {
                 <SelectTrigger className="rounded-2xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white text-black">
                   <SelectItem value="frontend">Frontend</SelectItem>
                   <SelectItem value="backend">Backend</SelectItem>
                   <SelectItem value="game_engine">Game Engine</SelectItem>
                   <SelectItem value="database">Database</SelectItem>
                   <SelectItem value="ai">AI/ML</SelectItem>
                   <SelectItem value="devops">DevOps</SelectItem>
+                  <SelectItem value="audio">Audio</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>

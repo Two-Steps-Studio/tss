@@ -59,7 +59,7 @@ export default function DevDashboard() {
       color: "text-blue-500"
     },
     {
-      href: "/dev/Roadmap",
+      href: "/dev/roadmap",
       title: "Roadmap",
       description: "View project phases",
       icon: Map,
@@ -73,7 +73,7 @@ export default function DevDashboard() {
       color: "text-green-500"
     },
     {
-      href: "/dev/Technology",
+      href: "/dev/technology",
       title: "Technologies",
       description: "Tech stack",
       icon: Cpu,
