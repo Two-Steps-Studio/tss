@@ -182,7 +182,7 @@ export default function DevTechnologies() {
           <h1 className="text-4xl font-bold text-black dark:text-white mb-2">
             <span className="text-[var(--color-dev)]">Technologies</span>
           </h1>
-          <p className="text-muted-foreground">Tech stack for {activeProject.name}</p>
+          <p className="text-muted-foreground">Manage technologies for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>

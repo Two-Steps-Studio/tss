@@ -137,7 +137,7 @@ export default function DevFiles() {
           <h1 className="text-4xl font-bold text-black dark:text-white mb-2">
             <span className="text-[var(--color-dev)]">Files</span>
           </h1>
-          <p className="text-muted-foreground">Manage tasks for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
+          <p className="text-muted-foreground">Manage files for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
