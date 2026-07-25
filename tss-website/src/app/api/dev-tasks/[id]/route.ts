@@ -45,24 +45,30 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   const { id } = await params;
 
   const body = await request.json();
-  const { title, description, status, assigned_to } = body;
+  const { title, description, status, priority, tags, due_date, assignee_name, estimated_hours, progress_percent } = body;
 
-  const validStatuses = ["todo", "in_progress", "completed"];
+  const validStatuses = ["todo", "in_progress", "testing", "completed"];
   if (status && !validStatuses.includes(status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
-  if (!title?.trim() && !description) {
-    return NextResponse.json({ error: "Title or description is required" }, { status: 400 });
+  const validPriorities = ["low", "medium", "high", "critical"];
+  if (priority && !validPriorities.includes(priority)) {
+    return NextResponse.json({ error: "Invalid priority" }, { status: 400 });
   }
 
   const { data, error } = await supabase
     .from("dev_tasks")
     .update({
       title: title?.trim() || title,
-      description: description || "",
+      description,
       status,
-      assigned_to,
+      priority,
+      tags,
+      due_date,
+      assignee_name,
+      estimated_hours,
+      progress_percent,
     })
     .eq("id", Number(id))
     .select()

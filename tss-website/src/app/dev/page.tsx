@@ -51,31 +51,31 @@ export default function DevDashboard() {
   }
 
   const quickActions = [
-    { 
-      href: "/dev/tasks", 
-      title: "Tasks", 
-      description: `${stats.inProgress} in progress`, 
+    {
+      href: "/dev/tasks",
+      title: "Tasks",
+      description: `${stats.inProgress} in progress`,
       icon: CheckSquare,
       color: "text-blue-500"
     },
-    { 
-      href: "/dev/roadmap", 
-      title: "Roadmap", 
-      description: "View project phases", 
+    {
+      href: "/dev/Roadmap",
+      title: "Roadmap",
+      description: "View project phases",
       icon: Map,
       color: "text-purple-500"
     },
-    { 
-      href: "/dev/files", 
-      title: "Files", 
-      description: "Project resources", 
+    {
+      href: "/dev/files",
+      title: "Files",
+      description: "Project resources",
       icon: FileText,
       color: "text-green-500"
     },
-    { 
-      href: "/dev/technologies", 
-      title: "Technologies", 
-      description: "Tech stack", 
+    {
+      href: "/dev/Technology",
+      title: "Technologies",
+      description: "Tech stack",
       icon: Cpu,
       color: "text-orange-500"
     },

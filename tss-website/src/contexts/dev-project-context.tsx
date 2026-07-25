@@ -161,7 +161,7 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const deleteProject = useCallback(async (id: number) => {
-    await fetchJson(`/api/dev-projects?id=${id}`, { method: "DELETE" });
+    await fetchJson(`/api/dev-projects/${id}`, { method: "DELETE" });
     setProjects((prev) => {
       const next = prev.filter((p) => p.id !== id);
       if (activeProjectId === id && next.length > 0) {

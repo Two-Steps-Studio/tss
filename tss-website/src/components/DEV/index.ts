@@ -1,5 +1,3 @@
-export { default as KanbanCard } from './koncert-card';
-export * from '@radix-ui/themes';
-import type React from 'react';
+export { DevNavigation } from './DevNavigation';
+export { DevProjectSwitcher } from './DevProjectSwitcher';
 
-declare module 'react' {}

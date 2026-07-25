@@ -17,10 +17,10 @@ const navItems = [
   { href: "/dev", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dev/projects", label: "Projects", icon: FolderKanban },
   { href: "/dev/tasks", label: "Tasks", icon: CheckSquare },
-  { href: "/dev/roadmap", label: "Roadmap", icon: Map },
+  { href: "/dev/Roadmap", label: "Roadmap", icon: Map },
   { href: "/dev/files", label: "Files", icon: FileText },
-  { href: "/dev/description", label: "Description", icon: FileCode },
-  { href: "/dev/technologies", label: "Technologies", icon: Cpu },
+  { href: "/dev/Description", label: "Description", icon: FileCode },
+  { href: "/dev/Technology", label: "Technologies", icon: Cpu },
 ];
 
 export function DevNavigation() {
