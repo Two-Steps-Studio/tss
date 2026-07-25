@@ -14,7 +14,7 @@ Thank you for your interest in contributing to Two Steps Studio (TSS)! This docu
 - [Security Disclosures](#security-disclosures)
 
 ## Code of Conduct
-
+.
 Please note that this project is released with a [Code of Conduct](./CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
 ## Getting Started
