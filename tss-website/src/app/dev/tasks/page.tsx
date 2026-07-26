@@ -15,7 +15,7 @@ import {
   Clock,
   Circle
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +34,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { TaskStatus, TaskPriority } from "@/lib/types/dev-types";
-import { TasksAttachmentUploader } from "@/components/DEV/TasksAttachmentUploader";
 
 const statusColors: Record<TaskStatus, string> = {
   Todo: "bg-gray-500",
@@ -58,7 +57,7 @@ const statusIcons: Record<TaskStatus, React.ReactNode> = {
 };
 
 export default function DevTasks() {
-  const { tasks, activeProject, createTask, updateTask, deleteTask, isLoading, error, taskAttachments, loadTaskAttachments, updateTaskAttachments } = useDevProject();
+  const { tasks, activeProject, createTask, updateTask, deleteTask, isLoading, error } = useDevProject();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<typeof tasks[0] | null>(null);
@@ -109,13 +108,12 @@ export default function DevTasks() {
     }
   };
 
-  const openEditDialog = async (task: typeof tasks[0]) => {
+  const openEditDialog = (task: typeof tasks[0]) => {
     setEditingTask(task);
     setNewTaskTitle(task.title);
     setNewTaskDescription(task.description || "");
     setNewTaskStatus(task.status);
     setNewTaskPriority(task.priority);
-    await loadTaskAttachments(task.id);
     setIsEditOpen(true);
   };
 
@@ -329,7 +327,7 @@ export default function DevTasks() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="rounded-3xl bg-white text-black max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="rounded-3xl bg-white text-black">
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
           </DialogHeader>
@@ -384,16 +382,6 @@ export default function DevTasks() {
                 </Select>
               </div>
             </div>
-            {editingTask && (
-              <div>
-                <Label>Attachments</Label>
-                <TasksAttachmentUploader
-                  task={editingTask}
-                  attachments={taskAttachments[editingTask.id] || []}
-                  onAttachmentsChanged={(attachments) => updateTaskAttachments(editingTask.id, attachments)}
-                />
-              </div>
-            )}
             <Button onClick={handleEditTask} disabled={isCreating} className="w-full rounded-2xl">
               {isCreating ? "Saving..." : "Save Changes"}
             </Button>

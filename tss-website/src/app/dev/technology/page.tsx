@@ -16,11 +16,9 @@ import {
   Server,
   Brain,
   Settings,
-  Music,
-  Search,
-  Filter
+  Music  
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -73,17 +71,6 @@ export default function DevTechnologies() {
   const [newTechDescription, setNewTechDescription] = useState("");
   const [newTechIcon, setNewTechIcon] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterCategory, setFilterCategory] = useState<TechCategory | "all">("all");
-
-  const filteredTechnologies = useMemo(() => {
-    return technologies.filter((tech) => {
-      const matchesSearch = tech.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           (tech.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
-      const matchesCategory = filterCategory === "all" || tech.category === filterCategory;
-      return matchesSearch && matchesCategory;
-    });
-  }, [technologies, searchQuery, filterCategory]);
 
   const handleAddTechnology = async () => {
     if (!newTechName.trim() || !activeProject) return;
@@ -177,14 +164,14 @@ export default function DevTechnologies() {
   }
 
   const technologiesByCategory: Record<TechCategory, typeof technologies> = {
-    frontend: filteredTechnologies.filter((t) => t.category === "frontend"),
-    backend: filteredTechnologies.filter((t) => t.category === "backend"),
-    game_engine: filteredTechnologies.filter((t) => t.category === "game_engine"),
-    database: filteredTechnologies.filter((t) => t.category === "database"),
-    ai: filteredTechnologies.filter((t) => t.category === "ai"),
-    devops: filteredTechnologies.filter((t) => t.category === "devops"),
-    audio: filteredTechnologies.filter((t) => t.category === "audio"),
-    other: filteredTechnologies.filter((t) => t.category === "other"),
+    frontend: technologies.filter((t) => t.category === "frontend"),
+    backend: technologies.filter((t) => t.category === "backend"),
+    game_engine: technologies.filter((t) => t.category === "game_engine"),
+    database: technologies.filter((t) => t.category === "database"),
+    ai: technologies.filter((t) => t.category === "ai"),
+    devops: technologies.filter((t) => t.category === "devops"),
+    audio: technologies.filter((t) => t.category === "audio"),
+    other: technologies.filter((t) => t.category === "other"),
   };
 
   return (
@@ -197,39 +184,13 @@ export default function DevTechnologies() {
           </h1>
           <p className="text-muted-foreground">Manage technologies for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
         </div>
-        <div className="flex gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search technologies..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 rounded-2xl w-64"
-            />
-          </div>
-          <Select value={filterCategory} onValueChange={(val: TechCategory | "all") => setFilterCategory(val)}>
-            <SelectTrigger className="rounded-2xl w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="frontend">Frontend</SelectItem>
-              <SelectItem value="backend">Backend</SelectItem>
-              <SelectItem value="game_engine">Game Engine</SelectItem>
-              <SelectItem value="database">Database</SelectItem>
-              <SelectItem value="ai">AI/ML</SelectItem>
-              <SelectItem value="devops">DevOps</SelectItem>
-              <SelectItem value="audio">Audio</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-            <DialogTrigger asChild>
-              <Button className="rounded-2xl">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Technology
-              </Button>
-            </DialogTrigger>
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogTrigger asChild>
+            <Button className="rounded-2xl">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Technology
+            </Button>
+          </DialogTrigger>
           <DialogContent className="rounded-3xl bg-white text-black">
             <DialogHeader>
               <DialogTitle>Add New Technology</DialogTitle>
@@ -302,11 +263,11 @@ export default function DevTechnologies() {
       </div>
 
       {/* Technologies Grid */}
-      {filteredTechnologies.length === 0 ? (
+      {technologies.length === 0 ? (
         <Card className="rounded-3xl border-[var(--border-color)]">
           <CardContent className="flex flex-col items-center justify-center py-20">
             <Cpu className="h-16 w-16 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">{searchQuery || filterCategory !== "all" ? "No technologies match your search" : "No technologies yet"}</p>
+            <p className="text-muted-foreground mb-4">No technologies yet</p>
             <Button onClick={() => setIsCreateOpen(true)} className="rounded-2xl">
               <Plus className="mr-2 h-4 w-4" />
               Add First Technology
