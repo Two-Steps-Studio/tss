@@ -15,6 +15,7 @@ import type {
   DevProjectStats,
   DevRoadmapPhase,
   DevTask,
+  DevTaskAttachment,
   DevTechnology,
   FileCategory,
   PhaseStatus,
@@ -35,6 +36,7 @@ interface DevProjectContextValue {
   phases: DevRoadmapPhase[];
   files: DevProjectFile[];
   technologies: DevTechnology[];
+  taskAttachments: Record<number, DevTaskAttachment[]>;
   stats: DevProjectStats;
   isLoading: boolean;
   error: string | null;
@@ -54,6 +56,8 @@ interface DevProjectContextValue {
   updateTechnology: (id: number, data: Partial<DevTechnology>) => Promise<void>;
   deleteTechnology: (id: number) => Promise<void>;
   saveDescription: (markdown: string) => Promise<void>;
+  loadTaskAttachments: (taskId: number) => Promise<void>;
+  updateTaskAttachments: (taskId: number, attachments: DevTaskAttachment[]) => void;
 }
 
 const DevProjectContext = createContext<DevProjectContextValue | null>(null);
@@ -74,6 +78,7 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
   const [phases, setPhases] = useState<DevRoadmapPhase[]>([]);
   const [files, setFiles] = useState<DevProjectFile[]>([]);
   const [technologies, setTechnologies] = useState<DevTechnology[]>([]);
+  const [taskAttachments, setTaskAttachments] = useState<Record<number, DevTaskAttachment[]>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -266,6 +271,19 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     await updateProject(activeProjectId, { description_markdown: markdown });
   }, [activeProjectId, updateProject]);
 
+  const loadTaskAttachments = useCallback(async (taskId: number) => {
+    try {
+      const attachments = await fetchJson<DevTaskAttachment[]>(`/api/dev-tasks/${taskId}/attachments`);
+      setTaskAttachments((prev) => ({ ...prev, [taskId]: attachments }));
+    } catch (error) {
+      console.error("Failed to load task attachments:", error);
+    }
+  }, []);
+
+  const updateTaskAttachments = useCallback((taskId: number, attachments: DevTaskAttachment[]) => {
+    setTaskAttachments((prev) => ({ ...prev, [taskId]: attachments }));
+  }, []);
+
   const value: DevProjectContextValue = {
     projects,
     activeProject,
@@ -275,6 +293,7 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     phases,
     files,
     technologies,
+    taskAttachments,
     stats,
     isLoading,
     error,
@@ -294,6 +313,8 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     updateTechnology,
     deleteTechnology,
     saveDescription,
+    loadTaskAttachments,
+    updateTaskAttachments,
   };
 
   return (

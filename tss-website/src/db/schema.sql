@@ -296,9 +296,21 @@ CREATE TABLE IF NOT EXISTS dev_tasks (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Task attachments (images/files for tasks)
+CREATE TABLE IF NOT EXISTS dev_task_attachments (
+    id SERIAL PRIMARY KEY,
+    task_id INT NOT NULL REFERENCES dev_tasks(id) ON DELETE CASCADE,
+    file_name VARCHAR(255) NOT NULL,
+    file_url TEXT NOT NULL,
+    file_size BIGINT,
+    mime_type VARCHAR(100),
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indices for performance
 CREATE INDEX IF NOT EXISTS dev_tasks_project_status_idx ON dev_tasks(project_id, status);
 CREATE INDEX IF NOT EXISTS dev_tasks_priority_idx ON dev_tasks(priority);
 CREATE INDEX IF NOT EXISTS dev_tasks_assigned_idx ON dev_tasks(assigned_to);
 CREATE INDEX IF NOT EXISTS dev_tasks_due_date_idx ON dev_tasks(due_date);
 CREATE INDEX IF NOT EXISTS dev_project_columns_project_id_idx ON dev_project_columns(project_id);
+CREATE INDEX IF NOT EXISTS dev_task_attachments_task_id_idx ON dev_task_attachments(task_id);

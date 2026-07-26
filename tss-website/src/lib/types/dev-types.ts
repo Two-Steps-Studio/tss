@@ -43,6 +43,16 @@ export interface DevTaskComment {
   created_at: string;
 }
 
+export interface DevTaskAttachment {
+  id: number;
+  task_id: number;
+  file_name: string;
+  file_url: string;
+  file_size?: number | null;
+  mime_type?: string | null;
+  uploaded_at: string;
+}
+
 export interface DevRoadmapPhase {
   id: number;
   project_id: number;

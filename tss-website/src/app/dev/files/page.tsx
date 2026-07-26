@@ -15,9 +15,10 @@ import {
   Loader2,
   AlertCircle,
   Download,
-  ExternalLink
+  ExternalLink,
+  Search
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,16 @@ export default function DevFiles() {
   const [newFileUrl, setNewFileUrl] = useState("");
   const [newFileCategory, setNewFileCategory] = useState<FileCategory>("other");
   const [isCreating, setIsCreating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCategory, setFilterCategory] = useState<FileCategory | "all">("all");
+
+  const filteredFiles = useMemo(() => {
+    return files.filter((file) => {
+      const matchesSearch = file.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = filterCategory === "all" || file.category === filterCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [files, searchQuery, filterCategory]);
 
   const handleAddFile = async () => {
     if (!newFileName.trim() || !activeProject) return;
@@ -122,11 +133,11 @@ export default function DevFiles() {
   }
 
   const filesByCategory: Record<FileCategory, typeof files> = {
-    documentation: files.filter((f) => f.category === "documentation"),
-    graphics: files.filter((f) => f.category === "graphics"),
-    audio: files.filter((f) => f.category === "audio"),
-    source_code: files.filter((f) => f.category === "source_code"),
-    other: files.filter((f) => f.category === "other"),
+    documentation: filteredFiles.filter((f) => f.category === "documentation"),
+    graphics: filteredFiles.filter((f) => f.category === "graphics"),
+    audio: filteredFiles.filter((f) => f.category === "audio"),
+    source_code: filteredFiles.filter((f) => f.category === "source_code"),
+    other: filteredFiles.filter((f) => f.category === "other"),
   };
 
   return (
@@ -139,13 +150,36 @@ export default function DevFiles() {
           </h1>
           <p className="text-muted-foreground">Manage files for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button className="rounded-2xl">
-              <Plus className="mr-2 h-4 w-4" />
-              Add File
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search files..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 rounded-2xl w-64"
+            />
+          </div>
+          <Select value={filterCategory} onValueChange={(val: FileCategory | "all") => setFilterCategory(val)}>
+            <SelectTrigger className="rounded-2xl w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="documentation">Documentation</SelectItem>
+              <SelectItem value="graphics">Graphics</SelectItem>
+              <SelectItem value="audio">Audio</SelectItem>
+              <SelectItem value="source_code">Source Code</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button className="rounded-2xl">
+                <Plus className="mr-2 h-4 w-4" />
+                Add File
+              </Button>
+            </DialogTrigger>
           <DialogContent className="rounded-3xl bg-white text-black">
             <DialogHeader>
               <DialogTitle>Add New File</DialogTitle>
@@ -195,11 +229,11 @@ export default function DevFiles() {
       </div>
 
       {/* Files Grid */}
-      {files.length === 0 ? (
+      {filteredFiles.length === 0 ? (
         <Card className="rounded-3xl border-[var(--border-color)]">
           <CardContent className="flex flex-col items-center justify-center py-20">
             <Folder className="h-16 w-16 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-4">No files yet</p>
+            <p className="text-muted-foreground mb-4">{searchQuery || filterCategory !== "all" ? "No files match your search" : "No files yet"}</p>
             <Button onClick={() => setIsCreateOpen(true)} className="rounded-2xl">
               <Plus className="mr-2 h-4 w-4" />
               Add First File
