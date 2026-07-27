@@ -142,7 +142,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
     { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: User },
     { id: "games", type: "expandable", href: "/games", label: t.nav.games || "Games", icon: Gamepad, items: [
         { href: "/games/loucher-gier", label: t.nav.Loucher || "Loucher Gier", icon: Gamepad },
-        { href: "/games/info-o-grach", label: "Info o grach", icon: BookOpen },
+        { href: "/games/o-grach", label: "O grach", icon: BookOpen },
       ]},
     { id: "records", type: "expandable", href: "/records", label: t.nav.records || "Records", icon: Music2, items: [
         { href: "/records/podcasty", label: "Podcasty", icon: Book },

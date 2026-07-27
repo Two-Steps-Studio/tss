@@ -86,11 +86,11 @@ export function DevProjectSwitcher() {
 
   return (
     <div className="flex items-center gap-2">
-      <Select value={activeProjectId?.toString()} onValueChange={(val) => setActiveProjectId(Number(val))}>
-        <SelectTrigger className="w-[200px] rounded-2xl">
+      <Select value={activeProjectId?.toString()} onValueChange={(val) => setActiveProjectId(Number(val))}  >
+        <SelectTrigger className="w-[200px] rounded-2xl bg-white">
           <SelectValue placeholder="Select project" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-white">
           {projects.map((project) => (
             <SelectItem key={project.id} value={project.id.toString()}>
               {project.name}
@@ -98,9 +98,9 @@ export function DevProjectSwitcher() {
           ))}
         </SelectContent>
       </Select>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={setIsOpen} >
         <DialogTrigger asChild>
-          <Button variant="outline" size="icon" className="rounded-2xl h-10 w-10">
+          <Button  size="icon" className="rounded-2xl h-10 w-10 bg-general">
             <Plus className="h-4 w-4" />
           </Button>
         </DialogTrigger>

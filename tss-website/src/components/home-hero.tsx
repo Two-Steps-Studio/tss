@@ -65,8 +65,17 @@ export function HomeHero({ language, content }: HomeHeroProps) {
           >
             <div className="relative">
               <h1 className="text-7xl md:text-9xl font-black italic tracking-tighter flex flex-col leading-[0.8]">
-                <span className="text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">TWO STEPS</span>
-                <span className="bg-gradient-to-r from-[#ff3366] Uvia-[#ff00cc] to-[#9933ff] bg-clip-text text-transparent drop-shadow-[0_0_40px_rgba(255,51,102,0.4)]">STUDIO</span>
+                <span className="text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+                  TWO STEPS
+                </span>
+                  <span className="
+                    bg-[linear-gradient(90deg,#AD83F8_0%,#DC3545_33%,#FFCB2F_66%,#1BBDBD_100%)]
+                    bg-[length:200%_100%]
+                    bg-clip-text
+                    text-transparent
+                    animate-gradient
+                    drop-shadow-[0_0_40px_rgba(173,131,248,0.35)]"
+                  > STUDIO </span>
               </h1>
             </div>
 

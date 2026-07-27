@@ -1,0 +1,596 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Search, 
+  Filter,
+  Mic2,
+  Play,
+  Clock,
+  Calendar,
+  Upload,
+  X
+} from "lucide-react";
+import { toast } from "sonner";
+import type { Podcast } from "@/types/games-records";
+
+export default function PodcastsAdminPage() {
+  const [podcasts, setPodcasts] = useState<Podcast[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSeason, setSelectedSeason] = useState<number | "all">("all");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingPodcast, setEditingPodcast] = useState<Podcast | null>(null);
+
+  useEffect(() => {
+    fetchPodcasts();
+  }, []);
+
+  const fetchPodcasts = async () => {
+    try {
+      const res = await fetch("/api/podcasts");
+      const data = await res.json();
+      setPodcasts(data.data || []);
+    } catch (error) {
+      console.error("Błąd pobierania podcastów:", error);
+      toast.error("Nie udało się załadować podcastów");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Czy na pewno chcesz usunąć ten podcast?")) return;
+
+    try {
+      const res = await fetch(`/api/podcasts?id=${id}`, { method: "DELETE" });
+      const data = await res.json();
+      
+      if (data.success) {
+        toast.success("Podcast został usunięty");
+        fetchPodcasts();
+      } else {
+        toast.error(data.error || "Błąd podczas usuwania");
+      }
+    } catch (error) {
+      console.error("Błąd usuwania podcastu:", error);
+      toast.error("Wystąpił błąd podczas usuwania");
+    }
+  };
+
+  const formatDuration = (seconds?: number) => {
+    if (!seconds) return "--:--";
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const seasons = Array.from(new Set(podcasts.map((p) => p.season))).sort((a, b) => a - b);
+
+  const filteredPodcasts = podcasts.filter((podcast) => {
+    const matchesSearch =
+      searchQuery === "" ||
+      podcast.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      podcast.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      podcast.host?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesSeason =
+      selectedSeason === "all" || podcast.season === selectedSeason;
+
+    return matchesSearch && matchesSeason;
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-black dark:text-white font-[family-name:var(--font-space)]">
+            Zarządzanie Podcastami
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Dodawaj, edytuj i usuwaj podcasty
+          </p>
+        </div>
+        <Button
+          onClick={() => setShowCreateModal(true)}
+          className="bg-[var(--color-records)] text-white hover:bg-[var(--color-records)]/80"
+        >
+          <Plus size={16} className="mr-2" />
+          Dodaj podcast
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <Card className="rounded-3xl border-[var(--border-color)]">
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <Input
+                placeholder="Szukaj podcastów, prowadzących..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12"
+              />
+            </div>
+
+            {seasons.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Filter size={16} />
+                  <span>Sezon:</span>
+                </div>
+                <Button
+                  variant={selectedSeason === "all" ? "default" : "outline"}
+                  onClick={() => setSelectedSeason("all")}
+                  size="sm"
+                >
+                  Wszystkie
+                </Button>
+                {seasons.map((season) => (
+                  <Button
+                    key={season}
+                    variant={selectedSeason === season ? "default" : "outline"}
+                    onClick={() => setSelectedSeason(season)}
+                    size="sm"
+                  >
+                    Sezon {season}
+                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Podcasts List */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="rounded-2xl animate-pulse h-48" />
+          ))}
+        </div>
+      ) : filteredPodcasts.length === 0 ? (
+        <Card className="rounded-3xl">
+          <CardContent className="p-12 text-center">
+            <Mic2 className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-2">Brak podcastów</h3>
+            <p className="text-muted-foreground">
+              {searchQuery || selectedSeason !== "all"
+                ? "Nie znaleziono podcastów pasujących do filtrów."
+                : "Brak podcastów w bazie danych. Dodaj pierwszy podcast!"}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredPodcasts.map((podcast) => (
+            <Card key={podcast.id} className="rounded-2xl border-[var(--border-color)] hover:border-[var(--color-records)]/50 transition-all">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-2">
+                  <CardTitle className="text-base font-semibold line-clamp-1">
+                    {podcast.title}
+                  </CardTitle>
+                  {podcast.episode_number && (
+                    <Badge variant="outline" className="text-xs">
+                      Ep. {podcast.episode_number}
+                    </Badge>
+                  )}
+                </div>
+                {podcast.host && (
+                  <p className="text-sm text-muted-foreground">{podcast.host}</p>
+                )}
+              </CardHeader>
+
+              <CardContent className="space-y-3">
+                {podcast.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {podcast.description}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Clock size={12} />
+                    <span>{formatDuration(podcast.duration_seconds)}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Play size={12} />
+                    <span>{podcast.plays || 0}</span>
+                  </div>
+                </div>
+
+                {podcast.published_date && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Calendar size={12} />
+                    <span>{new Date(podcast.published_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setEditingPodcast(podcast)}
+                  >
+                    <Edit size={14} className="mr-1" />
+                    Edytuj
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 text-red-500 hover:text-red-600"
+                    onClick={() => handleDelete(podcast.id!)}
+                  >
+                    <Trash2 size={14} className="mr-1" />
+                    Usuń
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Create/Edit Modal */}
+      {(showCreateModal || editingPodcast) && (
+        <PodcastFormModal
+          podcast={editingPodcast}
+          onClose={() => {
+            setShowCreateModal(false);
+            setEditingPodcast(null);
+          }}
+          onSave={() => {
+            setShowCreateModal(false);
+            setEditingPodcast(null);
+            fetchPodcasts();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Podcast Form Modal Component
+function PodcastFormModal({ podcast, onClose, onSave }: { podcast: Podcast | null; onClose: () => void; onSave: () => void }) {
+  const [formData, setFormData] = useState({
+    series_id: podcast?.series_id || "",
+    title: podcast?.title || "",
+    description: podcast?.description || "",
+    episode_number: podcast?.episode_number ? podcast.episode_number.toString() : "",
+    season: podcast?.season ? podcast.season.toString() : "1",
+    host: podcast?.host || "",
+    guests: podcast?.guests?.join(", ") || "",
+    published_date: podcast?.published_date || "",
+    duration_seconds: podcast?.duration_seconds ? podcast.duration_seconds.toString() : "",
+    tags: podcast?.tags?.join(", ") || "",
+    visibility: podcast?.visibility || "public" as "public" | "private" | "unlisted",
+    featured: podcast?.featured || false,
+    thumbnail_url: podcast?.thumbnail_url || "",
+    audio_file_url: podcast?.audio_file_url || "",
+  });
+
+  const [uploading, setUploading] = useState(false);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
+
+  const handleFileUpload = async (file: File, type: 'audio' | 'thumbnail') => {
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+      formData.append('podcastId', podcast?.id?.toString() || 'temp');
+
+      const res = await fetch('/api/upload/podcasts', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        if (type === 'audio') {
+          setFormData({ ...formData, audio_file_url: data.data.publicUrl });
+        } else {
+          setFormData({ ...formData, thumbnail_url: data.data.publicUrl });
+        }
+        toast.success('Plik został przesłany');
+      } else {
+        toast.error(data.error || 'Błąd podczas przesyłania');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Wystąpił błąd podczas przesyłania');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validation
+    if (!formData.title.trim()) {
+      toast.error("Tytuł jest wymagany");
+      return;
+    }
+
+    const payload = {
+      ...formData,
+      series_id: formData.series_id ? parseInt(formData.series_id) : null,
+      episode_number: formData.episode_number ? parseInt(formData.episode_number) : null,
+      season: parseInt(formData.season),
+      duration_seconds: formData.duration_seconds ? parseInt(formData.duration_seconds) : null,
+      guests: formData.guests.split(",").map(g => g.trim()).filter(Boolean),
+      tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
+    };
+
+    try {
+      const url = "/api/podcasts";
+      const method = podcast ? "PUT" : "POST";
+      
+      if (podcast) {
+        payload.id = podcast.id;
+      }
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || `Błąd HTTP: ${res.status}`);
+        return;
+      }
+
+      if (data.success) {
+        toast.success(podcast ? "Podcast zaktualizowany" : "Podcast utworzony");
+        onSave();
+      } else {
+        toast.error(data.error || "Błąd podczas zapisu");
+      }
+    } catch (error) {
+      console.error("Błąd zapisu:", error);
+      toast.error("Wystąpił błąd podczas zapisu");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl">
+        <CardHeader>
+          <CardTitle>{podcast ? "Edytuj podcast" : "Dodaj nowy podcast"}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Tytuł *</label>
+              <Input
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Opis</label>
+              <textarea
+                className="w-full min-h-[80px] px-3 py-2 rounded-lg border border-input bg-background"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium">Numer odcinka</label>
+                <Input
+                  type="number"
+                  value={formData.episode_number}
+                  onChange={(e) => setFormData({ ...formData, episode_number: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Sezon</label>
+                <Input
+                  type="number"
+                  value={formData.season}
+                  onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">ID serii</label>
+                <Input
+                  type="number"
+                  value={formData.series_id}
+                  onChange={(e) => setFormData({ ...formData, series_id: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Prowadzący</label>
+              <Input
+                value={formData.host}
+                onChange={(e) => setFormData({ ...formData, host: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Goście (przecinkami)</label>
+              <Input
+                placeholder="np. Jan Kowalski, Anna Nowak"
+                value={formData.guests}
+                onChange={(e) => setFormData({ ...formData, guests: e.target.value })}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Data publikacji</label>
+                <Input
+                  type="date"
+                  value={formData.published_date}
+                  onChange={(e) => setFormData({ ...formData, published_date: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Czas trwania (sekundy)</label>
+                <Input
+                  type="number"
+                  value={formData.duration_seconds}
+                  onChange={(e) => setFormData({ ...formData, duration_seconds: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <label className="text-sm font-medium">Pliki</label>
+              
+              {/* Thumbnail Upload */}
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Miniatura</label>
+                <div className="flex gap-2">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setThumbnailFile(file);
+                    }}
+                    className="flex-1"
+                    disabled={uploading}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => thumbnailFile && handleFileUpload(thumbnailFile, 'thumbnail')}
+                    disabled={!thumbnailFile || uploading}
+                  >
+                    <Upload size={16} className="mr-1" />
+                    {uploading ? 'Przesyłanie...' : 'Prześlij'}
+                  </Button>
+                </div>
+                {formData.thumbnail_url && (
+                  <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-white/10">
+                    <img src={formData.thumbnail_url} alt="Thumbnail" className="w-full h-full object-cover" />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      className="absolute top-1 right-1 h-6 w-6 p-0"
+                      onClick={() => setFormData({ ...formData, thumbnail_url: '' })}
+                    >
+                      <X size={12} />
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Audio File Upload */}
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Plik audio</label>
+                <div className="flex gap-2">
+                  <Input
+                    type="file"
+                    accept="audio/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setAudioFile(file);
+                    }}
+                    className="flex-1"
+                    disabled={uploading}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => audioFile && handleFileUpload(audioFile, 'audio')}
+                    disabled={!audioFile || uploading}
+                  >
+                    <Upload size={16} className="mr-1" />
+                    {uploading ? 'Przesyłanie...' : 'Prześlij'}
+                  </Button>
+                </div>
+                {formData.audio_file_url && (
+                  <div className="flex items-center gap-2 p-2 bg-white/5 rounded-lg">
+                    <Mic2 size={16} className="text-[var(--color-records)]" />
+                    <span className="text-sm text-zinc-300 truncate flex-1">Plik audio załadowany</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, audio_file_url: '' })}
+                    >
+                      <X size={12} />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Tagi (przecinkami)</label>
+              <Input
+                placeholder="np. technologia, gaming, wywiady"
+                value={formData.tags}
+                onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium">Widoczność</label>
+                <select
+                  className="w-full px-3 py-2 rounded-lg border border-input bg-background"
+                  value={formData.visibility}
+                  onChange={(e) => setFormData({ ...formData, visibility: e.target.value as any })}
+                >
+                  <option value="private">Prywatna</option>
+                  <option value="public">Publiczna</option>
+                  <option value="unlisted">Niewidoczna</option>
+                </select>
+              </div>
+              <div className="col-span-2 flex items-end">
+                <label className="flex items-center gap-2 text-sm font-medium">
+                  <input
+                    type="checkbox"
+                    checked={formData.featured}
+                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                    className="rounded"
+                  />
+                  Wyróżniony
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-2 justify-end pt-4">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Anuluj
+              </Button>
+              <Button type="submit" className="bg-[var(--color-records)] text-white hover:bg-[var(--color-records)]/80">
+                {podcast ? "Zapisz zmiany" : "Utwórz podcast"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -183,7 +183,8 @@ export default function BeatyPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {[
           { name: "Records", href: "/records" },
-          { name: "Podscasty", href: "/records/podcasty" },
+          { name: "Podcasty", href: "/records/podcasty" },
+          { name: "Muzyka", href: "/records/muzyka"}
         ].map((item, i) => (
             <a
                 key={i}

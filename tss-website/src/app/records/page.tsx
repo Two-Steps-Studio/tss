@@ -55,6 +55,7 @@ export default async function RecordsPage() {
             {[
                 { name: "Beaty", href: "/records/beaty" },
                 { name: "Podscasty", href: "/records/podcasty" },
+                { name: "Muzyka", href: "/records/muzyka" },
             ].map((item, i) => (
                 <a
                     key={i}
