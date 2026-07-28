@@ -1,85 +1,77 @@
- import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase-server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth, requireAdmin, isAuthError } from "@/lib/auth-helpers";
 
- // Rate limiting store
- const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
- const MAX_ADMIN_REQUESTS = 5;
- const WINDOW_MS = 60000;
+// Rate limiting store
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const MAX_ADMIN_REQUESTS = 5;
+const WINDOW_MS = 60000;
 
- export async function GET(req: NextRequest) {
-   let supabase;
-   try {
-     supabase = await createClient();
-   } catch {
-     return NextResponse.json({ isAdmin: false }, { status: 200 });
-   }
+export async function GET(req: NextRequest) {
+  const auth = await requireAuth();
+  
+  // If auth failed, return isAdmin: false (for compatibility)
+  if (isAuthError(auth)) {
+    return NextResponse.json({ isAdmin: false }, { status: 200 });
+  }
 
-   const { data: { user }, error: userError } = await supabase.auth.getUser();
-   if (userError || !user) {
-     return NextResponse.json({ isAdmin: false }, { status: 200 });
-   }
+  // Check if user is admin using new helper
+  const adminCheck = requireAdmin(auth);
+  
+  const isAdmin = adminCheck === null;
+  return NextResponse.json({ isAdmin }, { status: 200 });
+}
 
-   const { data: profile } = await supabase
-     .from("profiles")
-     .select("settings")
-     .eq("id", user.id)
-     .single();
+export async function POST(req: NextRequest) {
+  // Check rate limit
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  const now = Date.now();
+  const record = rateLimitStore.get(ip);
 
-   const isAdmin = profile?.settings?.isAdmin === true;
-   return NextResponse.json({ isAdmin }, { status: 200 });
- }
+  if (!record || now < record.resetTime) {
+    if (record && record.count >= MAX_ADMIN_REQUESTS) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait before trying again." },
+        { status: 429, headers: { "Retry-After": "60" } }
+      );
+    }
+    rateLimitStore.set(ip, { count: record?.count || 0 + 1, resetTime: record?.resetTime || now + WINDOW_MS });
+  } else if (record && record.count >= MAX_ADMIN_REQUESTS) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait before trying again." },
+      { status: 429, headers: { "Retry-After": "60" } }
+    );
+  }
 
- export async function POST(req: NextRequest) {
-   // Check rate limit
-   const ip = req.headers.get("x-forwarded-for") || "unknown";
-   const now = Date.now();
-   const record = rateLimitStore.get(ip);
-
-   if (!record || now < record.resetTime) {
-     if (record && record.count >= MAX_ADMIN_REQUESTS) {
-       return NextResponse.json(
-         { error: "Too many requests. Please wait before trying again." },
-         { status: 429, headers: { "Retry-After": "60" } }
-       );
-     }
-     rateLimitStore.set(ip, { count: record?.count || 0 + 1, resetTime: record?.resetTime || now + WINDOW_MS });
-   } else if (record && record.count >= MAX_ADMIN_REQUESTS) {
-     return NextResponse.json(
-       { error: "Too many requests. Please wait before trying again." },
-       { status: 429, headers: { "Retry-After": "60" } }
-     );
-   }
-
-   try {
-     const body = await req.json();
-     const password = (body?.password as string) || "";
-     const name = (body?.name as string) || "";
-     const secret = process.env.ADMIN_CONSOLE_PASSWORD || "";
-    const allowedUser = (process.env.ADMIN_CONSOLE_USER || "TwoStepsStudioAdmin").trim().toLowerCase();
+  try {
+    const body = await req.json();
+    const password = (body?.password as string) || "";
+    const name = (body?.name as string) || "";
+    const secret = process.env.ADMIN_CONSOLE_PASSWORD || "";
+   const allowedUser = (process.env.ADMIN_CONSOLE_USER || "TwoStepsStudioAdmin").trim().toLowerCase();
      if (!secret) {
-       return NextResponse.json({ error: "Brak konfiguracji has≈Ça" }, { status: 500 });
-     }
-     if (!password || !name) {
-       return NextResponse.json({ error: "Nieprawid≈Çowe dane" }, { status: 400 });
-     }
-    if (name.trim().toLowerCase() !== allowedUser) {
-      return NextResponse.json({ error: "Nieprawid≈Çowa nazwa" }, { status: 401 });
+      return NextResponse.json({ error: "Brak konfiguracji has≥a" }, { status: 500 });
+    }
+    if (!password || !name) {
+      return NextResponse.json({ error: "Nieprawid≥owe dane" }, { status: 400 });
+    }
+   if (name.trim().toLowerCase() !== allowedUser) {
+      return NextResponse.json({ error: "Nieprawid≥owa nazwa" }, { status: 401 });
     }
      if (password !== secret) {
-       return NextResponse.json({ error: "Has≈Ço nieprawid≈Çowe" }, { status: 401 });
-     }
+      return NextResponse.json({ error: "Has≥o nieprawid≥owe" }, { status: 401 });
+    }
 
-     // Add debug headers if enabled
-     let headers: HeadersInit = {};
-     if (process.env.NODE_ENV === 'development' || process.env.DEBUG_MODE === 'true') {
-       headers = {
-         "X-Debug-Mode": "enabled",
-         "X-Environment": process.env.NODE_ENV || 'unknown',
-       };
-     }
+    // Add debug headers if enabled
+    let headers: HeadersInit = {};
+    if (process.env.NODE_ENV === 'development' || process.env.DEBUG_MODE === 'true') {
+      headers = {
+        "X-Debug-Mode": "enabled",
+        "X-Environment": process.env.NODE_ENV || 'unknown',
+      };
+    }
 
-     return NextResponse.json({ ok: true }, headers);
-   } catch {
-     return NextResponse.json({ error: "B≈ÇƒÖd serwera" }, { status: 500 });
-   }
- }
+    return NextResponse.json({ ok: true }, headers);
+  } catch {
+    return NextResponse.json({ error: "B≥πd serwera" }, { status: 500 });
+  }
+}

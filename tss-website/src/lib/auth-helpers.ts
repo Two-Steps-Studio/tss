@@ -1,0 +1,366 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase-server";
+import { User } from "@supabase/supabase-js";
+
+// ============================================
+// TYPES
+// ============================================
+
+export type GlobalRole = 'OWNER' | 'ADMIN' | 'MODERATOR' | 'USER';
+
+export interface AuthContext {
+  user: User;
+  profile?: {
+    id: string;
+    username: string | null;
+    avatar_url: string | null;
+    settings?: {
+      isAdmin?: boolean;
+    };
+    rank?: string;
+  };
+  roles: GlobalRole[];
+}
+
+export interface OwnershipCheck {
+  resourceType: 'game' | 'music_track' | 'podcast' | 'dev_project';
+  resourceId: number;
+}
+
+// ============================================
+// ERROR RESPONSES
+// ============================================
+
+const ERROR_RESPONSES = {
+  UNAUTHORIZED: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+  FORBIDDEN: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+  SERVICE_DISABLED: NextResponse.json({ error: "Service disabled" }, { status: 503 }),
+};
+
+// ============================================
+// 1. requireAuth()
+// ============================================
+
+/**
+ * Checks if user is authenticated and returns AuthContext
+ * @returns AuthContext or NextResponse with 401 error
+ */
+export async function requireAuth(): Promise<AuthContext | NextResponse> {
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return ERROR_RESPONSES.SERVICE_DISABLED;
+  }
+
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  
+  if (userError || !user) {
+    return ERROR_RESPONSES.UNAUTHORIZED;
+  }
+
+  // Fetch user profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, username, avatar_url, settings, rank")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  // Determine user roles from current system (settings.isAdmin)
+  const roles: GlobalRole[] = [];
+  
+  if (profile?.settings?.isAdmin === true) {
+    roles.push('ADMIN');
+  } else {
+    roles.push('USER');
+  }
+
+  // TODO: In future, fetch from user_roles table instead of settings.isAdmin
+
+  return {
+    user,
+    profile: profile || undefined,
+    roles,
+  };
+}
+
+// ============================================
+// 2. requireRole()
+// ============================================
+
+/**
+ * Checks if user has required role
+ * @param auth - AuthContext from requireAuth()
+ * @param requiredRole - Required role (OWNER, ADMIN, MODERATOR, USER)
+ * @returns NextResponse with 403 if user doesn't have role, null if authorized
+ */
+export function requireRole(auth: AuthContext | NextResponse, requiredRole: GlobalRole): NextResponse | null {
+  // If auth is an error response, return it
+  if (auth instanceof NextResponse) {
+    return auth;
+  }
+
+  // Role hierarchy: OWNER > ADMIN > MODERATOR > USER
+  const ROLE_HIERARCHY: Record<GlobalRole, number> = {
+    'OWNER': 4,
+    'ADMIN': 3,
+    'MODERATOR': 2,
+    'USER': 1,
+  };
+
+  const userRoleLevel = Math.max(...auth.roles.map(role => ROLE_HIERARCHY[role] || 0));
+  const requiredRoleLevel = ROLE_HIERARCHY[requiredRole] || 0;
+
+  if (userRoleLevel < requiredRoleLevel) {
+    console.error(`[SECURITY] User ${auth.user.id} attempted to access ${requiredRole} resource with roles:`, auth.roles);
+    return ERROR_RESPONSES.FORBIDDEN;
+  }
+
+  return null;
+}
+
+// ============================================
+// 3. requireAdmin()
+// ============================================
+
+/**
+ * Shortcut to check if user is OWNER or ADMIN
+ * @param auth - AuthContext from requireAuth()
+ * @returns NextResponse with 403 if not admin, null if authorized
+ */
+export function requireAdmin(auth: AuthContext | NextResponse): NextResponse | null {
+  // If auth is an error response, return it
+  if (auth instanceof NextResponse) {
+    return auth;
+  }
+
+  // Check if user has ADMIN or OWNER role
+  if (!auth.roles.includes('ADMIN') && !auth.roles.includes('OWNER')) {
+    console.error(`[SECURITY] User ${auth.user.id} attempted to access admin resource with roles:`, auth.roles);
+    return ERROR_RESPONSES.FORBIDDEN;
+  }
+
+  return null;
+}
+
+// ============================================
+// 4. requireOwnership()
+// ============================================
+
+/**
+ * Checks if user is owner of a resource
+ * @param auth - AuthContext from requireAuth()
+ * @param resourceType - Type of resource (game, music_track, podcast, dev_project)
+ * @param resourceId - ID of the resource
+ * @returns NextResponse with 403 if not owner, null if authorized
+ */
+export async function requireOwnership(
+  auth: AuthContext | NextResponse,
+  resourceType: OwnershipCheck['resourceType'],
+  resourceId: number
+): Promise<NextResponse | null> {
+  // If auth is an error response, return it
+  if (auth instanceof NextResponse) {
+    return auth;
+  }
+
+  let supabase;
+  try {
+    supabase = await createClient();
+  } catch {
+    return ERROR_RESPONSES.SERVICE_DISABLED;
+  }
+
+  let isOwner = false;
+
+  switch (resourceType) {
+    case 'game':
+      const { data: game } = await supabase
+        .from("games")
+        .select("owner_id")
+        .eq("id", resourceId)
+        .single();
+      isOwner = game?.owner_id === auth.user.id;
+      break;
+
+    case 'music_track':
+      const { data: music } = await supabase
+        .from("music_tracks")
+        .select("owner_id")
+        .eq("id", resourceId)
+        .single();
+      isOwner = music?.owner_id === auth.user.id;
+      break;
+
+    case 'podcast':
+      const { data: podcast } = await supabase
+        .from("podcasts")
+        .select("owner_id")
+        .eq("id", resourceId)
+        .single();
+      isOwner = podcast?.owner_id === auth.user.id;
+      break;
+
+    case 'dev_project':
+      const { data: project } = await supabase
+        .from("dev_projects")
+        .select("owner_id")
+        .eq("id", resourceId)
+        .single();
+      isOwner = project?.owner_id === auth.user.id;
+      break;
+
+    default:
+      console.error(`[SECURITY] Unknown resource type: ${resourceType}`);
+      return ERROR_RESPONSES.FORBIDDEN;
+  }
+
+  if (!isOwner) {
+    console.error(`[SECURITY] User ${auth.user.id} attempted to access ${resourceType} ${resourceId} without ownership`);
+    return ERROR_RESPONSES.FORBIDDEN;
+  }
+
+  return null;
+}
+
+// ============================================
+// 5. requireProjectAccess()
+// ============================================
+
+/**
+ * Checks if user has access to a DEV project with required permission
+ * Integrates with existing DEV permission system
+ * @param auth - AuthContext from requireAuth()
+ * @param projectId - ID of the project
+ * @param permission - Required permission (view_project, edit_project, manage_tasks, etc.)
+ * @returns NextResponse with 403 if no access, null if authorized
+ */
+export async function requireProjectAccess(
+  auth: AuthContext | NextResponse,
+  projectId: number,
+  permission: string
+): Promise<NextResponse | null> {
+  // If auth is an error response, return it
+  if (auth instanceof NextResponse) {
+    return auth;
+  }
+
+  // Import existing DEV permission system
+  const { checkProjectPermission } = await import("@/lib/dev-permissions");
+  
+  const result = await checkProjectPermission(projectId, permission as any);
+  
+  if (!result.hasAccess) {
+    console.error(`[SECURITY] User ${auth.user.id} attempted to access project ${projectId} with permission ${permission}:`, result.error);
+    return NextResponse.json({ error: result.error || "Forbidden" }, { status: 403 });
+  }
+
+  return null;
+}
+
+// ============================================
+// 6. validateInput()
+// ============================================
+
+/**
+ * Validates input data against a schema
+ * Currently performs basic validation, prepared for Zod integration
+ * @param schema - Validation schema (object with field types)
+ * @param data - Data to validate
+ * @returns Validated data or NextResponse with 400 error
+ */
+export function validateInput<T extends Record<string, any>>(
+  schema: Record<keyof T, 'string' | 'number' | 'boolean' | 'email' | 'url'>,
+  data: any
+): { data: T } | NextResponse {
+  const errors: string[] = [];
+  const validated: any = {};
+
+  for (const [field, type] of Object.entries(schema)) {
+    const value = data[field];
+
+    if (value === undefined || value === null) {
+      errors.push(`${field} is required`);
+      continue;
+    }
+
+    switch (type) {
+      case 'string':
+        if (typeof value !== 'string') {
+          errors.push(`${field} must be a string`);
+        } else {
+          validated[field] = value;
+        }
+        break;
+
+      case 'number':
+        if (typeof value !== 'number' || isNaN(value)) {
+          errors.push(`${field} must be a number`);
+        } else {
+          validated[field] = value;
+        }
+        break;
+
+      case 'boolean':
+        if (typeof value !== 'boolean') {
+          errors.push(`${field} must be a boolean`);
+        } else {
+          validated[field] = value;
+        }
+        break;
+
+      case 'email':
+        if (typeof value !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          errors.push(`${field} must be a valid email`);
+        } else {
+          validated[field] = value;
+        }
+        break;
+
+      case 'url':
+        if (typeof value !== 'string' || !/^https?:\/\/.+/.test(value)) {
+          errors.push(`${field} must be a valid URL`);
+        } else {
+          validated[field] = value;
+        }
+        break;
+
+      default:
+        errors.push(`${field} has unknown type`);
+    }
+  }
+
+  if (errors.length > 0) {
+    console.error(`[SECURITY] Input validation failed:`, errors);
+    return NextResponse.json({ error: "Invalid input", details: errors }, { status: 400 });
+  }
+
+  return { data: validated as T };
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+/**
+ * Checks if auth result is an error response
+ */
+export function isAuthError(auth: AuthContext | NextResponse): auth is NextResponse {
+  return auth instanceof NextResponse;
+}
+
+/**
+ * Safely extracts user from auth context
+ */
+export function getUser(auth: AuthContext | NextResponse): User | null {
+  if (isAuthError(auth)) return null;
+  return auth.user;
+}
+
+/**
+ * Safely extracts user ID from auth context
+ */
+export function getUserId(auth: AuthContext | NextResponse): string | null {
+  const user = getUser(auth);
+  return user?.id || null;
+}

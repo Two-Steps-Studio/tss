@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
+import { requireAuth, requireAdmin, isAuthError } from "@/lib/auth-helpers";
 import { createClient } from "@/lib/supabase-server";
 
 export async function GET(request: Request) {
+  const auth = await requireAuth();
+  if (isAuthError(auth)) return auth;
+  
+  const adminCheck = requireAdmin(auth);
+  if (adminCheck) return adminCheck;
+
   let supabase;
   try {
     supabase = await createClient();
@@ -10,23 +17,6 @@ export async function GET(request: Request) {
       { error: "Admin panel disabled" },
       { status: 503 }
     );
-  }
-
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // Check if user is admin (you can customize this logic)
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("settings")
-    .eq("id", user.id)
-    .single();
-
-  const isAdmin = profile?.settings?.isAdmin === true;
-  if (!isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -60,6 +50,12 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const auth = await requireAuth();
+  if (isAuthError(auth)) return auth;
+  
+  const adminCheck = requireAdmin(auth);
+  if (adminCheck) return adminCheck;
+
   let supabase;
   try {
     supabase = await createClient();
@@ -68,22 +64,6 @@ export async function PATCH(request: Request) {
       { error: "Admin panel disabled" },
       { status: 503 }
     );
-  }
-
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("settings")
-    .eq("id", user.id)
-    .single();
-
-  const isAdmin = profile?.settings?.isAdmin === true;
-  if (!isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const body = await request.json();

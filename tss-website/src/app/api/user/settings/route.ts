@@ -146,13 +146,64 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { games_visible, records_visible, dev_visible, username } = body;
-
+  
+  // SECURITY: Whitelist of allowed fields
+  const ALLOWED_FIELDS = ['username', 'games_visible', 'records_visible', 'dev_visible'];
+  
+  // SECURITY: Blocked fields that users should never be able to modify
+  const BLOCKED_FIELDS = ['money', 'bank', 'pln_balance', 'xp', 'level', 'rank', 'role', 'permissions', 'settings', 'is_admin', 'isAdmin', 'project_limit', 'joined_projects_limit', 'subscription_plan'];
+  
+  // SECURITY: Log if user attempts to modify blocked fields
+  const attemptedBlockedFields = BLOCKED_FIELDS.filter(field => field in body);
+  if (attemptedBlockedFields.length > 0) {
+    console.error(`[SECURITY] User ${user.id} attempted to modify blocked fields:`, attemptedBlockedFields);
+    console.error(`[SECURITY] Request body:`, body);
+    // Return error but don't reveal which fields were blocked
+    return NextResponse.json({ error: "Invalid field in request" }, { status: 400 });
+  }
+  
+  // SECURITY: Only process allowed fields
   const updateData: any = {};
-  if (typeof games_visible === "boolean") updateData.games_visible = games_visible;
-  if (typeof records_visible === "boolean") updateData.records_visible = records_visible;
-  if (typeof dev_visible === "boolean") updateData.dev_visible = dev_visible;
-  if (username && typeof username === "string") updateData.username = username;
+  
+  if ('username' in body) {
+    if (typeof body.username === "string" && body.username.length > 0 && body.username.length <= 50) {
+      updateData.username = body.username.trim();
+    } else {
+      return NextResponse.json({ error: "Invalid username" }, { status: 400 });
+    }
+  }
+  
+  if ('games_visible' in body) {
+    if (typeof body.games_visible === "boolean") {
+      updateData.games_visible = body.games_visible;
+    } else {
+      return NextResponse.json({ error: "Invalid games_visible value" }, { status: 400 });
+    }
+  }
+  
+  if ('records_visible' in body) {
+    if (typeof body.records_visible === "boolean") {
+      updateData.records_visible = body.records_visible;
+    } else {
+      return NextResponse.json({ error: "Invalid records_visible value" }, { status: 400 });
+    }
+  }
+  
+  if ('dev_visible' in body) {
+    if (typeof body.dev_visible === "boolean") {
+      updateData.dev_visible = body.dev_visible;
+    } else {
+      return NextResponse.json({ error: "Invalid dev_visible value" }, { status: 400 });
+    }
+  }
+
+  // SECURITY: Log if user attempts to send unknown fields
+  const unknownFields = Object.keys(body).filter(field => !ALLOWED_FIELDS.includes(field));
+  if (unknownFields.length > 0) {
+    console.error(`[SECURITY] User ${user.id} attempted to modify unknown fields:`, unknownFields);
+    console.error(`[SECURITY] Request body:`, body);
+    return NextResponse.json({ error: "Invalid field in request" }, { status: 400 });
+  }
 
   const { data, error } = await supabase
     .from("profiles")
@@ -163,7 +214,7 @@ export async function PATCH(request: Request) {
 
   if (error) {
     console.error("Update error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update settings" }, { status: 500 });
   }
 
   if (!data) {
