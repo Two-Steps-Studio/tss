@@ -13,12 +13,14 @@ import {
   FileText, 
   Cpu,
   ArrowRight,
-  Loader2
+  Loader2,
+  Lock
 } from "lucide-react";
 import Link from "next/link";
+import { DevMembersPanel, DevActivityLogs } from "@/components/DEV";
 
 export default function DevDashboard() {
-  const { activeProject, stats, isLoading, error } = useDevProject();
+  const { activeProject, stats, isLoading, error, hasAccessToDev, hasPermission } = useDevProject();
 
   if (isLoading) {
     return (
@@ -34,6 +36,18 @@ export default function DevDashboard() {
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <p className="text-muted-foreground">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasAccessToDev) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-center">
+          <Lock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground mb-4">You don't have access to any DEV projects.</p>
+          <p className="text-sm text-muted-foreground">Create a project or ask a project owner to invite you.</p>
         </div>
       </div>
     );
@@ -228,6 +242,12 @@ export default function DevDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Team Members */}
+      <DevMembersPanel />
+
+      {/* Activity Logs */}
+      <DevActivityLogs />
     </div>
   );
 }

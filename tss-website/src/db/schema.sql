@@ -24,6 +24,12 @@ CREATE TABLE IF NOT EXISTS profiles (
     is_banned BOOLEAN DEFAULT FALSE,
     last_activity TIMESTAMP WITH TIME ZONE,
     settings JSONB DEFAULT '{}',
+    project_limit INTEGER DEFAULT 1,      -- DEV module: max own projects user can create
+    joined_projects_limit INTEGER DEFAULT 3, -- DEV module: max joined projects (from invites)
+    subscription_plan TEXT DEFAULT 'free', -- DEV module: subscription tier (free, pro, enterprise)
+    games_visible BOOLEAN DEFAULT TRUE,   -- Category visibility settings
+    records_visible BOOLEAN DEFAULT TRUE,
+    dev_visible BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

@@ -8,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Music, Mic2, Calendar } from "lucide-react";
 
+// Mark this as a server component
+export const dynamic = 'force-dynamic';
+
 export default async function RecordsPage() {
   let supabase: any = null;
   let createClientError: Error | null = null;

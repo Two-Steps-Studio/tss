@@ -1,9 +1,33 @@
  import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase-server";
 
  // Rate limiting store
  const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
  const MAX_ADMIN_REQUESTS = 5;
  const WINDOW_MS = 60000;
+
+ export async function GET(req: NextRequest) {
+   let supabase;
+   try {
+     supabase = await createClient();
+   } catch {
+     return NextResponse.json({ isAdmin: false }, { status: 200 });
+   }
+
+   const { data: { user }, error: userError } = await supabase.auth.getUser();
+   if (userError || !user) {
+     return NextResponse.json({ isAdmin: false }, { status: 200 });
+   }
+
+   const { data: profile } = await supabase
+     .from("profiles")
+     .select("settings")
+     .eq("id", user.id)
+     .single();
+
+   const isAdmin = profile?.settings?.isAdmin === true;
+   return NextResponse.json({ isAdmin }, { status: 200 });
+ }
 
  export async function POST(req: NextRequest) {
    // Check rate limit

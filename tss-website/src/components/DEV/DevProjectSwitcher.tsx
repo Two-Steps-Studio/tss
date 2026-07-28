@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown, Plus, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -20,22 +20,33 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function DevProjectSwitcher() {
-  const { projects, activeProject, activeProjectId, setActiveProjectId, createProject } = useDevProject();
+  const { projects, activeProject, activeProjectId, setActiveProjectId, createProject, canCreateProject, userSubscription } = useDevProject();
   const [isOpen, setIsOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const handleCreateProject = async () => {
     if (!newProjectName.trim()) return;
+    
+    if (!canCreateProject) {
+      setCreateError(`You have reached your limit of ${userSubscription?.project_limit || 1} project(s). Upgrade your subscription to create more projects.`);
+      return;
+    }
+    
     setIsCreating(true);
+    setCreateError(null);
     try {
       await createProject(newProjectName, newProjectDescription || undefined);
       setNewProjectName("");
       setNewProjectDescription("");
       setIsOpen(false);
+    } catch (error: any) {
+      setCreateError(error.message || "Failed to create project");
     } finally {
       setIsCreating(false);
     }
@@ -55,6 +66,12 @@ export function DevProjectSwitcher() {
             <DialogTitle>Create New Project</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {createError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{createError}</AlertDescription>
+              </Alert>
+            )}
             <div>
               <Label htmlFor="name">Project Name</Label>
               <Input
@@ -75,9 +92,18 @@ export function DevProjectSwitcher() {
                 className="rounded-2xl"
               />
             </div>
-            <Button onClick={handleCreateProject} disabled={isCreating} className="w-full rounded-2xl">
+            <Button 
+              onClick={handleCreateProject} 
+              disabled={isCreating || !canCreateProject} 
+              className="w-full rounded-2xl"
+            >
               {isCreating ? "Creating..." : "Create Project"}
             </Button>
+            {!canCreateProject && (
+              <p className="text-xs text-muted-foreground text-center">
+                {projects.length}/{userSubscription?.project_limit || 1} projects used
+              </p>
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -109,6 +135,12 @@ export function DevProjectSwitcher() {
             <DialogTitle>Create New Project</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {createError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{createError}</AlertDescription>
+              </Alert>
+            )}
             <div>
               <Label htmlFor="name">Project Name</Label>
               <Input
@@ -129,9 +161,18 @@ export function DevProjectSwitcher() {
                 className="rounded-2xl"
               />
             </div>
-            <Button onClick={handleCreateProject} disabled={isCreating} className="w-full rounded-2xl">
+            <Button 
+              onClick={handleCreateProject} 
+              disabled={isCreating || !canCreateProject} 
+              className="w-full rounded-2xl"
+            >
               {isCreating ? "Creating..." : "Create Project"}
             </Button>
+            {!canCreateProject && (
+              <p className="text-xs text-muted-foreground text-center">
+                {projects.length}/{userSubscription?.project_limit || 1} projects used
+              </p>
+            )}
           </div>
         </DialogContent>
       </Dialog>

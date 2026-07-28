@@ -4,6 +4,88 @@ export type FileCategory = "documentation" | "graphics" | "audio" | "source_code
 export type TechCategory = "frontend" | "backend" | "game_engine" | "database" | "ai" | "devops" | "other";
 export type PhaseStatus = "planned" | "in_progress" | "completed" | "blocked";
 
+// Permission System Types
+export type DevProjectRole = "owner" | "admin" | "developer" | "tester" | "viewer";
+export type SubscriptionPlan = "free" | "basic" | "pro" | "enterprise";
+export type DevProjectStatus = "active" | "archived" | "deleted";
+
+export type PermissionName =
+  | "view_project"
+  | "edit_project"
+  | "manage_tasks"
+  | "manage_kanban"
+  | "manage_files"
+  | "manage_description"
+  | "manage_roadmap"
+  | "manage_technologies"
+  | "manage_members"
+  | "manage_settings"
+  | "delete_project";
+
+export type InviteStatus = "pending" | "accepted" | "rejected" | "expired" | "cancelled";
+
+export type ActivityAction =
+  | "project_created"
+  | "project_updated"
+  | "project_archived"
+  | "project_restored"
+  | "project_deleted"
+  | "member_added"
+  | "member_removed"
+  | "member_role_changed"
+  | "member_permissions_changed"
+  | "invite_sent"
+  | "invite_accepted"
+  | "invite_rejected"
+  | "invite_cancelled"
+  | "task_created"
+  | "task_updated"
+  | "task_deleted"
+  | "task_status_changed"
+  | "phase_created"
+  | "phase_updated"
+  | "phase_deleted"
+  | "file_uploaded"
+  | "file_deleted"
+  | "technology_added"
+  | "technology_updated"
+  | "technology_deleted"
+  | "description_updated"
+  | "settings_updated";
+
+export interface ProjectPermissions {
+  view_project: boolean;
+  edit_project: boolean;
+  manage_tasks: boolean;
+  manage_kanban: boolean;
+  manage_files: boolean;
+  manage_description: boolean;
+  manage_roadmap: boolean;
+  manage_technologies: boolean;
+  manage_members: boolean;
+  manage_settings: boolean;
+  delete_project: boolean;
+}
+
+export interface DevProjectMember {
+  id: number;
+  project_id: number;
+  user_id: string;
+  role: DevProjectRole;
+  permissions: ProjectPermissions;
+  joined_at: string;
+}
+
+export interface UserProfileWithSubscription {
+  id: string;
+  username?: string | null;
+  avatar_url?: string | null;
+  project_limit: number;
+  subscription_plan: SubscriptionPlan;
+  subscription_status: string;
+  subscription_expires_at?: string | null;
+}
+
 export interface DevProject {
   id: number;
   owner_id?: string | null;
@@ -16,6 +98,9 @@ export interface DevProject {
   is_archived?: boolean;
   created_at: string;
   updated_at?: string;
+  members?: DevProjectMember[];
+  user_role?: DevProjectRole;
+  user_permissions?: ProjectPermissions;
 }
 
 export interface DevTask {
@@ -185,4 +270,55 @@ export interface UpdateTechnologyData {
 export interface ProjectsWithTasksResponse {
   projects: DevProject[];
   tasks: DevTask[];
+}
+
+export interface AddMemberData {
+  project_id: number;
+  user_id: string;
+  role: DevProjectRole;
+  permissions?: ProjectPermissions;
+}
+
+export interface UpdateMemberData {
+  role?: DevProjectRole;
+  permissions?: ProjectPermissions;
+  keep_custom_permissions?: boolean;
+}
+
+export interface DevProjectInvite {
+  id: number;
+  project_id: number;
+  email: string;
+  username?: string | null;
+  invited_by: string;
+  role: DevProjectRole;
+  permissions: ProjectPermissions;
+  status: InviteStatus;
+  token: string;
+  expires_at: string;
+  accepted_at?: string | null;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface CreateInviteData {
+  project_id: number;
+  email: string;
+  username?: string;
+  role: DevProjectRole;
+  permissions?: ProjectPermissions;
+  expires_in_hours?: number;
+}
+
+export interface DevActivityLog {
+  id: number;
+  project_id: number;
+  user_id?: string | null;
+  action: ActivityAction;
+  entity_type?: string | null;
+  entity_id?: number | null;
+  details: Record<string, any>;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  created_at: string;
 }

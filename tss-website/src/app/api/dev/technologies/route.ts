@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import type { CreateTechnologyData, UpdateTechnologyData, DevTechnology } from "@/lib/types/dev-types";
+import { checkProjectPermission, checkProjectMembership, logActivity } from "@/lib/dev-permissions";
 
 export async function GET(request: Request) {
   let supabase;
@@ -15,6 +16,16 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get("projectId");
+
+  if (!projectId) {
+    return NextResponse.json({ error: "Project ID is required" }, { status: 400 });
+  }
+
+  // Check if user has access to the project
+  const membershipCheck = await checkProjectMembership(Number(projectId));
+  if (!membershipCheck.hasAccess) {
+    return NextResponse.json({ error: membershipCheck.error }, { status: 403 });
+  }
 
   let query = supabase
     .from("dev_technologies")
@@ -45,14 +56,14 @@ export async function POST(request: Request) {
     );
   }
 
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const body: CreateTechnologyData = await request.json();
   const { project_id, name, icon_slug, version, category, description, sort_order } = body;
+
+  // Check if user has permission to manage technologies
+  const permissionCheck = await checkProjectPermission(project_id, 'manage_technologies');
+  if (!permissionCheck.hasAccess) {
+    return NextResponse.json({ error: permissionCheck.error || "Insufficient permissions" }, { status: 403 });
+  }
 
   // Get max sort_order for this project if not provided
   let finalSortOrder = sort_order;
@@ -85,6 +96,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Log activity
+  await logActivity(project_id, 'technology_added', 'technology', data?.id, { name, category });
+
   return NextResponse.json(data, { status: 201 });
 }
 
@@ -99,17 +113,28 @@ export async function PATCH(request: Request) {
     );
   }
 
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const body: UpdateTechnologyData & { id?: number } = await request.json();
   const { id, ...updateData } = body;
 
   if (!id) {
     return NextResponse.json({ error: "ID is required" }, { status: 400 });
+  }
+
+  // Get the technology to check project_id and permissions
+  const { data: tech } = await supabase
+    .from("dev_technologies")
+    .select("project_id, name")
+    .eq("id", id)
+    .single();
+
+  if (!tech) {
+    return NextResponse.json({ error: "Technology not found" }, { status: 404 });
+  }
+
+  // Check if user has permission to manage technologies
+  const permissionCheck = await checkProjectPermission(tech.project_id, 'manage_technologies');
+  if (!permissionCheck.hasAccess) {
+    return NextResponse.json({ error: permissionCheck.error || "Insufficient permissions" }, { status: 403 });
   }
 
   const { data, error } = await supabase
@@ -122,6 +147,9 @@ export async function PATCH(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Log activity
+  await logActivity(tech.project_id, 'technology_updated', 'technology', id, { name: tech.name });
 
   return NextResponse.json(data);
 }
@@ -137,17 +165,28 @@ export async function DELETE(request: Request) {
     );
   }
 
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 
   if (!id) {
     return NextResponse.json({ error: "ID is required" }, { status: 400 });
+  }
+
+  // Get the technology to check project_id and permissions
+  const { data: tech } = await supabase
+    .from("dev_technologies")
+    .select("project_id, name")
+    .eq("id", Number(id))
+    .single();
+
+  if (!tech) {
+    return NextResponse.json({ error: "Technology not found" }, { status: 404 });
+  }
+
+  // Check if user has permission to manage technologies
+  const permissionCheck = await checkProjectPermission(tech.project_id, 'manage_technologies');
+  if (!permissionCheck.hasAccess) {
+    return NextResponse.json({ error: permissionCheck.error || "Insufficient permissions" }, { status: 403 });
   }
 
   const { error } = await supabase
@@ -158,6 +197,9 @@ export async function DELETE(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Log activity
+  await logActivity(tech.project_id, 'technology_deleted', 'technology', Number(id), { name: tech.name });
 
   return NextResponse.json({ success: true });
 }

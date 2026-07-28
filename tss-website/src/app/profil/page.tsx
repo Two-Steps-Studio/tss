@@ -157,10 +157,10 @@ export default function ProfilePage() {
 
             // Subscribe AFTER setting initial state
             if (channel && typeof channel.unsubscribe === 'function') {
-                supabase.removeChannel(channel);
+                await supabase.removeChannel(channel);
             }
             const freshChannel = supabase.channel(`profile-${discordId}`);
-            const subscription = freshChannel.on("postgres_changes", {
+            freshChannel.on("postgres_changes", {
                 event: "UPDATE",  // Only UPDATE, not INSERT/DELETE for profile
                 schema: "public",
                 table: "profiles",
@@ -171,9 +171,11 @@ export default function ProfilePage() {
                     if (!prev) return payload.new;
                     return { ...prev, ...payload.new };
                 });
+            }).subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    channel = freshChannel;
+                }
             });
-            freshChannel.subscribe();
-            channel = freshChannel;
 
             setLoading(false);
         };

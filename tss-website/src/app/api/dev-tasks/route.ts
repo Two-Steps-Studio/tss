@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { checkProjectPermission, checkProjectMembership, logActivity } from "@/lib/dev-permissions";
 
 export async function GET(request: Request) {
   let supabase;
@@ -14,6 +15,16 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get("projectId");
+
+  if (!projectId) {
+    return NextResponse.json({ error: "Project ID is required" }, { status: 400 });
+  }
+
+  // Check if user has access to the project
+  const membershipCheck = await checkProjectMembership(Number(projectId));
+  if (!membershipCheck.hasAccess) {
+    return NextResponse.json({ error: membershipCheck.error }, { status: 403 });
+  }
 
   let query = supabase
     .from("dev_tasks")
@@ -48,6 +59,12 @@ export async function POST(request: Request) {
   const body = await request.json();
   const { project_id, title, description, tags, due_date, assignee_name, estimated_hours, progress_percent, priority = "medium", status = "todo" } = body;
 
+  // Check if user has permission to manage tasks
+  const permissionCheck = await checkProjectPermission(project_id, 'manage_tasks');
+  if (!permissionCheck.hasAccess) {
+    return NextResponse.json({ error: permissionCheck.error || "Insufficient permissions" }, { status: 403 });
+  }
+
   // Bypass RLS: insert without user ownership check to avoid foreign key constraint errors.
   // Tasks are associated with projects via project_id (FK) only - no owner_id field in schema.
   const { data, error } = await supabase.from("dev_tasks").insert({
@@ -72,6 +89,9 @@ export async function POST(request: Request) {
     // Reassign proper ID from returned data if needed
     return NextResponse.json(retryResult.data || { error: "Task creation failed" }, retryResult.error ? 500 : 201);
   }
+
+  // Log activity
+  await logActivity(project_id, 'task_created', 'task', data?.id, { title });
 
   return NextResponse.json(data, { status: 201 });
 }

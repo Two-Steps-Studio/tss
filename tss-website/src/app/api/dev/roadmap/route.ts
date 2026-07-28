@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import type { CreatePhaseData, UpdatePhaseData, DevRoadmapPhase } from "@/lib/types/dev-types";
+import { checkProjectPermission, checkProjectMembership, logActivity } from "@/lib/dev-permissions";
 
 export async function GET(request: Request) {
   let supabase;
@@ -15,6 +16,16 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const projectId = searchParams.get("projectId");
+
+  if (!projectId) {
+    return NextResponse.json({ error: "Project ID is required" }, { status: 400 });
+  }
+
+  // Check if user has access to the project
+  const membershipCheck = await checkProjectMembership(Number(projectId));
+  if (!membershipCheck.hasAccess) {
+    return NextResponse.json({ error: membershipCheck.error }, { status: 403 });
+  }
 
   let query = supabase
     .from("dev_roadmap_phases")
@@ -45,14 +56,14 @@ export async function POST(request: Request) {
     );
   }
 
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const body: CreatePhaseData = await request.json();
   const { project_id, name, description, start_date, planned_end_date, status, completion_percentage, sort_order } = body;
+
+  // Check if user has permission to manage roadmap
+  const permissionCheck = await checkProjectPermission(project_id, 'manage_roadmap');
+  if (!permissionCheck.hasAccess) {
+    return NextResponse.json({ error: permissionCheck.error || "Insufficient permissions" }, { status: 403 });
+  }
 
   // Get max sort_order for this project if not provided
   let finalSortOrder = sort_order;
@@ -86,6 +97,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Log activity
+  await logActivity(project_id, 'phase_created', 'roadmap_phase', data?.id, { name });
+
   return NextResponse.json(data, { status: 201 });
 }
 
@@ -100,17 +114,28 @@ export async function PATCH(request: Request) {
     );
   }
 
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const body: UpdatePhaseData & { id?: number } = await request.json();
   const { id, ...updateData } = body;
 
   if (!id) {
     return NextResponse.json({ error: "ID is required" }, { status: 400 });
+  }
+
+  // Get the phase to check project_id and permissions
+  const { data: phase } = await supabase
+    .from("dev_roadmap_phases")
+    .select("project_id, name")
+    .eq("id", id)
+    .single();
+
+  if (!phase) {
+    return NextResponse.json({ error: "Phase not found" }, { status: 404 });
+  }
+
+  // Check if user has permission to manage roadmap
+  const permissionCheck = await checkProjectPermission(phase.project_id, 'manage_roadmap');
+  if (!permissionCheck.hasAccess) {
+    return NextResponse.json({ error: permissionCheck.error || "Insufficient permissions" }, { status: 403 });
   }
 
   const { data, error } = await supabase
@@ -123,6 +148,9 @@ export async function PATCH(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Log activity
+  await logActivity(phase.project_id, 'phase_updated', 'roadmap_phase', id, { name: phase.name });
 
   return NextResponse.json(data);
 }
@@ -138,17 +166,28 @@ export async function DELETE(request: Request) {
     );
   }
 
-  // Get current user
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 
   if (!id) {
     return NextResponse.json({ error: "ID is required" }, { status: 400 });
+  }
+
+  // Get the phase to check project_id and permissions
+  const { data: phase } = await supabase
+    .from("dev_roadmap_phases")
+    .select("project_id, name")
+    .eq("id", Number(id))
+    .single();
+
+  if (!phase) {
+    return NextResponse.json({ error: "Phase not found" }, { status: 404 });
+  }
+
+  // Check if user has permission to manage roadmap
+  const permissionCheck = await checkProjectPermission(phase.project_id, 'manage_roadmap');
+  if (!permissionCheck.hasAccess) {
+    return NextResponse.json({ error: permissionCheck.error || "Insufficient permissions" }, { status: 403 });
   }
 
   const { error } = await supabase
@@ -159,6 +198,9 @@ export async function DELETE(request: Request) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Log activity
+  await logActivity(phase.project_id, 'phase_deleted', 'roadmap_phase', Number(id), { name: phase.name });
 
   return NextResponse.json({ success: true });
 }

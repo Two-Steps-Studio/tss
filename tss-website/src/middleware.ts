@@ -193,6 +193,107 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(route)
   );
 
+  // DEV routes - check if user has access to any project and if DEV is visible
+  const isDevRoute = request.nextUrl.pathname.startsWith("/dev");
+  if (isDevRoute && user) {
+    try {
+      // Check if DEV category is visible for user
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("dev_visible")
+        .eq("id", user.id)
+        .single();
+
+      // Default to false if not set (DEV is opt-in)
+      if (!profile || profile.dev_visible === false) {
+        // DEV is disabled for user, redirect to home
+        return NextResponse.redirect(new URL("/?category-disabled=dev", request.url));
+      }
+
+      // Check if user has access to any project
+      const { count } = await supabase
+        .from("dev_projects")
+        .select("*", { count: "exact", head: true })
+        .or(`owner_id.eq.${user.id},dev_project_members.user_id.eq.${user.id}`);
+      
+      if (!count || count === 0) {
+        // User has no DEV access, redirect to home with message
+        return NextResponse.redirect(new URL("/?no-dev-access=true", request.url));
+      }
+
+      // Check specific project access for /dev/projects/[id] routes
+      const projectMatch = request.nextUrl.pathname.match(/^\/dev\/projects\/(\d+)/);
+      if (projectMatch) {
+        const projectId = parseInt(projectMatch[1]);
+        
+        // Check if user has access to this specific project
+        const { data: project, error: projectError } = await supabase
+          .from("dev_projects")
+          .select("id, owner_id")
+          .eq("id", projectId)
+          .single();
+
+        if (projectError || !project) {
+          return NextResponse.redirect(new URL("/dev?project-not-found=true", request.url));
+        }
+
+        // Check if user is owner or member
+        const isOwner = project.owner_id === user.id;
+        const { count: memberCount } = await supabase
+          .from("dev_project_members")
+          .select("*", { count: "exact", head: true })
+          .eq("project_id", projectId)
+          .eq("user_id", user.id);
+
+        if (!isOwner && (!memberCount || memberCount === 0)) {
+          // User doesn't have access to this specific project
+          return NextResponse.redirect(new URL("/dev?project-access-denied=true", request.url));
+        }
+      }
+    } catch (error) {
+      console.error("DEV access check failed:", error);
+      // Allow access if check fails to avoid blocking legitimate users
+    }
+  }
+
+  // Games routes - check if Games category is visible
+  const isGamesRoute = request.nextUrl.pathname.startsWith("/games");
+  if (isGamesRoute && user) {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("games_visible")
+        .eq("id", user.id)
+        .single();
+
+      // Default to true if not set
+      if (!profile || profile.games_visible === false) {
+        return NextResponse.redirect(new URL("/?category-disabled=games", request.url));
+      }
+    } catch (error) {
+      console.error("Games visibility check failed:", error);
+    }
+  }
+
+  // Records routes - check if Records category is visible
+  const isRecordsRoute = request.nextUrl.pathname.startsWith("/records");
+  if (isRecordsRoute && user) {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("records_visible")
+        .eq("id", user.id)
+        .single();
+
+      // Default to true if not set
+      if (!profile || profile.records_visible === false) {
+        return NextResponse.redirect(new URL("/?category-disabled=records", request.url));
+      }
+    } catch (error) {
+      console.error("Records visibility check failed:", error);
+    }
+  }
+
   // Auth routes (redirect to profile if already logged in)
   const authRoutes = ["/login", "/rejestracja"];
   const isAuthRoute = authRoutes.some((route) =>

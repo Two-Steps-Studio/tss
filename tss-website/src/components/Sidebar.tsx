@@ -47,6 +47,7 @@ import { useSectionTheme } from "../hooks/use-section-theme";
 import { useLanguage } from "../hooks/use-language";
 import { useTheme } from "next-themes";
 import { BottomNavigation } from "./BottomNavigation";
+import { supabase } from "@/lib/supabase";
 
 function SidebarStats({ translations, stats }: { translations: any; stats: { online_users: number; total_members: number; messages_today: number } }) {
   return (
@@ -103,9 +104,51 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
   const { logo } = useSectionTheme();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [hasDevAccess, setHasDevAccess] = useState(false);
+  const [categoryVisibility, setCategoryVisibility] = useState({
+    games: true,
+    records: true,
+    dev: true,
+  });
 
   useEffect(() => {
     setMounted(true);
+    
+    // Check if user has access to DEV module and load category visibility
+    const checkDevAccess = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          const { count } = await supabase
+            .from("dev_projects")
+            .select("*", { count: "exact", head: true })
+            .or(`owner_id.eq.${user.id},dev_project_members.user_id.eq.${user.id}`);
+          
+          setHasDevAccess((count || 0) > 0);
+
+          // Load category visibility from profile
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("games_visible, records_visible, dev_visible")
+            .eq("id", user.id)
+            .single();
+
+          if (profile) {
+            setCategoryVisibility({
+              games: profile.games_visible ?? true,
+              records: profile.records_visible ?? true,
+              dev: profile.dev_visible ?? true,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check DEV access:", error);
+        setHasDevAccess(false);
+      }
+    };
+    
+    checkDevAccess();
   }, []);
 
   const [stats, setStats] = useState({
@@ -140,22 +183,28 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
   const defaultSections = [
     { id: "home", type: "single", href: "/", label: t.nav.home || "Strona główna", icon: Home },
     { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: User },
-    { id: "games", type: "expandable", href: "/games", label: t.nav.games || "Games", icon: Gamepad, items: [
+    ...(categoryVisibility.games ? [{
+      id: "games", type: "expandable", href: "/games", label: t.nav.games || "Games", icon: Gamepad, items: [
         { href: "/games/loucher-gier", label: t.nav.Loucher || "Loucher Gier", icon: Gamepad },
         { href: "/games/o-grach", label: "O grach", icon: BookOpen },
-      ]},
-    { id: "records", type: "expandable", href: "/records", label: t.nav.records || "Records", icon: Music2, items: [
+      ]}
+    ] : []),
+    ...(categoryVisibility.records ? [{
+      id: "records", type: "expandable", href: "/records", label: t.nav.records || "Records", icon: Music2, items: [
         { href: "/records/podcasty", label: "Podcasty", icon: Book },
         { href: "/records/beaty", label: "Beaty", icon: Mic2 },
-      ]},
-    { id: "dev", type: "expandable", href: "/dev", label: t.nav.dev || "Dev", icon: Code, items: [
+      ]}
+    ] : []),
+    ...(hasDevAccess && categoryVisibility.dev ? [{
+      id: "dev", type: "expandable", href: "/dev", label: t.nav.dev || "Dev", icon: Code, items: [
         { href: "/dev/projects", label: t.nav.project || "Projects", icon: FolderKanban },
         { href: "/dev/tasks", label: t.nav.tasks || "Tasks", icon: CheckSquare },
         { href: "/dev/roadmap", label: t.nav.roadmap || "Roadmap", icon: Map  },
         { href: "/dev/files", label: t.nav.files ||"Files", icon: FileText },
         { href: "/dev/description", label: t.nav.description || "Description", icon: NotebookText },
         { href: "/dev/technology", label: t.nav.technology ||"Technology", icon: Cpu },
-      ]},
+      ]}
+    ] : []),
     { id: "notifications", type: "single", href: "/ankiety/rating", label: t.nav.notifications || "Powiadomienia", icon: Bell },
 
 

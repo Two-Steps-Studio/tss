@@ -21,6 +21,13 @@ import type {
   TaskPriority,
   TaskStatus,
   TechCategory,
+  DevProjectMember,
+  DevProjectRole,
+  ProjectPermissions,
+  PermissionName,
+  UserProfileWithSubscription,
+  AddMemberData,
+  UpdateMemberData,
 } from "@/lib/types/dev-types";
 import { computeStats } from "@/lib/dev/status-utils";
 
@@ -35,10 +42,16 @@ interface DevProjectContextValue {
   phases: DevRoadmapPhase[];
   files: DevProjectFile[];
   technologies: DevTechnology[];
+  members: DevProjectMember[];
+  userSubscription: UserProfileWithSubscription | null;
   stats: DevProjectStats;
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  hasAccessToDev: boolean;
+  canCreateProject: boolean;
+  hasPermission: (permission: PermissionName) => boolean;
+  getUserRole: () => DevProjectRole | null;
   createProject: (name: string, description?: string) => Promise<DevProject | null>;
   updateProject: (id: number, data: Partial<DevProject>) => Promise<void>;
   deleteProject: (id: number) => Promise<void>;
@@ -54,6 +67,9 @@ interface DevProjectContextValue {
   updateTechnology: (id: number, data: Partial<DevTechnology>) => Promise<void>;
   deleteTechnology: (id: number) => Promise<void>;
   saveDescription: (markdown: string) => Promise<void>;
+  addMember: (data: AddMemberData) => Promise<void>;
+  updateMember: (memberId: number, data: UpdateMemberData) => Promise<void>;
+  removeMember: (memberId: number) => Promise<void>;
 }
 
 const DevProjectContext = createContext<DevProjectContextValue | null>(null);
@@ -74,6 +90,8 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
   const [phases, setPhases] = useState<DevRoadmapPhase[]>([]);
   const [files, setFiles] = useState<DevProjectFile[]>([]);
   const [technologies, setTechnologies] = useState<DevTechnology[]>([]);
+  const [members, setMembers] = useState<DevProjectMember[]>([]);
+  const [userSubscription, setUserSubscription] = useState<UserProfileWithSubscription | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,30 +102,78 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
 
   const stats = useMemo(() => computeStats(tasks), [tasks]);
 
+  const hasAccessToDev = useMemo(() => {
+    return projects.length > 0;
+  }, [projects]);
+
+  const canCreateProject = useMemo(() => {
+    if (!userSubscription) return false;
+    return projects.length < userSubscription.project_limit;
+  }, [projects.length, userSubscription]);
+
+  const hasPermission = useCallback((permission: PermissionName): boolean => {
+    if (!activeProject) return false;
+    
+    // Owner has all permissions
+    if (activeProject.user_role === 'owner') return true;
+    
+    // Check user's permissions
+    if (activeProject.user_permissions) {
+      return activeProject.user_permissions[permission] || false;
+    }
+    
+    // Role-based fallback
+    const role = activeProject.user_role;
+    if (!role) return false;
+    
+    switch (role) {
+      case 'admin':
+        return permission !== 'delete_project';
+      case 'developer':
+        return ['view_project', 'edit_project', 'manage_tasks', 'manage_files', 'manage_description', 'manage_technologies'].includes(permission);
+      case 'tester':
+        return permission.startsWith('view_');
+      case 'viewer':
+        return permission.startsWith('view_');
+      default:
+        return false;
+    }
+  }, [activeProject]);
+
+  const getUserRole = useCallback((): DevProjectRole | null => {
+    return activeProject?.user_role || null;
+  }, [activeProject]);
+
   const setActiveProjectId = useCallback((id: number) => {
     setActiveProjectIdState(id);
     localStorage.setItem(STORAGE_KEY, String(id));
   }, []);
 
   const loadProjectData = useCallback(async (projectId: number) => {
-    const [tasksData, phasesData, filesData, techData] = await Promise.all([
+    const [tasksData, phasesData, filesData, techData, membersData] = await Promise.all([
       fetchJson<DevTask[]>(`/api/dev-tasks?projectId=${projectId}`).catch(() => []),
       fetchJson<DevRoadmapPhase[]>(`/api/dev/roadmap?projectId=${projectId}`).catch(() => []),
       fetchJson<DevProjectFile[]>(`/api/dev/files?projectId=${projectId}`).catch(() => []),
       fetchJson<DevTechnology[]>(`/api/dev/technologies?projectId=${projectId}`).catch(() => []),
+      fetchJson<DevProjectMember[]>(`/api/dev/members?projectId=${projectId}`).catch(() => []),
     ]);
     setTasks(tasksData);
     setPhases(phasesData);
     setFiles(filesData);
     setTechnologies(techData);
+    setMembers(membersData);
   }, []);
 
   const refetch = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const projectsData = await fetchJson<DevProject[]>("/api/dev-projects");
+      const [projectsData, subscriptionData] = await Promise.all([
+        fetchJson<DevProject[]>("/api/dev-projects").catch(() => []),
+        fetchJson<UserProfileWithSubscription>("/api/dev/subscription").catch(() => null),
+      ]);
       setProjects(projectsData);
+      setUserSubscription(subscriptionData);
 
       let projectId = activeProjectId;
       if (!projectId && projectsData.length > 0) {
@@ -266,6 +332,30 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     await updateProject(activeProjectId, { description_markdown: markdown });
   }, [activeProjectId, updateProject]);
 
+  const addMember = useCallback(async (data: AddMemberData) => {
+    if (!activeProjectId) return;
+    const member = await fetchJson<DevProjectMember>("/api/dev/members", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...data, project_id: activeProjectId }),
+    });
+    setMembers((prev) => [...prev, member]);
+  }, [activeProjectId]);
+
+  const updateMember = useCallback(async (memberId: number, data: UpdateMemberData) => {
+    const updated = await fetchJson<DevProjectMember>(`/api/dev/members/${memberId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    setMembers((prev) => prev.map((m) => (m.id === memberId ? updated : m)));
+  }, []);
+
+  const removeMember = useCallback(async (memberId: number) => {
+    await fetchJson(`/api/dev/members/${memberId}`, { method: "DELETE" });
+    setMembers((prev) => prev.filter((m) => m.id !== memberId));
+  }, []);
+
   const value: DevProjectContextValue = {
     projects,
     activeProject,
@@ -275,10 +365,16 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     phases,
     files,
     technologies,
+    members,
+    userSubscription,
     stats,
     isLoading,
     error,
     refetch,
+    hasAccessToDev,
+    canCreateProject,
+    hasPermission,
+    getUserRole,
     createProject,
     updateProject,
     deleteProject,
@@ -294,6 +390,9 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     updateTechnology,
     deleteTechnology,
     saveDescription,
+    addMember,
+    updateMember,
+    removeMember,
   };
 
   return (
