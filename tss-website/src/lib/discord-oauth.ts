@@ -107,9 +107,18 @@ export function getDiscordAvatarUrl(userId: string, avatar: string | null): stri
 }
 
 /**
- * Generate random state for OAuth flow
+ * Generate cryptographically secure random state for OAuth flow
  */
 export function generateState(): string {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
+  // Use crypto API for secure random generation
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    const array = new Uint8Array(32);
+    crypto.getRandomValues(array);
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+  // Fallback for environments without crypto API
+  const timestamp = Date.now().toString(36);
+  const randomPart = Math.random().toString(36).substring(2, 15) + 
+                     Math.random().toString(36).substring(2, 15);
+  return `${timestamp}-${randomPart}`;
 }

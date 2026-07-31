@@ -17,36 +17,49 @@ export async function GET() {
 
   try {
     // Pobierz najnowsze statystyki Discorda z bazy danych
-    const { data: discordStats, error: dsError } = await supabase
-      .from('discord_stats')
-      .select('*')
-      .order('recorded_at', { ascending: false })
-      .limit(1)
-      .single();
+    let discordStats = null;
+    try {
+      const { data, error } = await supabase
+        .from('discord_stats')
+        .select('*')
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (!error) {
+        discordStats = data;
+      }
+    } catch (e) {
+      // Table doesn't exist or other error, continue with defaults
+      console.log('discord_stats table not available, using defaults');
+    }
 
     // Pobierz całkowitą liczbę użytkowników z bazy profiles (nie z Discorda)
-    const { count: siteAccounts } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true });
+    let siteAccounts = 0;
+    try {
+      const { count } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+      siteAccounts = count || 0;
+    } catch (e) {
+      console.log('profiles table not available');
+    }
 
     // Zwróć dane w nowym formacie
     const response: any = {
       online_users: discordStats?.online_users || 0,
-      total_members: discordStats?.member_count || 0,
+      total_members: discordStats?.member_count || siteAccounts || 0,
       messages_today: discordStats?.messages_today || 0,
+      member_count: discordStats?.member_count || siteAccounts || 0,
     };
-
-    if (dsError) {
-      console.error('Supabase error:', dsError);
-    }
 
     return NextResponse.json(response);
   } catch (err: any) {
     console.error('Unexpected stats error:', err);
     return NextResponse.json({
       online_users: 0,
+      total_members: 0,
+      messages_today: 0,
       member_count: 0,
-      site_accounts: 0,
     });
   }
 }

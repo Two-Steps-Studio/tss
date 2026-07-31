@@ -100,11 +100,34 @@ export async function POST(request: Request) {
   const body: CreateInviteData = await request.json();
   const { project_id, email, username, role, permissions, expires_in_hours = 168 } = body; // Default 7 days
 
+  // SECURITY: Validate project_id is a number
+  const projectIdNum = parseInt(project_id as any, 10);
+  if (isNaN(projectIdNum) || projectIdNum <= 0) {
+    return NextResponse.json({ error: "Invalid project ID" }, { status: 400 });
+  }
+
+  // SECURITY: Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+  }
+
+  // SECURITY: Validate role
+  const validRoles = ['owner', 'admin', 'developer', 'tester', 'viewer'];
+  if (role && !validRoles.includes(role)) {
+    return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+  }
+
+  // SECURITY: Validate expires_in_hours
+  if (expires_in_hours && (expires_in_hours < 1 || expires_in_hours > 720)) {
+    return NextResponse.json({ error: "expires_in_hours must be between 1 and 720" }, { status: 400 });
+  }
+
   // Check if user is owner of the project
   const { data: project, error: projectError } = await supabase
     .from("dev_projects")
     .select("owner_id")
-    .eq("id", project_id)
+    .eq("id", projectIdNum)
     .single();
 
   if (projectError || !project) {
@@ -129,7 +152,7 @@ export async function POST(request: Request) {
   const { data: existingMember } = await supabase
     .from("dev_project_members")
     .select("user_id")
-    .eq("project_id", project_id)
+    .eq("project_id", projectIdNum)
     .eq("user_id", user.id)
     .single();
 
@@ -141,7 +164,7 @@ export async function POST(request: Request) {
   const { data: existingInvite } = await supabase
     .from("dev_project_invites")
     .select("id")
-    .eq("project_id", project_id)
+    .eq("project_id", projectIdNum)
     .eq("email", email)
     .eq("status", "pending")
     .single();
@@ -168,7 +191,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase
     .from("dev_project_invites")
     .insert({
-      project_id,
+      project_id: projectIdNum,
       email,
       username,
       invited_by: user.id,
@@ -186,7 +209,7 @@ export async function POST(request: Request) {
 
   // Log the activity
   await supabase.rpc('log_dev_activity', {
-    p_project_id: project_id,
+    p_project_id: projectIdNum,
     p_user_id: user.id,
     p_action: 'invite_sent',
     p_entity_type: 'project_invite',

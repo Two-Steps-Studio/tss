@@ -3,6 +3,9 @@ import path from "node:path";
 
 const LOADER = path.resolve(__dirname, "src/visual-edits/component-tagger-loader.js");
 const isElectron = process.env.ELECTRON === 'true';
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 const nextConfig: NextConfig = {
   assetPrefix: isElectron ? './' : undefined,
@@ -32,7 +35,7 @@ const nextConfig: NextConfig = {
     ],
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   async headers() {
     return [
@@ -156,4 +159,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

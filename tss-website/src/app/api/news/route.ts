@@ -17,7 +17,10 @@ export async function GET() {
   try {
     supabase = await createClient();
   } catch {
-    return NextResponse.json([], { status: 503 });
+    const errorMessage = process.env.NODE_ENV === 'development'
+      ? 'Supabase service unavailable - check configuration'
+      : 'Service temporarily unavailable';
+    return NextResponse.json({ error: errorMessage }, { status: 503 });
   }
 
   try {
@@ -30,13 +33,18 @@ export async function GET() {
 
     if (error) {
       console.error('Supabase error:', error);
-      // Zwracamy puste dane w przypadku błędu
-      return NextResponse.json([]);
+      const errorMessage = process.env.NODE_ENV === 'development'
+        ? `Database error: ${error.message}`
+        : 'Failed to load news';
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
 
     return NextResponse.json(news || []);
   } catch (err: any) {
     console.error('Unexpected news error:', err);
-    return NextResponse.json([]);
+    const errorMessage = process.env.NODE_ENV === 'development'
+      ? `Unexpected error: ${err.message}`
+      : 'Failed to load news';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

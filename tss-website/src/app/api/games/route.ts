@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
+import { requireAuth, requireOwnership, isAuthError } from "@/lib/auth-helpers";
 import type { Game, GameWithDetails } from "@/types/games-records";
 
 // GET - Fetch all games with optional filters or single game by ID
@@ -13,6 +14,10 @@ export async function GET(request: Request) {
       { status: 503 }
     );
   }
+
+  // SECURITY: Require authentication for all game operations
+  const auth = await requireAuth();
+  if (isAuthError(auth)) return auth;
 
   try {
     const { searchParams } = new URL(request.url);
@@ -127,6 +132,10 @@ export async function POST(request: Request) {
     );
   }
 
+  // SECURITY: Require authentication
+  const auth = await requireAuth();
+  if (isAuthError(auth)) return auth;
+
   try {
     const body: Partial<Game> = await request.json();
 
@@ -195,6 +204,10 @@ export async function PUT(request: Request) {
       { status: 503 }
     );
   }
+
+  // SECURITY: Require authentication
+  const auth = await requireAuth();
+  if (isAuthError(auth)) return auth;
 
   try {
     const body: Partial<Game> & { id: number } = await request.json();
@@ -270,6 +283,10 @@ export async function DELETE(request: Request) {
       { status: 503 }
     );
   }
+
+  // SECURITY: Require authentication
+  const auth = await requireAuth();
+  if (isAuthError(auth)) return auth;
 
   try {
     const { searchParams } = new URL(request.url);

@@ -171,49 +171,27 @@ export async function requireOwnership(
     return ERROR_RESPONSES.SERVICE_DISABLED;
   }
 
-  let isOwner = false;
+  // Map resource types to Supabase tables
+  const RESOURCE_TABLES: Record<OwnershipCheck['resourceType'], string> = {
+    'game': 'games',
+    'music_track': 'music_tracks',
+    'podcast': 'podcasts',
+    'dev_project': 'dev_projects',
+  };
 
-  switch (resourceType) {
-    case 'game':
-      const { data: game } = await supabase
-        .from("games")
-        .select("owner_id")
-        .eq("id", resourceId)
-        .single();
-      isOwner = game?.owner_id === auth.user.id;
-      break;
-
-    case 'music_track':
-      const { data: music } = await supabase
-        .from("music_tracks")
-        .select("owner_id")
-        .eq("id", resourceId)
-        .single();
-      isOwner = music?.owner_id === auth.user.id;
-      break;
-
-    case 'podcast':
-      const { data: podcast } = await supabase
-        .from("podcasts")
-        .select("owner_id")
-        .eq("id", resourceId)
-        .single();
-      isOwner = podcast?.owner_id === auth.user.id;
-      break;
-
-    case 'dev_project':
-      const { data: project } = await supabase
-        .from("dev_projects")
-        .select("owner_id")
-        .eq("id", resourceId)
-        .single();
-      isOwner = project?.owner_id === auth.user.id;
-      break;
-
-    default:
-      console.error(`[SECURITY] Unknown resource type: ${resourceType}`);
-      return ERROR_RESPONSES.FORBIDDEN;
+  const tableName = RESOURCE_TABLES[resourceType];
+  if (!tableName) {
+    console.error(`[SECURITY] Unknown resource type: ${resourceType}`);
+    return ERROR_RESPONSES.FORBIDDEN;
   }
+
+  const { data: resource } = await supabase
+    .from(tableName)
+    .select("owner_id")
+    .eq("id", resourceId)
+    .single();
+
+  const isOwner = resource?.owner_id === auth.user.id;
 
   if (!isOwner) {
     console.error(`[SECURITY] User ${auth.user.id} attempted to access ${resourceType} ${resourceId} without ownership`);

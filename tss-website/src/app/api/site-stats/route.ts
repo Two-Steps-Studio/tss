@@ -18,33 +18,33 @@ export async function GET() {
     return NextResponse.json({ error: 'Brak autoryzacji' }, { status: 401 });
   }
 
-  const threshold = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  // Use RPC function for optimized single-query statistics
+  const { data, error } = await supabase.rpc('get_site_stats');
 
-  const { count: onlineSite } = await supabase
-    .from("site_sessions")
-    .select("session_id", { count: "exact", head: true })
-    .gte("last_seen", threshold);
+  if (error) {
+    console.error('Site stats RPC error:', error);
+    // Fallback to individual queries if RPC fails
+    const threshold = new Date(Date.now() - 5 * 60 * 1000).toISOString();
 
-  const { count: onlineLogged } = await supabase
-    .from("site_sessions")
-    .select("session_id", { count: "exact", head: true })
-    .gte("last_seen", threshold)
-    .not("user_id", "is", null);
+    const [onlineSiteResult, onlineLoggedResult, onlineAnonResult, totalProfilesResult] = await Promise.all([
+      supabase.from("site_sessions").select("session_id", { count: "exact", head: true }).gte("last_seen", threshold),
+      supabase.from("site_sessions").select("session_id", { count: "exact", head: true }).gte("last_seen", threshold).not("user_id", "is", null),
+      supabase.from("site_sessions").select("session_id", { count: "exact", head: true }).gte("last_seen", threshold).is("user_id", null),
+      supabase.from("profiles").select("*", { count: "exact", head: true })
+    ]);
 
-  const { count: onlineAnon } = await supabase
-    .from("site_sessions")
-    .select("session_id", { count: "exact", head: true })
-    .gte("last_seen", threshold)
-    .is("user_id", null);
-
-  const { count: totalProfiles } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true });
+    return NextResponse.json({
+      online_site: onlineSiteResult.count || 0,
+      online_logged_in: onlineLoggedResult.count || 0,
+      online_anonymous: onlineAnonResult.count || 0,
+      total_profiles: totalProfilesResult.count || 0,
+    });
+  }
 
   return NextResponse.json({
-    online_site: onlineSite || 0,
-    online_logged_in: onlineLogged || 0,
-    online_anonymous: onlineAnon || 0,
-    total_profiles: totalProfiles || 0,
+    online_site: data?.online_site || 0,
+    online_logged_in: data?.online_logged_in || 0,
+    online_anonymous: data?.online_anonymous || 0,
+    total_profiles: data?.total_profiles || 0,
   });
 }

@@ -47,18 +47,19 @@ export async function POST(req: NextRequest) {
     const password = (body?.password as string) || "";
     const name = (body?.name as string) || "";
     const secret = process.env.ADMIN_CONSOLE_PASSWORD || "";
-   const allowedUser = (process.env.ADMIN_CONSOLE_USER || "TwoStepsStudioAdmin").trim().toLowerCase();
-     if (!secret) {
-      return NextResponse.json({ error: "Brak konfiguracji has≥a" }, { status: 500 });
+    const allowedUser = (process.env.ADMIN_CONSOLE_USER || "TwoStepsStudioAdmin").trim().toLowerCase();
+    
+    if (!secret) {
+      return NextResponse.json({ error: "Brak konfiguracji has≈Ça" }, { status: 500 });
     }
     if (!password || !name) {
-      return NextResponse.json({ error: "Nieprawid≥owe dane" }, { status: 400 });
+      return NextResponse.json({ error: "Nieprawid≈Çowe dane" }, { status: 400 });
     }
-   if (name.trim().toLowerCase() !== allowedUser) {
-      return NextResponse.json({ error: "Nieprawid≥owa nazwa" }, { status: 401 });
+    if (name.trim().toLowerCase() !== allowedUser) {
+      return NextResponse.json({ error: "Nieprawid≈Çowa nazwa" }, { status: 401 });
     }
-     if (password !== secret) {
-      return NextResponse.json({ error: "Has≥o nieprawid≥owe" }, { status: 401 });
+    if (password !== secret) {
+      return NextResponse.json({ error: "Has≈Ço nieprawid≈Çowe" }, { status: 401 });
     }
 
     // Add debug headers if enabled
@@ -72,6 +73,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true }, headers);
   } catch {
-    return NextResponse.json({ error: "B≥πd serwera" }, { status: 500 });
+    return NextResponse.json({ error: "B≈ÇƒÖd serwera" }, { status: 500 });
   }
 }

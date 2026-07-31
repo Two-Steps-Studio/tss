@@ -49,31 +49,6 @@ BEGIN
     END IF;
 END $$;
 
--- Update existing users' dev_visible based on their project access
--- Set dev_visible to FALSE for users who don't have any projects
-UPDATE profiles 
-SET dev_visible = FALSE 
-WHERE dev_visible IS NULL 
-AND id NOT IN (
-    SELECT DISTINCT owner_id FROM dev_projects 
-    WHERE owner_id = profiles.id
-    UNION
-    SELECT DISTINCT user_id FROM dev_project_members 
-    WHERE user_id = profiles.id
-);
-
--- Set dev_visible to TRUE for users who have projects
-UPDATE profiles 
-SET dev_visible = TRUE 
-WHERE dev_visible IS NULL 
-AND id IN (
-    SELECT DISTINCT owner_id FROM dev_projects 
-    WHERE owner_id = profiles.id
-    UNION
-    SELECT DISTINCT user_id FROM dev_project_members 
-    WHERE user_id = profiles.id
-);
-
 -- Set remaining NULL values to defaults
 UPDATE profiles 
 SET 
@@ -82,7 +57,7 @@ SET
     subscription_plan = COALESCE(subscription_plan, 'free'),
     games_visible = COALESCE(games_visible, TRUE),
     records_visible = COALESCE(records_visible, TRUE),
-    dev_visible = COALESCE(dev_visible, FALSE)
+    dev_visible = COALESCE(dev_visible, TRUE)
 WHERE 
     project_limit IS NULL 
     OR joined_projects_limit IS NULL 

@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase-server";
 import { uploadGameImage, validateFile } from "@/lib/supabase-storage";
+import { requireAuth, isAuthError } from "@/lib/auth-helpers";
 
 export async function POST(request: Request) {
+  // SECURITY: Require authentication
+  const auth = await requireAuth();
+  if (isAuthError(auth)) return auth;
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -11,6 +17,24 @@ export async function POST(request: Request) {
     if (!file || !type || !gameId) {
       return NextResponse.json(
         { error: "Brakujące wymagane pola: file, type, gameId" },
+        { status: 400 }
+      );
+    }
+
+    // SECURITY: Validate gameId is a number to prevent injection
+    const gameIdNum = parseInt(gameId, 10);
+    if (isNaN(gameIdNum) || gameIdNum <= 0) {
+      return NextResponse.json(
+        { error: "Nieprawidłowe ID gry" },
+        { status: 400 }
+      );
+    }
+
+    // SECURITY: Validate type parameter
+    const validTypes = ['thumbnail', 'banner', 'screenshot'];
+    if (!validTypes.includes(type)) {
+      return NextResponse.json(
+        { error: "Nieprawidłowy typ pliku" },
         { status: 400 }
       );
     }

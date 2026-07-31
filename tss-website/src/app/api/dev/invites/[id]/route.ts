@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase-server";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   let supabase;
   try {
@@ -21,7 +21,8 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const inviteId = parseInt(params.id);
+  const { id } = await params;
+  const inviteId = parseInt(id);
   const body = await request.json();
   const { action } = body; // 'accept' or 'reject'
 
@@ -150,7 +151,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   let supabase;
   try {
@@ -168,7 +169,8 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const inviteId = parseInt(params.id);
+  const { id } = await params;
+  const inviteId = parseInt(id);
 
   // Get the invite
   const { data: invite, error: inviteError } = await supabase
