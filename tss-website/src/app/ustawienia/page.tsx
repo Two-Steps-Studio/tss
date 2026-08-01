@@ -137,7 +137,7 @@ export default function SettingsPage() {
         return;
       }
 
-      const currentPrefs = loadLocalStorage();
+      let currentPrefs = loadLocalStorage();
 
       const profileDataResult = await supabase
         .from("profiles")
@@ -197,6 +197,8 @@ export default function SettingsPage() {
       });
       if (response.ok) {
         setCategoryVisibility((prev) => ({ ...prev, [category]: value }));
+        // Trigger sidebar update event
+        window.dispatchEvent(new CustomEvent('settings-changed', { detail: { category, value } }));
       } else {
         const errorData = await response.json();
         console.error("Failed to update category visibility:", errorData);
