@@ -56,7 +56,7 @@ export function LanguageSelect({
           variant="ghost"
           size="icon"
           className={cn(
-            "relative rounded-2xl w-11 h-11 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-none transition-all",
+            "relative rounded-2xl w-11 h-11 bg-black/5 dark:bg-white hover:bg-black dark:hover:bg-white border-none transition-all",
           )}
         >
           <Languages size={20} />

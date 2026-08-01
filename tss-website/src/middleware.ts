@@ -27,7 +27,16 @@ function checkRateLimit(ip: string): boolean {
 
 function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get("x-forwarded-for");
-  return forwarded ? forwarded.split(",")[0] : request.socket?.remoteAddress || "unknown";
+  if (forwarded) {
+    // SECURITY: Sanitize IP address to prevent injection
+    const ip = forwarded.split(",")[0].trim();
+    // Basic IP validation
+    const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^::1$|^localhost$/;
+    if (ipRegex.test(ip)) {
+      return ip;
+    }
+  }
+  return request.socket?.remoteAddress || "unknown";
 }
 
 // --- Bot Detection & Protection ---
@@ -152,6 +161,7 @@ export async function middleware(request: NextRequest) {
 
   // Only create Supabase client if credentials exist
   let user = null;
+  let supabase = null;
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -159,7 +169,7 @@ export async function middleware(request: NextRequest) {
   });
 
   if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    const supabase = createServerClient(
+    supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       {
@@ -193,72 +203,45 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith(route)
   );
 
-  // DEV routes - check if user has access to any project and if DEV is visible
+  // DEV routes - check specific project access for /dev/projects/[id] routes
   const isDevRoute = request.nextUrl.pathname.startsWith("/dev");
-  if (isDevRoute && user) {
+  const projectMatch = request.nextUrl.pathname.match(/^\/dev\/projects\/(\d+)/);
+  if (isDevRoute && user && supabase && projectMatch) {
     try {
-      // Check if DEV category is visible for user
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("dev_visible")
-        .eq("id", user.id)
+      const projectId = parseInt(projectMatch[1]);
+      
+      // Check if user has access to this specific project
+      const { data: project, error: projectError } = await supabase
+        .from("dev_projects")
+        .select("id, owner_id")
+        .eq("id", projectId)
         .single();
 
-      // Default to false if not set (DEV is opt-in)
-      if (!profile || profile.dev_visible === false) {
-        // DEV is disabled for user, redirect to home
-        return NextResponse.redirect(new URL("/?category-disabled=dev", request.url));
+      if (projectError || !project) {
+        return NextResponse.redirect(new URL("/dev?project-not-found=true", request.url));
       }
 
-      // Check if user has access to any project
-      const { count } = await supabase
-        .from("dev_projects")
+      // Check if user is owner or member
+      const isOwner = project.owner_id === user.id;
+      const { count: memberCount } = await supabase
+        .from("dev_project_members")
         .select("*", { count: "exact", head: true })
-        .or(`owner_id.eq.${user.id},dev_project_members.user_id.eq.${user.id}`);
-      
-      if (!count || count === 0) {
-        // User has no DEV access, redirect to home with message
-        return NextResponse.redirect(new URL("/?no-dev-access=true", request.url));
-      }
+        .eq("project_id", projectId)
+        .eq("user_id", user.id);
 
-      // Check specific project access for /dev/projects/[id] routes
-      const projectMatch = request.nextUrl.pathname.match(/^\/dev\/projects\/(\d+)/);
-      if (projectMatch) {
-        const projectId = parseInt(projectMatch[1]);
-        
-        // Check if user has access to this specific project
-        const { data: project, error: projectError } = await supabase
-          .from("dev_projects")
-          .select("id, owner_id")
-          .eq("id", projectId)
-          .single();
-
-        if (projectError || !project) {
-          return NextResponse.redirect(new URL("/dev?project-not-found=true", request.url));
-        }
-
-        // Check if user is owner or member
-        const isOwner = project.owner_id === user.id;
-        const { count: memberCount } = await supabase
-          .from("dev_project_members")
-          .select("*", { count: "exact", head: true })
-          .eq("project_id", projectId)
-          .eq("user_id", user.id);
-
-        if (!isOwner && (!memberCount || memberCount === 0)) {
-          // User doesn't have access to this specific project
-          return NextResponse.redirect(new URL("/dev?project-access-denied=true", request.url));
-        }
+      if (!isOwner && (!memberCount || memberCount === 0)) {
+        // User doesn't have access to this specific project
+        return NextResponse.redirect(new URL("/dev?project-access-denied=true", request.url));
       }
     } catch (error) {
-      console.error("DEV access check failed:", error);
+      console.error("DEV project access check failed:", error);
       // Allow access if check fails to avoid blocking legitimate users
     }
   }
 
   // Games routes - check if Games category is visible
   const isGamesRoute = request.nextUrl.pathname.startsWith("/games");
-  if (isGamesRoute && user) {
+  if (isGamesRoute && user && supabase) {
     try {
       const { data: profile } = await supabase
         .from("profiles")
@@ -277,7 +260,7 @@ export async function middleware(request: NextRequest) {
 
   // Records routes - check if Records category is visible
   const isRecordsRoute = request.nextUrl.pathname.startsWith("/records");
-  if (isRecordsRoute && user) {
+  if (isRecordsRoute && user && supabase) {
     try {
       const { data: profile } = await supabase
         .from("profiles")
@@ -326,18 +309,3 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|webmanifest)$|manifest.webmanifest).*)",
   ],
 };
-
-// Register service worker at runtime
-if (process.env.NODE_ENV === 'production') {
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(registration => {
-          console.log('SW registered: ', registration);
-        })
-        .catch(registrationError => {
-          console.log('SW registration failed: ', registrationError);
-        });
-    });
-  }
-}

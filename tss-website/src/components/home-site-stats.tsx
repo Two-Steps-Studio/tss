@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { motion } from "framer-motion";
 import { Users, IdCard } from "lucide-react";
 import { useLanguage } from "@/hooks/use-language";
@@ -12,7 +12,7 @@ interface SiteStats {
   online_anonymous?: number;
 }
 
-export function HomeSiteStats() {
+export const HomeSiteStats = memo(function HomeSiteStats() {
   const { t } = useLanguage();
   const [stats, setStats] = useState<SiteStats | null>(null);
 
@@ -60,4 +60,4 @@ export function HomeSiteStats() {
       ))}
     </div>
   );
-}
+});

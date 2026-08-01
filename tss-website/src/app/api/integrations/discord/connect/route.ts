@@ -37,11 +37,11 @@ export async function GET(request: Request) {
   // Generate state for OAuth flow
   const state = generateState();
 
-  // Store state in user's session or database for verification
-  // For simplicity, we'll store it in localStorage on the client side
-  // In production, use a proper session store
+  // SECURITY: Store state in session/database for verification
+  // For now, we'll pass it back to client to include in callback
+  // In production, store in Redis or session with expiration
 
-  // Generate Discord OAuth URL
+  // Generate Discord OAuth URL with state
   const authUrl = getDiscordAuthUrl(state);
 
   return NextResponse.json({

@@ -23,38 +23,56 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const includeArchived = searchParams.get("includeArchived") === "true";
 
-  // Get projects where user is owner or member
-  let query = supabase
-    .from("dev_projects")
-    .select(`
-      *,
-      dev_project_members!inner(
-        user_id,
-        role,
-        permissions
-      )
-    `)
-    .or(`owner_id.eq.${user.id},dev_project_members.user_id.eq.${user.id}`)
-    .order("created_at", { ascending: false });
+  // Get projects where user is owner or member - use two separate queries to avoid .or() issues
+  const [ownerProjectsResult, memberProjectsResult] = await Promise.all([
+    supabase
+      .from("dev_projects")
+      .select("*")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("dev_projects")
+      .select(`
+        *,
+        dev_project_members!inner(
+          user_id,
+          role,
+          permissions
+        )
+      `)
+      .eq("dev_project_members.user_id", user.id)
+      .order("created_at", { ascending: false })
+  ]);
+
+  if (ownerProjectsResult.error || memberProjectsResult.error) {
+    return NextResponse.json({ 
+      error: ownerProjectsResult.error?.message || memberProjectsResult.error?.message 
+    }, { status: 500 });
+  }
+
+  // Combine results, removing duplicates (owner projects take precedence)
+  const ownerProjectIds = new Set(ownerProjectsResult.data?.map(p => p.id) || []);
+  const memberProjects = (memberProjectsResult.data || []).filter(
+    p => !ownerProjectIds.has(p.id)
+  );
+
+  let allProjects = [...(ownerProjectsResult.data || []), ...memberProjects];
 
   if (!includeArchived) {
-    query = query.eq("status", "active");
+    allProjects = allProjects.filter(p => p.status === "active");
   }
 
-  const { data, error } = await query;
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  const data = allProjects;
 
   // Transform data to include user's role and permissions
   const projects = (data || []).map((project: any) => {
+    const isOwner = project.owner_id === user.id;
     const member = project.dev_project_members?.[0];
     return {
       ...project,
       dev_project_members: undefined,
-      user_role: project.owner_id === user.id ? 'owner' : member?.role || 'viewer',
-      user_permissions: project.owner_id === user.id 
+      user_role: isOwner ? 'owner' : member?.role || 'viewer',
+      user_permissions: isOwner
         ? {
             view_project: true,
             edit_project: true,

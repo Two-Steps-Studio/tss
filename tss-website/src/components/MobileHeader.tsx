@@ -129,7 +129,7 @@ export function MobileHeader() {
           </Link>
 
           <Link href="/profil">
-            <Button variant="ghost" size="icon" className="rounded-xl w-10 h-10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+            <Button variant="ghost" size="icon" aria-label="Profil" className="rounded-xl w-10 h-10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
               <Avatar className="w-8 h-8 border border-[var(--border-color)]">
                 {avatarUrl ? (
                   <AvatarImage src={avatarUrl} alt="Avatar" />

@@ -95,9 +95,14 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const projectsMap = useMemo(
+    () => new Map(projects.map(p => [p.id, p])),
+    [projects]
+  );
+
   const activeProject = useMemo(
-    () => projects.find((p) => p.id === activeProjectId) ?? null,
-    [projects, activeProjectId]
+    () => projectsMap.get(activeProjectId ?? -1) ?? null,
+    [projectsMap, activeProjectId]
   );
 
   const stats = useMemo(() => computeStats(tasks), [tasks]);
@@ -356,7 +361,7 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     setMembers((prev) => prev.filter((m) => m.id !== memberId));
   }, []);
 
-  const value: DevProjectContextValue = {
+  const value: DevProjectContextValue = useMemo(() => ({
     projects,
     activeProject,
     activeProjectId,
@@ -393,7 +398,43 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     addMember,
     updateMember,
     removeMember,
-  };
+  }), [
+    projects,
+    activeProject,
+    activeProjectId,
+    tasks,
+    phases,
+    files,
+    technologies,
+    members,
+    userSubscription,
+    stats,
+    isLoading,
+    error,
+    refetch,
+    hasAccessToDev,
+    canCreateProject,
+    hasPermission,
+    getUserRole,
+    createProject,
+    updateProject,
+    deleteProject,
+    createTask,
+    updateTask,
+    deleteTask,
+    createPhase,
+    updatePhase,
+    deletePhase,
+    addFile,
+    deleteFile,
+    addTechnology,
+    updateTechnology,
+    deleteTechnology,
+    saveDescription,
+    addMember,
+    updateMember,
+    removeMember,
+  ]);
 
   return (
     <DevProjectContext.Provider value={value}>

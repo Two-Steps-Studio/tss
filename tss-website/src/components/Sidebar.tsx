@@ -4,9 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   X,
-  BarChart3,
-  Users,
-  MessageSquare,
   ChevronRight,
   Sun,
   Moon,
@@ -42,60 +39,13 @@ import { usePathname } from "next/navigation";
 import { cn } from "../lib/utils";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useSectionTheme } from "../hooks/use-section-theme";
 import { useLanguage } from "../hooks/use-language";
 import { useTheme } from "next-themes";
 import { BottomNavigation } from "./BottomNavigation";
+import { SidebarStats } from "./SidebarStats";
 import { supabase } from "@/lib/supabase";
-
-function SidebarStats({ translations, stats }: { translations: any; stats: { online_users: number; total_members: number; messages_today: number } }) {
-  return (
-      <div className="px-4 mb-6">
-        <div className="glass rounded-[2rem] p-5 overflow-hidden relative group border border-[var(--border-color)]">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--color-general)] opacity-5 blur-2xl group-hover:opacity-10 transition-opacity" />
-
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[11px] font-black uppercase tracking-[0.2em] opacity-40 flex items-center gap-2 text-[var(--text)]">
-              <BarChart3 size={12} className="text-[var(--color-general)] shrink-0" /> {translations.nav.stats}
-            </h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
-                  <Users size={14} className="opacity-70 text-[var(--text)]" />
-                </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]">{translations.nav.channels}</span>
-              </div>
-              <span className="text-xs font-black text-[var(--text)]">{(stats.online_users || 0).toString()}</span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
-                  <Users size={14} className="opacity-70 text-[var(--text)]" />
-                </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]">{translations.nav.online}</span>
-              </div>
-              <span className="text-xs font-black text-[var(--text)]">{(stats.total_members || 0).toLocaleString()}</span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg glass flex items-center justify-center border border-[var(--border-color)]">
-                  <MessageSquare size={14} className="opacity-70 text-[var(--text)]" />
-                </div>
-                <span className="text-xs font-bold opacity-60 text-[var(--text)]">{translations.nav.newProject || "Wiadomości"}</span>
-              </div>
-              <span className="text-xs font-black text-[var(--text)]">{(stats.messages_today || 0).toLocaleString()}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-  );
-}
 
 export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
   const pathname = usePathname();
@@ -104,7 +54,6 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
   const { logo } = useSectionTheme();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const [hasDevAccess, setHasDevAccess] = useState(false);
   const [categoryVisibility, setCategoryVisibility] = useState({
     games: true,
     records: true,
@@ -114,20 +63,12 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
   useEffect(() => {
     setMounted(true);
     
-    // Check if user has access to DEV module and load category visibility
-    const checkDevAccess = async () => {
+    // Load category visibility from profile
+    const loadCategoryVisibility = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
-          const { count } = await supabase
-            .from("dev_projects")
-            .select("*", { count: "exact", head: true })
-            .or(`owner_id.eq.${user.id},dev_project_members.user_id.eq.${user.id}`);
-          
-          setHasDevAccess((count || 0) > 0);
-
-          // Load category visibility from profile
           const { data: profile } = await supabase
             .from("profiles")
             .select("games_visible, records_visible, dev_visible")
@@ -143,12 +84,22 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
           }
         }
       } catch (error) {
-        console.error("Failed to check DEV access:", error);
-        setHasDevAccess(false);
+        console.error("Failed to load category visibility:", error);
       }
     };
     
-    checkDevAccess();
+    loadCategoryVisibility();
+
+    // Listen for settings updates
+    const handleSettingsUpdate = () => {
+      loadCategoryVisibility();
+    };
+
+    window.addEventListener('settings-updated', handleSettingsUpdate);
+
+    return () => {
+      window.removeEventListener('settings-updated', handleSettingsUpdate);
+    };
   }, []);
 
   const [stats, setStats] = useState({
@@ -157,7 +108,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
     messages_today: 0
   });
 
-  // Pobierz dane od razu, potem co 30 sekund
+  // Pobierz dane od razu, potem co 60 sekund
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -174,15 +125,22 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
     };
 
     fetchStats(); // Immediate fetch
-    const interval = setInterval(fetchStats, 30000); // Then polling
+    const interval = setInterval(fetchStats, 60000); // Then polling every 60s
 
     return () => clearInterval(interval);
   }, []);
 
+  const isPathActive = useCallback((href: string) =>
+      pathname === href || pathname.startsWith(`${href}/`), [pathname]);
+
+  const getAriaCurrent = useCallback((href: string) => {
+    return isPathActive(href) ? "page" : undefined;
+  }, [isPathActive]);
+
   // Definicja sekcji z fallback dla wszystkich tłumaczeń
   const defaultSections = [
-    { id: "home", type: "single", href: "/", label: t.nav.home || "Strona główna", icon: Home },
-    { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: User },
+    { id: "home", type: "single", href: "/", label: t.nav.home || "Strona główna", icon: Home, ariaCurrent: getAriaCurrent("/") },
+    { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: User, ariaCurrent: getAriaCurrent("/profil") },
     ...(categoryVisibility.games ? [{
       id: "games", type: "expandable", href: "/games", label: t.nav.games || "Games", icon: Gamepad, items: [
         { href: "/games/loucher-gier", label: t.nav.Loucher || "Loucher Gier", icon: Gamepad },
@@ -195,7 +153,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
         { href: "/records/beaty", label: "Beaty", icon: Mic2 },
       ]}
     ] : []),
-    ...(hasDevAccess && categoryVisibility.dev ? [{
+    ...(categoryVisibility.dev ? [{
       id: "dev", type: "expandable", href: "/dev", label: t.nav.dev || "Dev", icon: Code, items: [
         { href: "/dev/projects", label: t.nav.project || "Projects", icon: FolderKanban },
         { href: "/dev/tasks", label: t.nav.tasks || "Tasks", icon: CheckSquare },
@@ -205,16 +163,13 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
         { href: "/dev/technology", label: t.nav.technology ||"Technology", icon: Cpu },
       ]}
     ] : []),
-    { id: "notifications", type: "single", href: "/ankiety/rating", label: t.nav.notifications || "Powiadomienia", icon: Bell },
+    { id: "notifications", type: "single", href: "/ankiety/rating", label: t.nav.notifications || "Powiadomienia", icon: Bell, ariaCurrent: getAriaCurrent("/ankiety/rating") },
 
 
 
   ];
 
-  const sections = useMemo(() => defaultSections, [t]);
-
-  const isPathActive = (href: string) =>
-      pathname === href || pathname.startsWith(`${href}/`);
+  const sections = useMemo(() => defaultSections, [t, categoryVisibility]);
 
   const [hoveredSectionId, setHoveredSectionId] = useState<string | null>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -295,6 +250,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
                     <li key={section.id}>
                       <Link
                           href={section.href}
+                          aria-current={section.ariaCurrent}
                           className={cn(
                               "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all relative group overflow-hidden",
                               isActive

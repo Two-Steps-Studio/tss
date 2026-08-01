@@ -126,7 +126,7 @@ export function DevProjectSwitcher() {
       </Select>
       <Dialog open={isOpen} onOpenChange={setIsOpen} >
         <DialogTrigger asChild>
-          <Button  size="icon" className="rounded-2xl h-10 w-10 bg-general">
+          <Button  size="icon" aria-label="Utwórz nowy projekt" className="rounded-2xl h-10 w-10 bg-general">
             <Plus className="h-4 w-4" />
           </Button>
         </DialogTrigger>

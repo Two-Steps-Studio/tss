@@ -16,9 +16,17 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state");
+  const storedState = searchParams.get("stored_state");
 
   if (!code) {
     return NextResponse.json({ error: "Missing authorization code" }, { status: 400 });
+  }
+
+  // SECURITY: Verify state parameter to prevent CSRF attacks
+  if (!state || !storedState || state !== storedState) {
+    return NextResponse.redirect(
+      new URL("/ustawettings?error=invalid_state", request.url)
+    );
   }
 
   // Get current user

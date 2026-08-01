@@ -34,7 +34,30 @@ export const metadata: Metadata = {
   title: "Two Steps Studio",
   description: "Witaj w Two Steps Studio",
   manifest: "/manifest.json",
+  metadataBase: new URL('https://twostepsstudio.vercel.app'),
+  openGraph: {
+    title: 'Two Steps Studio',
+    description: 'Witaj w Two Steps Studio',
+    url: 'https://twostepsstudio.vercel.app',
+    siteName: 'Two Steps Studio',
+    locale: 'pl_PL',
+    type: 'website',
+  },
 };
+
+export function generateJsonLd() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Two Steps Studio',
+    url: 'https://twostepsstudio.vercel.app',
+    logo: 'https://twostepsstudio.vercel.app/logo.png',
+    description: 'Witaj w Two Steps Studio',
+    sameAs: [
+      'https://discord.gg/twostepsstudio',
+    ],
+  };
+}
 
 export default function RootLayout({
   children,

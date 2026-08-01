@@ -37,7 +37,7 @@ export async function GET(request: Request) {
         id: user.id,
         games_visible: true,
         records_visible: true,
-        dev_visible: false,
+        dev_visible: true,
         project_limit: 1,
         joined_projects_limit: 3,
         subscription_plan: 'free',
@@ -65,14 +65,10 @@ export async function GET(request: Request) {
     .select("*", { count: "exact", head: true })
     .eq("user_id", user.id);
 
-  // Calculate total accessible projects
-  const totalProjects = (ownProjectsCount || 0) + (joinedProjectsCount || 0);
-
-  // Default DEV visibility: OFF if user has no projects/permissions, ON if they have access
+  // Default DEV visibility: TRUE (always visible)
   let devVisible = profile.dev_visible;
   if (devVisible === null || devVisible === undefined) {
-    // If not explicitly set, default based on project access
-    devVisible = totalProjects > 0;
+    devVisible = true;
   }
 
   // Update profile if dev_visible needs to be set for the first time
@@ -134,7 +130,7 @@ export async function PATCH(request: Request) {
         id: user.id,
         games_visible: true,
         records_visible: true,
-        dev_visible: false,
+        dev_visible: true,
         project_limit: 1,
         joined_projects_limit: 3,
         subscription_plan: 'free',

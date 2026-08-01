@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Gamification profiles (core table with PLN balance)
 CREATE TABLE IF NOT EXISTS profiles (
-    id UUID PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     username TEXT UNIQUE,
     avatar_url TEXT,
     xp INTEGER DEFAULT 0,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS badges (
 
 -- Award badges to users
 CREATE TABLE IF NOT EXISTS user_badges (
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
     badge_id INTEGER REFERENCES badges(id) ON DELETE CASCADE,
     earned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_id, badge_id),
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS daily_quests (
 
 -- User daily quest progress
 CREATE TABLE IF NOT EXISTS user_daily_progress (
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
     quest_id INTEGER REFERENCES daily_quests(id) ON DELETE CASCADE,
     completed BOOLEAN DEFAULT FALSE,
     completed_at TIMESTAMP WITH TIME ZONE,
@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS weekly_quests (
 
 -- User weekly quest progress
 CREATE TABLE IF NOT EXISTS user_weekly_progress (
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
     quest_id INTEGER REFERENCES weekly_quests(id) ON DELETE CASCADE,
     completed BOOLEAN DEFAULT FALSE,
     completed_at TIMESTAMP WITH TIME ZONE,
@@ -151,7 +151,7 @@ CREATE TABLE IF NOT EXISTS season_rankings (
     id SERIAL PRIMARY KEY,
     season_id INTEGER REFERENCES seasons(id) ON DELETE CASCADE,
     rank INTEGER NOT NULL,
-    user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+    user_id TEXT REFERENCES profiles(id) ON DELETE SET NULL,
     score INTEGER NOT NULL,
     xp INTEGER,
     pln DECIMAL(10,2),
@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS monthly_challenges (
 
 -- User monthly challenge progress
 CREATE TABLE IF NOT EXISTS user_monthly_progress (
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
     challenge_id INTEGER REFERENCES monthly_challenges(id) ON DELETE CASCADE,
     completed BOOLEAN DEFAULT FALSE,
     completed_at TIMESTAMP WITH TIME ZONE,
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS achievements (
 
 -- User achievements
 CREATE TABLE IF NOT EXISTS user_achievements (
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
     achievement_id INTEGER REFERENCES achievements(id) ON DELETE CASCADE,
     unlocked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_id, achievement_id),
@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS user_achievements (
 
 -- Daily login streak tracking
 CREATE TABLE IF NOT EXISTS daily_logins (
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
     login_date DATE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_id, login_date),
@@ -214,7 +214,7 @@ CREATE TABLE IF NOT EXISTS daily_logins (
 
 -- Weekly activity tracking
 CREATE TABLE IF NOT EXISTS weekly_activity (
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
     week_start DATE NOT NULL,
     activity_type VARCHAR(50),
     count INTEGER DEFAULT 0,
@@ -225,7 +225,7 @@ CREATE TABLE IF NOT EXISTS weekly_activity (
 
 -- Monthly activity tracking
 CREATE TABLE IF NOT EXISTS monthly_activity (
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
     month_start DATE NOT NULL,
     activity_type VARCHAR(50),
     count INTEGER DEFAULT 0,
@@ -236,7 +236,7 @@ CREATE TABLE IF NOT EXISTS monthly_activity (
 
 -- User preferences (JSONB)
 CREATE TABLE IF NOT EXISTS user_preferences (
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
     preferences JSONB DEFAULT '{"theme":"ocean","notifications":true,"language":"pl"}',
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (user_id),
@@ -246,7 +246,7 @@ CREATE TABLE IF NOT EXISTS user_preferences (
 -- Notifications
 CREATE TABLE IF NOT EXISTS notifications (
     id SERIAL PRIMARY KEY,
-    user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
     message TEXT NOT NULL,
     type VARCHAR(20) DEFAULT 'info',
     read BOOLEAN DEFAULT FALSE,
@@ -255,12 +255,16 @@ CREATE TABLE IF NOT EXISTS notifications (
 
 -- Developer tasks (DEV board) - MULTI-PROJECT SUPPORT
 -- Typ statusów (jeśli nie istnieje w bazie)
-CREATE TYPE task_status AS ENUM ('pending', 'in_progress', 'completed');
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'task_status') THEN
+        CREATE TYPE task_status AS ENUM ('pending', 'in_progress', 'completed');
+    END IF;
+END $$;
 
 -- Projects table (nowe podejście - każdy użytkownik może mieć własny projekt)
 CREATE TABLE IF NOT EXISTS dev_projects (
     id SERIAL PRIMARY KEY,
-    owner_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    owner_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     description TEXT,
     color VARCHAR(7) DEFAULT '#ffcb2f',

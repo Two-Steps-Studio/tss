@@ -110,6 +110,7 @@ export function TopBar() {
           <div className="flex items-center gap-4 flex-1">
             <button
                 onClick={toggle}
+                aria-label="Otwórz menu"
                 className="lg:hidden p-2.5 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
             >
               <Menu size={22} />
@@ -143,7 +144,7 @@ export function TopBar() {
               )}
 
               <Link href="/powiadomienia">
-                <Button variant="ghost" size="icon" className="rounded-2xl w-11 h-11 relative bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-none transition-all hover:scale-105 active:scale-95">
+                <Button variant="ghost" size="icon" aria-label="Powiadomienia" className="rounded-2xl w-11 h-11 relative bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-none transition-all hover:scale-105 active:scale-95">
                   <Bell size={20} />
                   {unread > 0 ? (
                       <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-[var(--color-general)] text-white text-[10px] font-black flex items-center justify-center border-2 border-[var(--bg)]">

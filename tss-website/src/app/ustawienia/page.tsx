@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/hooks/use-language";
 import { useTheme } from "next-themes";
-import { useColorTheme } from "@/hooks/use-color-theme";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -48,7 +47,6 @@ export default function SettingsPage() {
     setResolvedTheme(typeof window !== "undefined" ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : "light");
   }, []);
   const darkMode = resolvedTheme === "dark";
-  const { theme: colorTheme, setTheme: setColorTheme } = useColorTheme();
   const [prefs, setPrefs] = useState<Prefs>(() => ({
     animations: true,
     sounds: false,
@@ -137,7 +135,7 @@ export default function SettingsPage() {
         return;
       }
 
-      const currentPrefs = loadLocalStorage();
+      let currentPrefs = loadLocalStorage();
 
       const profileDataResult = await supabase
         .from("profiles")
@@ -150,6 +148,7 @@ export default function SettingsPage() {
       if (profileData?.settings) {
         currentPrefs = {
           ...currentPrefs,
+          ...profileData.settings,
         };
       }
 
@@ -172,11 +171,6 @@ export default function SettingsPage() {
     })();
   }, []);
 
-  const getThemeColor = () => colorTheme === "ocean" ? "var(--color-general)" :
-    colorTheme === "crimson" ? "var(--color-records)" :
-    colorTheme === "emerald" ? "var(--color-esports)" :
-    colorTheme === "violet" ? "var(--color-primary)" : "var(--color-general)";
-
   const setPref = async (key: keyof Prefs, value: string | boolean) => {
     setPrefs((prev) => ({ ...prev, [key]: value }));
     setNotifStorage("notif_news", value);
@@ -197,6 +191,8 @@ export default function SettingsPage() {
       });
       if (response.ok) {
         setCategoryVisibility((prev) => ({ ...prev, [category]: value }));
+        // Trigger custom event to notify Sidebar to refresh
+        window.dispatchEvent(new CustomEvent('settings-updated', { detail: { category, value } }));
       } else {
         const errorData = await response.json();
         console.error("Failed to update category visibility:", errorData);
@@ -307,7 +303,7 @@ export default function SettingsPage() {
     return (
       <button
         onClick={() => setTheme(value)}
-        className={`${getThemeUnselectedClass()} ${getThemeSelectedClass(darkMode)}`}
+        className={`${getThemeUnselectedClass()} ${getThemeSelectedClass(darkMode)} rounded-xl border`}
       >
         <Icon className="text-[var(--color-general)] shrink-0 size-8" />
         <div className="text-center mt-1">
@@ -320,57 +316,39 @@ export default function SettingsPage() {
     );
   };
 
-  const ColorChip = ({ value, label, className }: { value: "ocean" | "crimson" | "emerald" | "violet" | "amber"; label: string; className?: string }) => {
-    const isSelected = colorTheme === value;
-    const themeColor = getThemeColor();
-    return (
-      <button
-        onClick={() => setColorTheme(value)}
-        className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${isSelected ? "bg-white/10 border-[var(--color-general)]" : "bg-[var(--bg)]/50 border-[var(--border-color)]"}`}
-      >
-        <span className={`w-6 h-6 shrink-0 rounded-full ${isSelected ? "" : "bg-white/20"}`} style={{ background: `var(--${value}-theme-color, currentColor)` }} />
-        <div className="text-left overflow-hidden">
-          <div className="text-sm font-bold truncate">{label}</div>
-          {isSelected && <Check size={16} className="text-[var(--color-general)] ml-auto" />}
-        </div>
-      </button>
-    );
-  };
-
-  const themeColor = getThemeColor();
 
   return (
     <div className="container mx-auto p-6 mt-20 max-w-7xl transition-colors">
-      <div className="relative overflow-hidden rounded-[2.5rem] glass p-8 border-2 border-[var(--color-general)]/30">
+      <div className="relative overflow-hidden rounded-xl glass p-8 border-2 border-[var(--color-general)]/30">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl md:text-6xl font-black tracking-tight text-[var(--text)] font-[family-name:var(--font-space)]">USTAWIENIA</h1>
             <p className="mt-2 font-[family-name:var(--font-outfit)] text-zinc-400">{t.settings.subtitle}</p>
           </div>
-          <Badge className={`bg-[${themeColor}]/15 text-[${themeColor}] px-4 py-2 rounded-2xl border-0`}>Twoja sesja</Badge>
+          <Badge className="bg-[var(--color-general)]/15 text-[var(--color-general)] px-4 py-2 rounded-xl border-0">Twoja sesja</Badge>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
-        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">{t.settings.appearance}</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="grid grid-cols-3 gap-3">
             <AppearanceOption value="light" icon={Sun} label={t.settings.light} />
             <AppearanceOption value="dark" icon={Moon} label={t.settings.dark} />
             <AppearanceOption value="system" icon={MonitorSmartphone} label={t.settings.system} />
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">{t.settings.language}</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-4">
             <button
               onClick={() => setLanguage("pl")}
-              className={`flex items-center gap-3 px-5 py-6 rounded-2xl border transition-all ${language === "pl" ? `bg-[${themeColor}]/15 border-[${themeColor}]` : "bg-[var(--bg)]/50 border-[var(--border-color)]"}`}
+              className={`flex items-center gap-3 px-5 py-5 rounded-xl border transition-all ${language === "pl" ? "bg-[var(--color-general)]/15 border-[var(--color-general)]" : "bg-[var(--bg)]/50 border-[var(--border-color)]"}`}
             >
               <Languages className="text-[var(--color-general)]" />
               <div>
@@ -381,7 +359,7 @@ export default function SettingsPage() {
             </button>
             <button
               onClick={() => setLanguage("en")}
-              className={`flex items-center gap-3 px-5 py-6 rounded-2xl border transition-all ${language === "en" ? `bg-[${themeColor}]/15 border-[${themeColor}]` : "bg-[var(--bg)]/50 border-[var(--border-color)]"}`}
+              className={`flex items-center gap-3 px-5 py-5 rounded-xl border transition-all ${language === "en" ? "bg-[var(--color-general)]/15 border-[var(--color-general)]" : "bg-[var(--bg)]/50 border-[var(--border-color)]"}`}
             >
               <Languages className="text-[var(--color-general)]" />
               <div>
@@ -392,73 +370,62 @@ export default function SettingsPage() {
             </button>
           </CardContent>
         </Card>
-
-        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
-          <CardHeader>
-            <CardTitle className="text-[var(--text)]">{t.settings.colorTheme}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <ColorChip value="ocean" label={t.settings.themes.default} />
-            <ColorChip value="crimson" label="Cyberpunk" />
-            <ColorChip value="emerald" label="Nature" />
-            <ColorChip value="violet" label="Midnight" />
-          </CardContent>
-        </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10 items-start">
-        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">Interfejs</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between px-4 py-3 rounded-2xl border-[var(--border-color)] bg-[var(--bg)]/50">
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
               <div className="font-medium">Animacje</div>
               <Switch checked={prefs.animations} onCheckedChange={(v) => setPref("animations", v)} />
             </div>
-            <div className="flex items-center justify-between px-4 py-3 rounded-2xl border-[var(--border-color)] bg-[var(--bg)]/50">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
               <div className="font-medium">Dźwięki UI</div>
               <Switch checked={prefs.sounds} onCheckedChange={(v) => setPref("sounds", v)} />
             </div>
-            <div className="flex items-center justify-between px-4 py-3 rounded-2xl border-[var(--border-color)] bg-[var(--bg)]/50">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
               <div className="font-medium">Wysoka jakość</div>
               <Switch checked={prefs.quality} onCheckedChange={(v) => setPref("quality", v)} />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
           <CardHeader className="flex items-center justify-between">
             <CardTitle className="text-[var(--text)]">{t.settings.notifications}</CardTitle>
-            <Badge className="bg-[var(--color-general)]/15 text-[var(--color-general)] px-3 py-1 rounded-2xl border-0">Bezpieczne dane</Badge>
+            <Badge className="bg-[var(--color-general)]/15 text-[var(--color-general)] px-3 py-1 rounded-xl border-0 text-xs">Bezpieczne dane</Badge>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-3xl border p-6 space-y-2 bg-[var(--bg)]/50 border-[var(--border-color)]">
-              <div className="text-sm font-black">{t.settings.news}</div>
-              <div className="text-xs opacity-60">{t.settings.newsDesc}</div>
-              <div className="pt-2">
-                <Switch checked={prefs.notif_news} onCheckedChange={(v) => setPref("notif_news", v)} />
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
+              <div>
+                <div className="font-medium">{t.settings.news}</div>
+                <div className="text-xs opacity-60">{t.settings.newsDesc}</div>
               </div>
+              <Switch checked={prefs.notif_news} onCheckedChange={(v) => setPref("notif_news", v)} />
             </div>
-            <div className="rounded-3xl border p-6 space-y-2 transition-colors bg-[var(--bg)]/50 border-[var(--border-color)]">
-              <div className="text-sm font-black">{t.settings.esport}</div>
-              <div className="text-xs opacity-60">{t.settings.esportDesc}</div>
-              <div className="pt-2">
-                <Switch checked={prefs.notif_esport} onCheckedChange={(v) => setPref("notif_esport", v)} />
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
+              <div>
+                <div className="font-medium">{t.settings.esport}</div>
+                <div className="text-xs opacity-60">{t.settings.esportDesc}</div>
               </div>
+              <Switch checked={prefs.notif_esport} onCheckedChange={(v) => setPref("notif_esport", v)} />
             </div>
-            <div className="rounded-3xl border p-6 space-y-2 transition-colors bg-[var(--bg)]/50 border-[var(--border-color)]">
-              <div className="text-sm font-black">{t.settings.dev}</div>
-              <div className="text-xs opacity-60">{t.settings.devDesc}</div>
-              <div className="pt-2">
-                <Switch checked={prefs.notif_dev} onCheckedChange={(v) => setPref("notif_dev", v)} />
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
+              <div>
+                <div className="font-medium">{t.settings.dev}</div>
+                <div className="text-xs opacity-60">{t.settings.devDesc}</div>
               </div>
+              <Switch checked={prefs.notif_dev} onCheckedChange={(v) => setPref("notif_dev", v)} />
             </div>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Username Card */}
-        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">Nazwa użytkownika</CardTitle>
           </CardHeader>
@@ -484,14 +451,13 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Integrations Card */}
-        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">Integracje</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {integrations.find((i) => i.provider === "discord") ? (
-              <div className="p-4 rounded-2xl border border-[var(--border-color)] bg-[var(--bg)]/50 space-y-4">
+              <div className="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg)]/50 space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center">
                     <span className="text-white font-bold text-xl">D</span>
@@ -500,7 +466,7 @@ export default function SettingsPage() {
                     <div className="font-bold text-[var(--text)]">Discord</div>
                     <div className="text-sm opacity-60">{integrations.find((i) => i.provider === "discord")?.username}</div>
                   </div>
-                  <Badge className="bg-green-500/15 text-green-500 px-3 py-1 rounded-2xl border-0">
+                  <Badge className="bg-green-500/15 text-green-500 px-3 py-1 rounded-xl border-0 text-xs">
                     Połączono
                   </Badge>
                 </div>
@@ -524,7 +490,7 @@ export default function SettingsPage() {
                 </div>
               </div>
             ) : (
-              <div className="p-4 rounded-2xl border border-[var(--border-color)] bg-[var(--bg)]/50">
+              <div className="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg)]/50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center">
@@ -549,14 +515,15 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
+      </div>
 
-        {/* Category Visibility Card */}
-        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">Widoczność kategorii</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between px-4 py-3 rounded-2xl border-[var(--border-color)] bg-[var(--bg)]/50">
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
               <div className="font-medium">Games</div>
               <Switch 
                 checked={categoryVisibility.games} 
@@ -564,7 +531,7 @@ export default function SettingsPage() {
                 disabled={loadingSettings}
               />
             </div>
-            <div className="flex items-center justify-between px-4 py-3 rounded-2xl border-[var(--border-color)] bg-[var(--bg)]/50">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
               <div className="font-medium">Records</div>
               <Switch 
                 checked={categoryVisibility.records} 
@@ -572,7 +539,7 @@ export default function SettingsPage() {
                 disabled={loadingSettings}
               />
             </div>
-            <div className="flex items-center justify-between px-4 py-3 rounded-2xl border-[var(--border-color)] bg-[var(--bg)]/50">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
               <div className="font-medium">DEV</div>
               <Switch 
                 checked={categoryVisibility.dev} 
@@ -583,16 +550,15 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Project Limits Card */}
-        <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">Limity projektów</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 rounded-2xl border-[var(--border-color)] bg-[var(--bg)]/50">
+            <div className="p-4 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-medium">Twoje projekty</div>
-                <Badge className={`bg-[${themeColor}]/15 text-[${themeColor}] px-3 py-1 rounded-2xl border-0`}>
+                <Badge className="bg-[var(--color-general)]/15 text-[var(--color-general)] px-3 py-1 rounded-xl border-0 text-xs">
                   {projectLimits.own_projects.current} / {projectLimits.own_projects.limit}
                 </Badge>
               </div>
@@ -603,10 +569,10 @@ export default function SettingsPage() {
                 />
               </div>
             </div>
-            <div className="p-4 rounded-2xl border-[var(--border-color)] bg-[var(--bg)]/50">
+            <div className="p-4 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
               <div className="flex items-center justify-between mb-2">
                 <div className="font-medium">Projekty z dostępem</div>
-                <Badge className={`bg-[${themeColor}]/15 text-[${themeColor}] px-3 py-1 rounded-2xl border-0`}>
+                <Badge className="bg-[var(--color-general)]/15 text-[var(--color-general)] px-3 py-1 rounded-xl border-0 text-xs">
                   {projectLimits.joined_projects.current} / {projectLimits.joined_projects.limit}
                 </Badge>
               </div>
@@ -619,25 +585,25 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+      </div>
 
-        <div className="mt-10">
-          <Card className="rounded-[2.5rem] glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
-            <CardContent className="flex items-center justify-between px-8 py-6">
-              <div className="flex items-center gap-4">
-                <div className="flex flex-col">
-                  <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">Wersja aplikacji</span>
-                  <span className="text-2xl font-black font-mono text-[var(--text)]">
+      <div className="mt-6">
+        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+          <CardContent className="flex items-center justify-between px-8 py-6">
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col">
+                <span className="text-xs font-mono uppercase tracking-widest text-zinc-500">Wersja aplikacji</span>
+                <span className="text-2xl font-black font-mono text-[var(--text)]">
             Beta{" "}
                     <span className="text-[var(--color-general)]">0.1</span>
           </span>
-                </div>
               </div>
-              <Badge className="bg-[var(--color-general)]/15 text-[var(--color-general)] px-4 py-2 rounded-2xl border-0 text-sm font-black tracking-widest">
-                BETA
-              </Badge>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            <Badge className="bg-[var(--color-general)]/15 text-[var(--color-general)] px-4 py-2 rounded-2xl border-0 text-sm font-black tracking-widest">
+              BETA
+            </Badge>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

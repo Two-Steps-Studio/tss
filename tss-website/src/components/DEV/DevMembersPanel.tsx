@@ -22,24 +22,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  UserPlus, 
-  Trash2, 
-  Shield, 
-  Crown, 
-  User, 
-  Code, 
-  Bug, 
-  Eye, 
-  Mail, 
+import {
+  UserPlus,
+  Trash2,
+  Shield,
+  Crown,
+  User,
+  Code,
+  Bug,
+  Eye,
+  Mail,
   Clock,
   X,
-  Settings
+  Settings,
+  type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
 import type { DevProjectRole, ProjectPermissions, DevProjectInvite, InviteStatus } from "@/lib/types/dev-types";
 
-const roleIcons: Record<DevProjectRole, any> = {
+const roleIcons: Record<DevProjectRole, LucideIcon> = {
   owner: Crown,
   admin: Shield,
   developer: Code,
@@ -163,7 +164,7 @@ export function DevMembersPanel() {
 
   const handlePermissionToggle = async (memberId: number, permission: keyof ProjectPermissions, value: boolean) => {
     try {
-      const member = members.find(m => m.id === memberId);
+      const member = members.find((m) => m.id === memberId);
       if (!member) return;
 
       const updatedPermissions = {
@@ -171,9 +172,9 @@ export function DevMembersPanel() {
         [permission]: value,
       };
 
-      await updateMember(memberId, { 
+      await updateMember(memberId, {
         permissions: updatedPermissions,
-        keep_custom_permissions: true 
+        keep_custom_permissions: true
       });
     } catch (error) {
       console.error("Failed to update permissions:", error);
@@ -182,7 +183,7 @@ export function DevMembersPanel() {
 
   const handleResetToDefaultPermissions = async (memberId: number) => {
     try {
-      const member = members.find(m => m.id === memberId);
+      const member = members.find((m) => m.id === memberId);
       if (!member) return;
 
       // Get default permissions for the role
@@ -427,11 +428,11 @@ export function DevMembersPanel() {
             {selectedMember && (
               <div className="space-y-4">
                 <div className="space-y-3">
-                  {Object.keys(members.find(m => m.id === selectedMember)?.permissions || {}).map((perm) => (
+                  {Object.keys(members.find((m) => m.id === selectedMember)?.permissions || {}).map((perm) => (
                     <div key={perm} className="flex items-center justify-between">
                       <Label className="text-sm capitalize">{perm.replace(/_/g, ' ')}</Label>
                       <Switch
-                        checked={members.find(m => m.id === selectedMember)?.permissions[perm as keyof ProjectPermissions]}
+                        checked={members.find((m) => m.id === selectedMember)?.permissions[perm as keyof ProjectPermissions]}
                         onCheckedChange={(checked) => handlePermissionToggle(selectedMember, perm as keyof ProjectPermissions, checked)}
                       />
                     </div>
