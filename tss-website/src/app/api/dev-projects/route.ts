@@ -23,71 +23,52 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const includeArchived = searchParams.get("includeArchived") === "true";
 
-  // Get projects where user is owner
-  const { data: ownedProjects, error: ownedError } = await supabase
+  // Get projects where user is owner or member
+  let query = supabase
     .from("dev_projects")
-    .select("*")
-    .eq("owner_id", user.id)
+    .select(`
+      *,
+      dev_project_members!inner(
+        user_id,
+        role,
+        permissions
+      )
+    `)
+    .or(`owner_id.eq.${user.id},dev_project_members.user_id.eq.${user.id}`)
     .order("created_at", { ascending: false });
 
-  if (ownedError) {
-    console.error("Error fetching owned projects:", ownedError);
+  if (!includeArchived) {
+    query = query.eq("status", "active");
   }
 
-  // Get projects where user is a member
-  const { data: memberProjects, error: memberError } = await supabase
-    .from("dev_project_members")
-    .select(`
-      project_id,
-      role,
-      permissions,
-      dev_projects(*)
-    `)
-    .eq("user_id", user.id);
+  const { data, error } = await query;
 
-  if (memberError) {
-    console.error("Error fetching member projects:", memberError);
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Combine and deduplicate projects
-  const projectMap = new Map();
-  
-  // Add owned projects
-  (ownedProjects || []).forEach((project: any) => {
-    if (!includeArchived && project.status !== "active") return;
-    projectMap.set(project.id, {
+  // Transform data to include user's role and permissions
+  const projects = (data || []).map((project: any) => {
+    const member = project.dev_project_members?.[0];
+    return {
       ...project,
-      user_role: 'owner' as const,
-      user_permissions: {
-        view_project: true,
-        edit_project: true,
-        manage_tasks: true,
-        manage_roadmap: true,
-        manage_files: true,
-        manage_description: true,
-        manage_technologies: true,
-        manage_members: true,
-        delete_project: true
-      }
-    });
+      dev_project_members: undefined,
+      user_role: project.owner_id === user.id ? 'owner' : member?.role || 'viewer',
+      user_permissions: project.owner_id === user.id 
+        ? {
+            view_project: true,
+            edit_project: true,
+            manage_tasks: true,
+            manage_roadmap: true,
+            manage_files: true,
+            manage_description: true,
+            manage_technologies: true,
+            manage_members: true,
+            delete_project: true
+          }
+        : member?.permissions || null
+    };
   });
-
-  // Add member projects (if not already added as owner)
-  (memberProjects || []).forEach((membership: any) => {
-    const project = membership.dev_projects;
-    if (!project) return;
-    if (!includeArchived && project.status !== "active") return;
-    
-    if (!projectMap.has(project.id)) {
-      projectMap.set(project.id, {
-        ...project,
-        user_role: membership.role || 'viewer',
-        user_permissions: membership.permissions || null
-      });
-    }
-  });
-
-  const projects = Array.from(projectMap.values());
 
   return NextResponse.json(projects);
 }

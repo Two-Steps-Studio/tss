@@ -120,21 +120,12 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
-          // Check if user owns any projects
-          const { count: ownerCount } = await supabase
+          const { count } = await supabase
             .from("dev_projects")
             .select("*", { count: "exact", head: true })
-            .eq("owner_id", user.id);
+            .or(`owner_id.eq.${user.id},dev_project_members.user_id.eq.${user.id}`);
           
-          // Check if user is a member of any projects
-          const { count: memberCount } = await supabase
-            .from("dev_project_members")
-            .select("*", { count: "exact", head: true })
-            .eq("user_id", user.id);
-          
-          const hasAccess = (ownerCount || 0) > 0 || (memberCount || 0) > 0;
-          console.log('[Sidebar] DEV access check:', { ownerCount, memberCount, hasAccess });
-          setHasDevAccess(hasAccess);
+          setHasDevAccess((count || 0) > 0);
 
           // Load category visibility from profile
           const { data: profile } = await supabase
@@ -143,7 +134,6 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
             .eq("id", user.id)
             .single();
 
-          console.log('[Sidebar] Profile visibility:', profile);
           if (profile) {
             setCategoryVisibility({
               games: profile.games_visible ?? true,
@@ -159,23 +149,6 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
     };
     
     checkDevAccess();
-    
-    // Reload settings when window gets focus (after returning from settings page)
-    const handleFocus = () => {
-      checkDevAccess();
-    };
-    
-    // Reload settings when settings are changed
-    const handleSettingsChanged = () => {
-      checkDevAccess();
-    };
-    
-    window.addEventListener('focus', handleFocus);
-    window.addEventListener('settings-changed', handleSettingsChanged);
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      window.removeEventListener('settings-changed', handleSettingsChanged);
-    };
   }, []);
 
   const [stats, setStats] = useState({
@@ -238,7 +211,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
 
   ];
 
-  const sections = useMemo(() => defaultSections, [t, hasDevAccess, categoryVisibility]);
+  const sections = useMemo(() => defaultSections, [t]);
 
   const isPathActive = (href: string) =>
       pathname === href || pathname.startsWith(`${href}/`);

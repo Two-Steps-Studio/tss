@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useDevProject } from "@/contexts/dev-project-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,6 +36,7 @@ import {
   X,
   Settings
 } from "lucide-react";
+import { useState } from "react";
 import type { DevProjectRole, ProjectPermissions, DevProjectInvite, InviteStatus } from "@/lib/types/dev-types";
 
 const roleIcons: Record<DevProjectRole, any> = {
