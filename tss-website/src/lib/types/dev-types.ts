@@ -3,6 +3,7 @@ export type TaskPriority = "low" | "medium" | "high" | "critical";
 export type FileCategory = "documentation" | "graphics" | "audio" | "source_code" | "other";
 export type TechCategory = "frontend" | "backend" | "game_engine" | "database" | "ai" | "devops" | "other";
 export type PhaseStatus = "planned" | "in_progress" | "completed" | "blocked";
+export type ProjectType = "general" | "web_application" | "mobile_application" | "desktop_application" | "game" | "api" | "library" | "plugin" | "other";
 
 // Permission System Types
 export type DevProjectRole = "owner" | "admin" | "developer" | "tester" | "viewer";
@@ -94,6 +95,7 @@ export interface DevProject {
   description_markdown?: string | null;
   color?: string;
   status?: string;
+  project_type?: ProjectType;
   planned_end_date?: string | null;
   is_archived?: boolean;
   created_at: string;
@@ -180,6 +182,7 @@ export interface CreateProjectData {
   description?: string;
   description_markdown?: string;
   color?: string;
+  project_type?: ProjectType;
   planned_end_date?: string;
 }
 

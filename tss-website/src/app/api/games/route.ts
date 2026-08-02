@@ -77,21 +77,34 @@ export async function GET(request: Request) {
         game_requirements(*)
       `);
 
-    // Apply filters
+    // Apply filters with input sanitization
     if (visibility) {
-      query = query.eq('visibility', visibility);
+      const validVisibilities = ['public', 'private', 'unlisted'];
+      if (validVisibilities.includes(visibility)) {
+        query = query.eq('visibility', visibility);
+      }
     }
     if (status) {
-      query = query.eq('status', status);
+      const validStatuses = ['draft', 'published', 'archived'];
+      if (validStatuses.includes(status)) {
+        query = query.eq('status', status);
+      }
     }
     if (category) {
-      query = query.eq('category', category);
+      const validCategories = ['indie', 'aaa', 'mobile', 'vr', 'arcade'];
+      if (validCategories.includes(category)) {
+        query = query.eq('category', category);
+      }
     }
     if (featured === 'true') {
       query = query.eq('featured', true);
     }
     if (search) {
-      query = query.or(`title.ilike.%${search}%,short_description.ilike.%${search}%,developer.ilike.%${search}%`);
+      // Sanitize search input to prevent SQL injection
+      const sanitizedSearch = search.replace(/[^\w\s-]/g, '').slice(0, 100);
+      if (sanitizedSearch) {
+        query = query.or(`title.ilike.%${sanitizedSearch}%,short_description.ilike.%${sanitizedSearch}%,developer.ilike.%${sanitizedSearch}%`);
+      }
     }
 
     // Order by created_at descending by default
@@ -139,10 +152,51 @@ export async function POST(request: Request) {
   try {
     const body: Partial<Game> = await request.json();
 
-    // Validate required fields
-    if (!body.title) {
+    // Validate required fields with sanitization
+    if (!body.title || typeof body.title !== 'string' || body.title.trim().length === 0) {
       return NextResponse.json(
         { error: "Tytuł jest wymagany" },
+        { status: 400 }
+      );
+    }
+
+    // Sanitize title
+    body.title = body.title.trim().slice(0, 200);
+
+    // Validate and sanitize other string fields
+    if (body.short_description) {
+      body.short_description = body.short_description.trim().slice(0, 500);
+    }
+    if (body.developer) {
+      body.developer = body.developer.trim().slice(0, 100);
+    }
+    if (body.publisher) {
+      body.publisher = body.publisher.trim().slice(0, 100);
+    }
+
+    // Validate category
+    const validCategories = ['indie', 'aaa', 'mobile', 'vr', 'arcade'];
+    if (body.category && !validCategories.includes(body.category)) {
+      return NextResponse.json(
+        { error: "Nieprawidłowa kategoria" },
+        { status: 400 }
+      );
+    }
+
+    // Validate status
+    const validStatuses = ['draft', 'published', 'archived'];
+    if (body.status && !validStatuses.includes(body.status)) {
+      return NextResponse.json(
+        { error: "Nieprawidłowy status" },
+        { status: 400 }
+      );
+    }
+
+    // Validate visibility
+    const validVisibilities = ['public', 'private', 'unlisted'];
+    if (body.visibility && !validVisibilities.includes(body.visibility)) {
+      return NextResponse.json(
+        { error: "Nieprawidłowa widoczność" },
         { status: 400 }
       );
     }

@@ -52,7 +52,7 @@ interface DevProjectContextValue {
   canCreateProject: boolean;
   hasPermission: (permission: PermissionName) => boolean;
   getUserRole: () => DevProjectRole | null;
-  createProject: (name: string, description?: string) => Promise<DevProject | null>;
+  createProject: (name: string, description?: string, project_type?: string) => Promise<DevProject | null>;
   updateProject: (id: number, data: Partial<DevProject>) => Promise<void>;
   deleteProject: (id: number) => Promise<void>;
   createTask: (data: Partial<DevTask> & { title: string }) => Promise<DevTask | null>;
@@ -162,6 +162,8 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
       fetchJson<DevTechnology[]>(`/api/dev/technologies?projectId=${projectId}`).catch(() => []),
       fetchJson<DevProjectMember[]>(`/api/dev/members?projectId=${projectId}`).catch(() => []),
     ]);
+    
+    // Batch state updates to prevent multiple re-renders
     setTasks(tasksData);
     setPhases(phasesData);
     setFiles(filesData);
@@ -211,11 +213,11 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     }
   }, [activeProjectId, loadProjectData]);
 
-  const createProject = useCallback(async (name: string, description?: string) => {
+  const createProject = useCallback(async (name: string, description?: string, project_type?: string) => {
     const project = await fetchJson<DevProject>("/api/dev-projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description }),
+      body: JSON.stringify({ name, description, project_type }),
     });
     setProjects((prev) => [project, ...prev]);
     setActiveProjectId(project.id);

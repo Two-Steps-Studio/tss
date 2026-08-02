@@ -32,10 +32,11 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   const { status } = await params;
 
-  // Map API statuses to DB statuses (pending = todo, in_progress = doing, completed = done)
+  // Map API statuses to DB statuses (todo = pending, in_progress = in_progress, testing = testing, completed = completed)
   const statusMap: Record<string, string> = {
     todo: "pending",
     in_progress: "in_progress",
+    testing: "testing",
     completed: "completed",
   };
 
@@ -70,7 +71,7 @@ export async function POST(request: Request, { params }: RouteParams) {
   const { status } = await params;
 
   // Valid statuses only
-  const validStatuses = ["todo", "in_progress", "completed"];
+  const validStatuses = ["todo", "in_progress", "testing", "completed"];
   if (!validStatuses.includes(status)) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }

@@ -113,7 +113,7 @@ export function DevProjectSwitcher() {
   return (
     <div className="flex items-center gap-2">
       <Select value={activeProjectId?.toString()} onValueChange={(val) => setActiveProjectId(Number(val))}  >
-        <SelectTrigger className="w-[200px] rounded-2xl bg-white">
+        <SelectTrigger className="w-[200px] rounded-2xl bg-white" aria-label="Select project">
           <SelectValue placeholder="Select project" />
         </SelectTrigger>
         <SelectContent className="bg-white">

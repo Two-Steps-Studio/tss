@@ -257,7 +257,7 @@ CREATE TABLE IF NOT EXISTS notifications (
 -- Typ statusów (jeśli nie istnieje w bazie)
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'task_status') THEN
-        CREATE TYPE task_status AS ENUM ('pending', 'in_progress', 'completed');
+        CREATE TYPE task_status AS ENUM ('pending', 'in_progress', 'testing', 'completed');
     END IF;
 END $$;
 
@@ -312,3 +312,16 @@ CREATE INDEX IF NOT EXISTS dev_tasks_priority_idx ON dev_tasks(priority);
 CREATE INDEX IF NOT EXISTS dev_tasks_assigned_idx ON dev_tasks(assigned_to);
 CREATE INDEX IF NOT EXISTS dev_tasks_due_date_idx ON dev_tasks(due_date);
 CREATE INDEX IF NOT EXISTS dev_project_columns_project_id_idx ON dev_project_columns(project_id);
+
+-- Additional performance indices for DEV module
+CREATE INDEX IF NOT EXISTS dev_projects_owner_id_idx ON dev_projects(owner_id);
+CREATE INDEX IF NOT EXISTS dev_projects_status_idx ON dev_projects(status);
+CREATE INDEX IF NOT EXISTS dev_project_members_user_id_idx ON dev_project_members(user_id);
+CREATE INDEX IF NOT EXISTS dev_project_members_project_id_idx ON dev_project_members(project_id);
+CREATE INDEX IF NOT EXISTS dev_project_members_role_idx ON dev_project_members(role);
+
+-- Add constraints for data integrity
+ALTER TABLE dev_projects ADD CONSTRAINT IF NOT EXISTS dev_projects_name_not_empty CHECK (LENGTH(TRIM(name)) > 0);
+ALTER TABLE dev_projects ADD CONSTRAINT IF NOT EXISTS dev_projects_color_format CHECK (color ~ '^#[0-9A-Fa-f]{6}$');
+ALTER TABLE dev_tasks ADD CONSTRAINT IF NOT EXISTS dev_tasks_title_not_empty CHECK (LENGTH(TRIM(title)) > 0);
+ALTER TABLE dev_tasks ADD CONSTRAINT IF NOT EXISTS dev_tasks_priority_check CHECK (priority IN ('low', 'medium', 'high', 'critical'));

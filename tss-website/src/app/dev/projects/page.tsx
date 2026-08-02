@@ -24,6 +24,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function DevProjects() {
   const { projects, activeProjectId, setActiveProjectId, createProject, deleteProject, updateProject, isLoading, error } = useDevProject();
@@ -32,15 +39,17 @@ export default function DevProjects() {
   const [editingProject, setEditingProject] = useState<typeof projects[0] | null>(null);
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
+  const [newProjectType, setNewProjectType] = useState("general");
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreateProject = async () => {
     if (!newProjectName.trim()) return;
     setIsCreating(true);
     try {
-      await createProject(newProjectName, newProjectDescription || undefined);
+      await createProject(newProjectName, newProjectDescription || undefined, newProjectType);
       setNewProjectName("");
       setNewProjectDescription("");
+      setNewProjectType("general");
       setIsCreateOpen(false);
     } finally {
       setIsCreating(false);
@@ -127,6 +136,25 @@ export default function DevProjects() {
                   placeholder="Enter project name"
                   className="rounded-2xl"
                 />
+              </div>
+              <div>
+                <Label htmlFor="type">Project Type</Label>
+                <Select value={newProjectType} onValueChange={setNewProjectType}>
+                  <SelectTrigger id="type" className="rounded-2xl">
+                    <SelectValue placeholder="Select project type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="web_application">Web Application</SelectItem>
+                    <SelectItem value="mobile_application">Mobile Application</SelectItem>
+                    <SelectItem value="desktop_application">Desktop Application</SelectItem>
+                    <SelectItem value="game">Game</SelectItem>
+                    <SelectItem value="api">API</SelectItem>
+                    <SelectItem value="library">Library</SelectItem>
+                    <SelectItem value="plugin">Plugin</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label htmlFor="description">Description (optional)</Label>

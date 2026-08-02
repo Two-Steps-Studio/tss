@@ -50,7 +50,7 @@ export async function GET(request: Request) {
     }
 
     // Use the newly created profile
-    profile = newProfile as any;
+    profile = newProfile;
   }
 
   // Count current projects
@@ -159,7 +159,12 @@ export async function PATCH(request: Request) {
   }
   
   // SECURITY: Only process allowed fields
-  const updateData: any = {};
+  const updateData: {
+    username?: string;
+    games_visible?: boolean;
+    records_visible?: boolean;
+    dev_visible?: boolean;
+  } = {};
   
   if ('username' in body) {
     if (typeof body.username === "string" && body.username.length > 0 && body.username.length <= 50) {

@@ -135,7 +135,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
 
   const getAriaCurrent = useCallback((href: string) => {
     return isPathActive(href) ? "page" : undefined;
-  }, [isPathActive]);
+  }, [isPathActive, pathname]);
 
   // Definicja sekcji z fallback dla wszystkich tłumaczeń
   const defaultSections = [
@@ -169,7 +169,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
 
   ];
 
-  const sections = useMemo(() => defaultSections, [t, categoryVisibility]);
+  const sections = useMemo(() => defaultSections, [t, categoryVisibility, pathname]);
 
   const [hoveredSectionId, setHoveredSectionId] = useState<string | null>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

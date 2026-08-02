@@ -109,7 +109,7 @@ export async function POST(request: Request) {
   }
 
   const body: CreateProjectData = await request.json();
-  const { name, description, description_markdown, color, planned_end_date } = body;
+  const { name, description, description_markdown, color, project_type, planned_end_date } = body;
 
   // Check user's project limits
   const { data: profile, error: profileError } = await supabase
@@ -152,6 +152,7 @@ export async function POST(request: Request) {
       description,
       description_markdown,
       color: color || "#ffcb2f",
+      project_type: project_type || "general",
       status: "active",
       planned_end_date,
     })

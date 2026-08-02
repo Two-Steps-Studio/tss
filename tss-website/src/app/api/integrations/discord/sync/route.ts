@@ -37,7 +37,74 @@ export async function POST(request: Request) {
 
     // Check if access token is expired
     if (integration.token_expires_at && new Date(integration.token_expires_at) < new Date()) {
-      // TODO: Implement token refresh logic
+      // Attempt to refresh the token using refresh_token
+      if (integration.refresh_token) {
+        try {
+          const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+              client_id: process.env.DISCORD_CLIENT_ID || '',
+              client_secret: process.env.DISCORD_CLIENT_SECRET || '',
+              grant_type: 'refresh_token',
+              refresh_token: integration.refresh_token,
+            }),
+          });
+
+          if (tokenResponse.ok) {
+            const tokenData = await tokenResponse.json();
+            
+            // Update integration with new tokens
+            const { data: updatedIntegration, error: updateError } = await supabase
+              .from("user_integrations")
+              .update({
+                access_token: tokenData.access_token,
+                refresh_token: tokenData.refresh_token || integration.refresh_token,
+                token_expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString(),
+              })
+              .eq("id", integration.id)
+              .select()
+              .single();
+
+            if (updateError) {
+              return NextResponse.json({ error: updateError.message }, { status: 500 });
+            }
+
+            // Use the new access token to fetch user data
+            const discordUser = await getDiscordUser(tokenData.access_token);
+
+            // Update integration with fresh data
+            const { data: finalIntegration, error: finalUpdateError } = await supabase
+              .from("user_integrations")
+              .update({
+                username: discordUser.username,
+                avatar: getDiscordAvatarUrl(discordUser.id, discordUser.avatar),
+                metadata: {
+                  discriminator: discordUser.discriminator,
+                  email: discordUser.email,
+                  verified: discordUser.verified,
+                },
+              })
+              .eq("id", updatedIntegration.id)
+              .select()
+              .single();
+
+            if (finalUpdateError) {
+              return NextResponse.json({ error: finalUpdateError.message }, { status: 500 });
+            }
+
+            return NextResponse.json({
+              success: true,
+              integration: finalIntegration,
+            });
+          }
+        } catch (refreshError) {
+          console.error("Discord token refresh failed:", refreshError);
+        }
+      }
+      
       return NextResponse.json(
         { error: "Access token expired. Please reconnect Discord." },
         { status: 400 }

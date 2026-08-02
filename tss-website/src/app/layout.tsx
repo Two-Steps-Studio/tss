@@ -1,5 +1,6 @@
 
 import type { Metadata } from "next";
+import { validateEnv } from "@/lib/env-validation";
 import { Space_Grotesk, Outfit } from "next/font/google";
 import "./globals.css";
 import { VisualEditsMessenger } from "orchids-visual-edits";
@@ -19,6 +20,7 @@ import { Footer } from "@/components/Footer";
 import { LanguageProvider } from "@/hooks/use-language";
 import { SidebarProvider } from "@/hooks/use-sidebar";
 import { SidebarLayout } from "@/components/SidebarLayout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -103,9 +105,11 @@ export default function RootLayout({
             <div className="flex-1 lg:ml-[240px] lg:border-l lg:border-zinc-700/30 flex flex-col pt-[60px] transition-[margin] duration-300">
               <TopBar suppressHydrationWarning={true} />
               <main className="p-4 md:p-6 lg:p-8 pt-8 md:pt-12 pb-20 lg:pb-0 max-w-[1400px] mx-auto w-full flex-1 flex flex-col">
-                <PageTransition>
-                  {children}
-                </PageTransition>
+                <ErrorBoundary>
+                  <PageTransition>
+                    {children}
+                  </PageTransition>
+                </ErrorBoundary>
                 <Footer />
               </main>
             </div>

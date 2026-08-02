@@ -37,7 +37,7 @@ import {
   Settings,
   type LucideIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { DevProjectRole, ProjectPermissions, DevProjectInvite, InviteStatus } from "@/lib/types/dev-types";
 
 const roleIcons: Record<DevProjectRole, LucideIcon> = {
@@ -118,11 +118,12 @@ export function DevMembersPanel() {
         setIsOpen(false);
         await fetchInvites();
       } else {
-        const error = await response.json();
+        const error = await response.json().catch(() => ({ error: "Failed to send invite" }));
         alert(error.error || "Failed to send invite");
       }
     } catch (error) {
       console.error("Failed to send invite:", error);
+      alert("Network error. Please try again.");
     } finally {
       setIsSending(false);
     }
@@ -218,25 +219,31 @@ export function DevMembersPanel() {
             You don't have permission to manage members.
           </p>
           <div className="mt-4 space-y-2">
-            {members.map((member) => {
-              const RoleIcon = roleIcons[member.role];
-              return (
-                <div key={member.id} className="flex items-center justify-between p-3 rounded-xl bg-black/5 dark:bg-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[var(--color-dev)]/20 flex items-center justify-center">
-                      <User size={16} className="text-[var(--color-dev)]" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{member.username || member.user_id}</p>
-                      <Badge className={`text-xs ${roleColors[member.role]}`}>
-                        <RoleIcon size={12} className="mr-1" />
-                        {member.role}
-                      </Badge>
+            {members.length === 0 ? (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                No members in this project
+              </div>
+            ) : (
+              members.map((member) => {
+                const RoleIcon = roleIcons[member.role];
+                return (
+                  <div key={member.id} className="flex items-center justify-between p-3 rounded-xl bg-black/5 dark:bg-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-[var(--color-dev)]/20 flex items-center justify-center">
+                        <User size={16} className="text-[var(--color-dev)]" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{member.username || member.user_id}</p>
+                        <Badge className={`text-xs ${roleColors[member.role]}`}>
+                          <RoleIcon size={12} className="mr-1" />
+                          {member.role}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </CardContent>
       </Card>

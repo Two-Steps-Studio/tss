@@ -287,7 +287,7 @@ export default function DevTasks() {
                         </p>
                       )}
                       <div className="flex items-center justify-between">
-                        <div className="flex gap-1">
+                        <div className="flex gap-1" role="group" aria-label="Task status controls">
                           {Object.entries(statusIcons).map(([s, icon]) => (
                             <button
                               key={s}
@@ -299,6 +299,8 @@ export default function DevTasks() {
                                 task.status === s ? "bg-[var(--color-dev)]/20" : "hover:bg-black/5 dark:hover:bg-white/5"
                               }`}
                               title={`Change to ${s.replace("_", " ")}`}
+                              aria-label={`Change status to ${s.replace("_", " ")}`}
+                              aria-pressed={task.status === s}
                             >
                               {icon}
                             </button>
@@ -312,6 +314,7 @@ export default function DevTasks() {
                             e.stopPropagation();
                             handleDeleteTask(task.id);
                           }}
+                          aria-label="Delete task"
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
