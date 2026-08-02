@@ -210,7 +210,7 @@ export function DevMembersPanel() {
 
   if (!canManageMembers) {
     return (
-      <Card className="rounded-3xl border-[var(--border-color)]">
+      <Card className="rounded-3xl border-[var(--border-color)] bg-white text-black">
         <CardHeader>
           <CardTitle>Project Members</CardTitle>
         </CardHeader>
@@ -253,7 +253,7 @@ export function DevMembersPanel() {
   const pendingInvites = invites.filter(i => i.status === 'pending');
 
   return (
-    <Card className="rounded-3xl border-[var(--border-color)]">
+    <Card className="rounded-3xl border-[var(--border-color)] bg-white text-black">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Team Management</CardTitle>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

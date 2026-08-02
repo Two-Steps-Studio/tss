@@ -61,7 +61,7 @@ export function DevProjectSwitcher() {
             Create Project
           </Button>
         </DialogTrigger>
-        <DialogContent className="rounded-3xl bg-white text-black">
+        <DialogContent className="rounded-3xl bg-white text-black border-[var(--border-color)]" >
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
           </DialogHeader>
@@ -113,7 +113,7 @@ export function DevProjectSwitcher() {
   return (
     <div className="flex items-center gap-2">
       <Select value={activeProjectId?.toString()} onValueChange={(val) => setActiveProjectId(Number(val))}  >
-        <SelectTrigger className="w-[200px] rounded-2xl bg-white" aria-label="Select project">
+        <SelectTrigger className="w-[200px] rounded-2xl bg-white border-[var(--border-color)]" aria-label="Select project" >
           <SelectValue placeholder="Select project" />
         </SelectTrigger>
         <SelectContent className="bg-white">
@@ -126,7 +126,7 @@ export function DevProjectSwitcher() {
       </Select>
       <Dialog open={isOpen} onOpenChange={setIsOpen} >
         <DialogTrigger asChild>
-          <Button  size="icon" aria-label="Utwórz nowy projekt" className="rounded-2xl h-10 w-10 bg-general">
+          <Button  size="icon" aria-label="Utwórz nowy projekt" className="rounded-2xl h-10 w-10 bg-general border-[var(--border-color)]">
             <Plus className="h-4 w-4" />
           </Button>
         </DialogTrigger>

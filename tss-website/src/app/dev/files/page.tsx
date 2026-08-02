@@ -141,7 +141,7 @@ export default function DevFiles() {
         </div>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-2xl">
+            <Button className="rounded-2xl border-[var(--border-color)]" >
               <Plus className="mr-2 h-4 w-4" />
               Add File
             </Button>

@@ -141,7 +141,6 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
   const defaultSections = [
     { id: "home", type: "single", href: "/", label: t.nav.home || "Strona główna", icon: Home, ariaCurrent: getAriaCurrent("/") },
     { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: User, ariaCurrent: getAriaCurrent("/profil") },
-    { id: "download", type: "single", href: "/pobierz", label: "Pobierz aplikację", icon: Download, ariaCurrent: getAriaCurrent("/pobierz") },
     ...(categoryVisibility.games ? [{
       id: "games", type: "expandable", href: "/games", label: t.nav.games || "Games", icon: Gamepad, items: [
         { href: "/games/loucher-gier", label: t.nav.Loucher || "Loucher Gier", icon: Gamepad },
@@ -164,10 +163,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
         { href: "/dev/technology", label: t.nav.technology ||"Technology", icon: Cpu },
       ]}
     ] : []),
-    { id: "notifications", type: "single", href: "/ankiety/rating", label: t.nav.notifications || "Powiadomienia", icon: Bell, ariaCurrent: getAriaCurrent("/ankiety/rating") },
-
-
-
+    { id: "notifications", type: "single", href: "/powiadomienia", label: t.nav.notifications || "Powiadomienia", icon: Bell, ariaCurrent: getAriaCurrent("/ankiety/rating") },
   ];
 
   const sections = useMemo(() => defaultSections, [t, categoryVisibility, pathname]);
@@ -388,7 +384,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
                   }}
                   className={cn(
                       "w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all group relative overflow-hidden border",
-                      "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5 border-black/10 dark:border-white/10"
+                      "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5 border-(--border-color)"
                   )}
               >
                 <div className="w-[18px] h-[18px] flex items-center justify-center relative z-10 opacity-70 group-hover:opacity-100 transition-opacity">
@@ -415,8 +411,8 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
               className={cn(
                   "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all group relative overflow-hidden border",
                   pathname === "/ustawienia"
-                      ? "text-white bg-[var(--color-general)] shadow-lg shadow-[var(--color-general)]/20 font-black border-transparent"
-                      : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5 border-black/10 dark:border-white/10"
+                      ? "text-white bg-(--color-general) shadow-lg shadow-(--color-general)/20 font-black border-(--border-color)"
+                      : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5 border-(--border-color)"
               )}
           >
             <div

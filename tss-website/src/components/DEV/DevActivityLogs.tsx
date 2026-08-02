@@ -134,7 +134,7 @@ export function DevActivityLogs() {
   }
 
   return (
-    <Card className="rounded-3xl border-[var(--border-color)]">
+    <Card className="rounded-3xl border-[var(--border-color)] bg-white text-black">
       <CardHeader>
         <CardTitle>Activity Log</CardTitle>
       </CardHeader>

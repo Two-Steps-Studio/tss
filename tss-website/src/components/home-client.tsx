@@ -163,10 +163,10 @@ export function HomeClient() {
             whileInView={{ opacity: 1, x: 0 }}
             whileHover={{ scale: 1.02, rotate: 0.5 }}
             viewport={{ once: true }}
-            className="md:col-span-4 relative group cursor-pointer overflow-hidden rounded-[3rem] bg-[var(--color-records)] text-white p-10 flex flex-col justify-between transition-all duration-500 hover:shadow-[0_0_50px_rgba(173,131,248,0.3)]"
+            className="md:col-span-4 relative group cursor-pointer overflow-hidden rounded-[3rem] bg-[var(--color-records)] text-white p-10 flex flex-col justify-between transition-all duration-500 hover:shadow-[0_0_50px_rgba(173,131,248,0.3)] "
           >
             <div 
-              className="absolute bottom-10 right-10 w-20 h-20 bg-white/10 group-hover:rotate-12 transition-transform duration-500"
+              className="absolute bottom-10 right-10 w-20 h-20 bg-white/10 group-hover:rotate-12 transition-transform duration-500 "
               style={{
                 maskImage: 'url(/assets/Icons/music_note_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg)',
                 maskSize: 'contain',
@@ -249,7 +249,7 @@ export function HomeClient() {
 
       {/* Newsletter / CTA Section */}
       <section className="px-4">
-        <div className="relative overflow-hidden rounded-[4rem] bg-black border border-white/5 p-12 md:p-32 flex flex-col items-center text-center">
+        <div className="relative overflow-hidden rounded-[4rem] bg-black border border-white/5 p-12 md:p-32 flex flex-col items-center text-center border-[var(--border-color)]">
           <div className="absolute inset-0 z-0">
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100%] h-[100%] bg-[var(--color-general)]/20 blur-[150px] rounded-full" />
             <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-10" />
@@ -261,17 +261,17 @@ export function HomeClient() {
               className="relative z-10 w-full"
             >
               <Rocket size={120} className="mb-10 animate-float mx-auto text-[var(--color-general)]" />
-                <h2 className="text-5xl md:text-8xl font-black tracking-tight mb-8 italic leading-none pr-4">
+                <h2 className="text-5xl md:text-8xl font-black tracking-tight mb-8 italic leading-none pr-4 text-white">
                   {translations.home.newsletterTitle}
                 </h2>
-              <p className="text-xl md:text-2xl font-bold opacity-60 max-w-2xl mx-auto mb-16">
+              <p className="text-xl md:text-2xl font-bold opacity-60 max-w-2xl mx-auto mb-16 text-gray-200">
                 {translations.home.newsletterSubtitle}
               </p>
               
               <NewsletterForm />
               
-                  <div className="flex flex-wrap justify-center gap-8 mt-20 opacity-40">
-                    {["Games", "Records", "E-sport", "Dev"].map((item) => (
+                  <div className="flex flex-wrap justify-center gap-8 mt-20 opacity-40 text-white">
+                    {["Games", "Records", "Dev"].map((item) => (
                       <span key={item} className="text-sm font-black tracking-[0.4em] uppercase">{item}</span>
                     ))}
                   </div>

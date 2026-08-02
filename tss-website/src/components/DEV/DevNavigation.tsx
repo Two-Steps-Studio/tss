@@ -40,7 +40,7 @@ export function DevNavigation() {
               className={cn(
                 "flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap",
                 isActive
-                  ? "bg-[var(--color-dev)]/10 text-[var(--color-dev)]"
+                  ? "bg-[var(--color-dev)]/10 text-[var(--color-dev)] border-[var(--border-color)]"
                   : "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/5"
               )}
             >
