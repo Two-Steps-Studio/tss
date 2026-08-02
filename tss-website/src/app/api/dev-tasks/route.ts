@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     }).select().single();
 
     // Reassign proper ID from returned data if needed
-    return NextResponse.json(retryResult.data || { error: "Task creation failed" }, retryResult.error ? 500 : 201);
+    return NextResponse.json(retryResult.data || { error: "Task creation failed" }, { status: retryResult.error ? 500 : 201 });
   }
 
   // Log activity

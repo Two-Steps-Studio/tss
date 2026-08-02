@@ -36,7 +36,7 @@ const GENRE_LABELS: Record<MusicGenre, string> = {
   other: 'Inne',
 };
 
-export default function MusicDetailPage({ params }: { params: { id: string } }) {
+export default function MusicDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [track, setTrack] = useState<MusicTrack | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

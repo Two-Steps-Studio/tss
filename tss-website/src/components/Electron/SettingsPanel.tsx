@@ -1,0 +1,248 @@
+'use client';
+
+import { useState } from 'react';
+import { useIsElectron, useAppInfo, useAppLogs, useAppControls, useWindowControls } from '@/hooks/useElectron';
+
+export default function SettingsPanel() {
+  const isElectron = useIsElectron();
+  const appInfo = useAppInfo();
+  const { logs, getLogs, clearLogs } = useAppLogs();
+  const { restartApp } = useAppControls();
+  const { minimizeWindow, maximizeWindow, closeWindow } = useWindowControls();
+  
+  const [settings, setSettings] = useState({
+    autoStart: false,
+    minimizeToTray: true,
+    notifications: true,
+    autoUpdate: true,
+    hardwareAcceleration: true,
+  });
+
+  const [activeTab, setActiveTab] = useState('general');
+
+  const handleSaveSettings = () => {
+    localStorage.setItem('tss-settings', JSON.stringify(settings));
+    // In production, this would call the Electron API
+  };
+
+  const handleClearCache = async () => {
+    if (isElectron && window.electron) {
+      await window.electron.clearSession();
+      alert('Cache został wyczyszczony');
+    }
+  };
+
+  const handleExportLogs = async () => {
+    await getLogs();
+    if (logs) {
+      const blob = new Blob([logs], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tss-logs-${new Date().toISOString().split('T')[0]}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  if (!isElectron) return null;
+
+  return (
+    <div className="bg-gray-900 rounded-xl p-6 border border-gray-800">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-white">Ustawienia</h2>
+        <div className="text-sm text-gray-400">
+          Wersja {appInfo?.version || '1.0.0'}
+        </div>
+      </div>
+
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('general')}
+          className={`px-4 py-2 rounded-lg transition ${
+            activeTab === 'general'
+              ? 'bg-purple-500 text-white'
+              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+          }`}
+        >
+          Ogólne
+        </button>
+        <button
+          onClick={() => setActiveTab('advanced')}
+          className={`px-4 py-2 rounded-lg transition ${
+            activeTab === 'advanced'
+              ? 'bg-purple-500 text-white'
+              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+          }`}
+        >
+          Zaawansowane
+        </button>
+        <button
+          onClick={() => setActiveTab('diagnostics')}
+          className={`px-4 py-2 rounded-lg transition ${
+            activeTab === 'diagnostics'
+              ? 'bg-purple-500 text-white'
+              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+          }`}
+        >
+          Diagnostyka
+        </button>
+      </div>
+
+      {activeTab === 'general' && (
+        <div className="space-y-4">
+          <label className="flex items-center justify-between p-4 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-750 transition">
+            <div>
+              <span className="text-white font-medium">Uruchamiaj przy starcie Windows</span>
+              <p className="text-gray-400 text-sm">Aplikacja będzie uruchamiana automatycznie</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.autoStart}
+              onChange={(e) => setSettings({ ...settings, autoStart: e.target.checked })}
+              className="w-5 h-5 rounded"
+            />
+          </label>
+
+          <label className="flex items-center justify-between p-4 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-750 transition">
+            <div>
+              <span className="text-white font-medium">Minimalizuj do tray</span>
+              <p className="text-gray-400 text-sm">Aplikacja będzie działać w tle po zamknięciu</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.minimizeToTray}
+              onChange={(e) => setSettings({ ...settings, minimizeToTray: e.target.checked })}
+              className="w-5 h-5 rounded"
+            />
+          </label>
+
+          <label className="flex items-center justify-between p-4 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-750 transition">
+            <div>
+              <span className="text-white font-medium">Powiadomienia systemowe</span>
+              <p className="text-gray-400 text-sm">Otrzymuj powiadomienia o aktualizacjach</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.notifications}
+              onChange={(e) => setSettings({ ...settings, notifications: e.target.checked })}
+              className="w-5 h-5 rounded"
+            />
+          </label>
+
+          <label className="flex items-center justify-between p-4 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-750 transition">
+            <div>
+              <span className="text-white font-medium">Automatyczne aktualizacje</span>
+              <p className="text-gray-400 text-sm">Pobieraj i instaluj aktualizacje automatycznie</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.autoUpdate}
+              onChange={(e) => setSettings({ ...settings, autoUpdate: e.target.checked })}
+              className="w-5 h-5 rounded"
+            />
+          </label>
+
+          <button
+            onClick={handleSaveSettings}
+            className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:opacity-90 transition"
+          >
+            Zapisz ustawienia
+          </button>
+        </div>
+      )}
+
+      {activeTab === 'advanced' && (
+        <div className="space-y-4">
+          <label className="flex items-center justify-between p-4 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-750 transition">
+            <div>
+              <span className="text-white font-medium">Przyspieszenie sprzętowe</span>
+              <p className="text-gray-400 text-sm">Użyj GPU dla lepszej wydajności</p>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.hardwareAcceleration}
+              onChange={(e) => setSettings({ ...settings, hardwareAcceleration: e.target.checked })}
+              className="w-5 h-5 rounded"
+            />
+          </label>
+
+          <div className="p-4 bg-gray-800 rounded-lg">
+            <h3 className="text-white font-medium mb-2">Informacje o systemie</h3>
+            <div className="space-y-1 text-sm text-gray-400">
+              <p>Platforma: {appInfo?.platform}</p>
+              <p>Architektura: {appInfo?.arch}</p>
+              <p>Electron: {appInfo?.electronVersion}</p>
+              <p>Node: {appInfo?.nodeVersion}</p>
+              <p>Chrome: {appInfo?.chromeVersion}</p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleClearCache}
+            className="w-full py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
+          >
+            Wyczyść cache
+          </button>
+
+          <button
+            onClick={restartApp}
+            className="w-full py-3 bg-gray-700 text-white font-semibold rounded-lg hover:bg-gray-600 transition"
+          >
+            Uruchom ponownie aplikację
+          </button>
+        </div>
+      )}
+
+      {activeTab === 'diagnostics' && (
+        <div className="space-y-4">
+          <div className="p-4 bg-gray-800 rounded-lg">
+            <h3 className="text-white font-medium mb-2">Logi aplikacji</h3>
+            <div className="bg-gray-900 rounded p-4 h-64 overflow-y-auto text-xs text-gray-400 font-mono">
+              {logs || 'Brak logów. Kliknij "Pobierz logi" aby wyświetlić.'}
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              onClick={handleExportLogs}
+              className="flex-1 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
+            >
+              Pobierz logi
+            </button>
+            <button
+              onClick={clearLogs}
+              className="flex-1 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition"
+            >
+              Wyczyść logi
+            </button>
+          </div>
+
+          <div className="p-4 bg-gray-800 rounded-lg">
+            <h3 className="text-white font-medium mb-2">Testy okna</h3>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                onClick={minimizeWindow}
+                className="py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
+              >
+                Minimalizuj
+              </button>
+              <button
+                onClick={maximizeWindow}
+                className="py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition"
+              >
+                Maksymalizuj
+              </button>
+              <button
+                onClick={closeWindow}
+                className="py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+              >
+                Zamknij
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

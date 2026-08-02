@@ -3,24 +3,9 @@ import path from "node:path";
 
 const LOADER = path.resolve(__dirname, "src/visual-edits/component-tagger-loader.js");
 const isElectron = process.env.ELECTRON === 'true';
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-});
 
 const nextConfig: NextConfig = {
   assetPrefix: isElectron ? './' : undefined,
-  /*
-  ...(isElectron ? {} : {
-    turbopack: {
-      rules: {
-        "*.{jsx,tsx}": {
-          loaders: [LOADER],
-          as: "*.js",
-        },
-      },
-    },
-  }),
-  */
   images: {
     unoptimized: isElectron,
     remotePatterns: [
@@ -42,27 +27,22 @@ const nextConfig: NextConfig = {
       {
         source: '/(.*)',
         headers: [
-          // HTTP Strict Transport Security
           {
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains; preload',
           },
-          // Prevent clickjacking
           {
             key: 'X-Frame-Options',
             value: 'DENY',
           },
-          // XSS Protection
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
           },
-          // Content Type Options
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
           },
-          // Content Security Policy
           {
             key: 'Content-Security-Policy',
             value: [
@@ -80,24 +60,20 @@ const nextConfig: NextConfig = {
               "upgrade-insecure-requests",
             ].join('; '),
           },
-          // Referrer Policy
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
           },
-          // Permissions Policy
           {
             key: 'Permissions-Policy',
             value: 'geolocation=(), camera=(), microphone=(), magnetometer=(), gyroscope=(), payment=()',
           },
-          // Cache Control for HTML
           {
             key: 'Cache-Control',
             value: 'no-store, no-cache, must-revalidate, proxy-revalidate',
           },
         ],
       },
-      // API routes - allow CORS from trusted origins only
       {
         source: '/api/(.*)',
         headers: [
@@ -149,7 +125,6 @@ const nextConfig: NextConfig = {
         destination: '/ustawienia',
         permanent: true,
       },
-      // Przekieruj /games do /
       {
         source: '/games',
         destination: '/',
@@ -157,6 +132,25 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  webpack: (config, { isServer }) => {
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          default: false,
+          vendors: false,
+          commons: {
+            name: 'commons',
+            chunks: 'all',
+            minChunks: 2,
+          },
+        },
+      },
+    };
+    
+    return config;
+  },
 };
 
-export default withBundleAnalyzer(nextConfig);
+export default nextConfig;

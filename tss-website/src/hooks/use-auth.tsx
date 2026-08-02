@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import { useIsElectron } from "@/hooks/useElectron";
 
 interface AuthContextType {
   user: User | null;
@@ -24,6 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const isElectron = useIsElectron();
 
   useEffect(() => {
     const cleanupSubscription = async () => {
@@ -49,6 +51,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           // Don't set loading to false on error - keep loading while user sees error state
         } else {
           console.log("[useAuth] Session retrieved:", session ? "authenticated" : "not authenticated");
+          
+          // Save session to Electron storage if running in Electron
+          if (isElectron && session && window.electron) {
+            try {
+              await window.electron.saveSession({
+                access_token: session.access_token,
+                refresh_token: session.refresh_token,
+                user: session.user,
+              });
+            } catch (saveError) {
+              console.error("[useAuth] Failed to save session to Electron:", saveError);
+            }
+          }
         }
 
         setSession(session);
@@ -67,8 +82,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (supabase) {
       try {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          (_event, session) => {
+          async (_event, session) => {
             console.log("[useAuth] Auth state changed:", _event, session?.user?.id);
+            
+            // Handle session changes in Electron
+            if (isElectron && window.electron) {
+              if (_event === 'SIGNED_IN' && session) {
+                try {
+                  await window.electron.saveSession({
+                    access_token: session.access_token,
+                    refresh_token: session.refresh_token,
+                    user: session.user,
+                  });
+                } catch (saveError) {
+                  console.error("[useAuth] Failed to save session to Electron:", saveError);
+                }
+              } else if (_event === 'SIGNED_OUT') {
+                try {
+                  await window.electron.clearSession();
+                } catch (clearError) {
+                  console.error("[useAuth] Failed to clear session in Electron:", clearError);
+                }
+              }
+            }
+            
             setSession(session);
             setUser(session?.user ?? null);
             // Don't set loading to false here - it's already false after getSession()
@@ -87,10 +124,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Cleanup on unmount
     return cleanup;
-  }, []);
+  }, [isElectron]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    
+    // Clear Electron session
+    if (isElectron && window.electron) {
+      try {
+        await window.electron.clearSession();
+      } catch (error) {
+        console.error("[useAuth] Failed to clear session in Electron:", error);
+      }
+    }
+    
     router.push("/login");
   };
 

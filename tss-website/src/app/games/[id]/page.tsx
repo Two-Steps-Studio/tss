@@ -29,7 +29,7 @@ const STATUS_LABELS: Record<GameStatus, string> = {
   coming_soon: 'Wkrótce',
 };
 
-export default function GameDetailPage({ params }: { params: { id: string } }) {
+export default function GameDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [game, setGame] = useState<GameWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

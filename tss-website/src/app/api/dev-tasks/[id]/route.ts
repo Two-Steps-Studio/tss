@@ -58,7 +58,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   // Get the task to check project_id and permissions
   const { data: existingTask } = await supabase
     .from("dev_tasks")
-    .select("project_id, title")
+    .select("project_id, title, status")
     .eq("id", Number(id))
     .single();
 
@@ -129,7 +129,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   // Get the task to check project_id and permissions
   const { data: existingTask } = await supabase
     .from("dev_tasks")
-    .select("project_id, title")
+    .select("project_id, title, status")
     .eq("id", Number(id))
     .single();
 

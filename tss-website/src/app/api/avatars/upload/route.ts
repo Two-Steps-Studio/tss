@@ -11,7 +11,7 @@ async function validateFile(file: File | null): Promise<{ valid: boolean; extens
   const extension = file.name.split(".").pop()?.toLowerCase();
   const mime = file.type || "";
 
-  if (!ALLOWED_EXTENSIONS.includes(extension) || !ALLOWED_MIME_TYPES.includes(mime)) {
+  if (!extension || !ALLOWED_EXTENSIONS.includes(extension) || !ALLOWED_MIME_TYPES.includes(mime)) {
     return { valid: false };
   }
 

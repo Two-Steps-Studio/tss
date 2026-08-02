@@ -11,6 +11,8 @@ import { Sun, Moon, MonitorSmartphone, Languages, Check, Link2, Unlink } from "l
 import { supabase } from "@/lib/supabase";
 import { setNotifStorage, setUiStorage } from "@/lib/storage";
 import { getThemeSelectedClass, getThemeUnselectedClass } from "@/lib/theme-utilities";
+import { useIsElectron } from "@/hooks/useElectron";
+import SettingsPanel from "@/components/Electron/SettingsPanel";
 
 type Prefs = {
   animations: boolean;
@@ -42,6 +44,7 @@ type Integration = {
 export default function SettingsPage() {
   const { t, language, setLanguage } = useLanguage();
   const { theme: appearance, setTheme } = useTheme();
+  const isElectron = useIsElectron();
   const [resolvedTheme, setResolvedTheme] = useState<string>("light");
   useEffect(() => {
     setResolvedTheme(typeof window !== "undefined" ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : "light");
@@ -588,6 +591,8 @@ export default function SettingsPage() {
       </div>
 
       <div className="mt-6">
+        {isElectron && <SettingsPanel />}
+        
         <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
           <CardContent className="flex items-center justify-between px-8 py-6">
             <div className="flex items-center gap-4">

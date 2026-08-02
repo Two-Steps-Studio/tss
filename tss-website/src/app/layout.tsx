@@ -21,6 +21,7 @@ import { LanguageProvider } from "@/hooks/use-language";
 import { SidebarProvider } from "@/hooks/use-sidebar";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import FirstRunExperience from "@/components/Electron/FirstRunExperience";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -73,6 +74,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased overflow-x-hidden" suppressHydrationWarning>
         <NoiseOverlay />
+        <FirstRunExperience />
         <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none opacity-5">
           <div className="absolute top-[-15%] left-[-5%] w-[60%] h-[60%] bg-[var(--color-general)]/5 blur-[160px] rounded-full animate-pulse" />
           <div className="absolute bottom-[-15%] right-[-5%] w-[60%] h-[60%] bg-[var(--color-records)]/5 blur-[160px] rounded-full animate-pulse" style={{ animationDelay: "3s" }} />

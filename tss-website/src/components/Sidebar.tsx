@@ -33,7 +33,7 @@ import {
   File,
   NotebookText,
   CalendarFold,
-  FileText, Map, CheckSquare, FolderKanban,
+  FileText, Map, CheckSquare, FolderKanban, Download,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "../lib/utils";
@@ -141,6 +141,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
   const defaultSections = [
     { id: "home", type: "single", href: "/", label: t.nav.home || "Strona główna", icon: Home, ariaCurrent: getAriaCurrent("/") },
     { id: "profile", type: "single", href: "/profil", label: t.nav.profile || "Profil", icon: User, ariaCurrent: getAriaCurrent("/profil") },
+    { id: "download", type: "single", href: "/pobierz", label: "Pobierz aplikację", icon: Download, ariaCurrent: getAriaCurrent("/pobierz") },
     ...(categoryVisibility.games ? [{
       id: "games", type: "expandable", href: "/games", label: t.nav.games || "Games", icon: Gamepad, items: [
         { href: "/games/loucher-gier", label: t.nav.Loucher || "Loucher Gier", icon: Gamepad },

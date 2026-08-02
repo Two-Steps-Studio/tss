@@ -4,7 +4,7 @@ import type { UpdateMemberData } from "@/lib/types/dev-types";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   let supabase;
   try {
@@ -22,7 +22,8 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const memberId = parseInt(params.id);
+  const { id } = await params;
+  const memberId = parseInt(id);
   const body: UpdateMemberData = await request.json();
   const { role, permissions } = body;
 
@@ -76,7 +77,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   let supabase;
   try {
@@ -94,7 +95,8 @@ export async function DELETE(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const memberId = parseInt(params.id);
+  const { id } = await params;
+  const memberId = parseInt(id);
 
   // Get the member to check project ownership
   const { data: member, error: memberError } = await supabase

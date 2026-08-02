@@ -21,7 +21,7 @@ import {
 import Link from "next/link";
 import type { PodcastWithSeries } from "@/types/games-records";
 
-export default function PodcastDetailPage({ params }: { params: { id: string } }) {
+export default function PodcastDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [podcast, setPodcast] = useState<PodcastWithSeries | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

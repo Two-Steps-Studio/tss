@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
-import { checkProjectMembership, logActivity } from "@/lib/dev-permissions";
+import { checkProjectMembership, checkProjectPermission, logActivity } from "@/lib/dev-permissions";
 
 interface RouteParams {
   params: Promise<{ status: string }>;
@@ -88,7 +88,6 @@ export async function POST(request: Request, { params }: RouteParams) {
   }
 
   // Check if user has permission to manage tasks
-  const { checkProjectPermission } = await import("@/lib/dev-permissions");
   const permissionCheck = await checkProjectPermission(project_id, 'manage_tasks');
   if (!permissionCheck.hasAccess) {
     return NextResponse.json({ error: permissionCheck.error || "Insufficient permissions" }, { status: 403 });

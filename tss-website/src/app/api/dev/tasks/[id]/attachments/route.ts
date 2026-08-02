@@ -1,4 +1,4 @@
-import { type RouteHandler } from "next/server";
+import { NextResponse } from "next/server";
 
 // This file is a placeholder - the full implementation needs to handle:
 // 1. multipart/form-data for direct image uploads (File) or JSON urls
@@ -7,6 +7,14 @@ import { type RouteHandler } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const handler: RouteHandler & { RUN_AFTER_BUILD?: boolean } = async () => { };
+export async function GET() {
+  return NextResponse.json({ error: "Not implemented yet" }, { status: 501 });
+}
 
-handler.RUN_AFTER_BUILD = true; // Placeholder - will be filled after SQL fix runs
+export async function POST() {
+  return NextResponse.json({ error: "Not implemented yet" }, { status: 501 });
+}
+
+export async function DELETE() {
+  return NextResponse.json({ error: "Not implemented yet" }, { status: 501 });
+}

@@ -1,0 +1,31 @@
+TWO STEPS STUDIO DESKTOP APPLICATION LICENSE
+
+Copyright (c) 2026 Two Steps Studio. All rights reserved.
+
+This software is licensed, not sold. By installing and using this software, you agree to the following terms and conditions:
+
+1. LICENSE GRANT
+   Two Steps Studio grants you a personal, non-exclusive, non-transferable license to use this software for personal or commercial purposes.
+
+2. USAGE RESTRICTIONS
+   - You may not reverse engineer, decompile, or disassemble the software
+   - You may not modify, adapt, translate, or create derivative works
+   - You may not remove any proprietary notices, labels, or marks from the software
+   - You may not distribute, sell, or sublicense the software
+
+3. DISCLAIMER OF WARRANTY
+   This software is provided "AS IS" without warranty of any kind, either express or implied, including but not limited to the implied warranties of merchantability and fitness for a particular purpose.
+
+4. LIMITATION OF LIABILITY
+   In no event shall Two Steps Studio be liable for any direct, indirect, incidental, special, or consequential damages arising from the use or inability to use this software.
+
+5. UPDATES AND SUPPORT
+   Two Steps Studio may provide updates, enhancements, or modifications to the software at its sole discretion. Support services, if any, will be governed by the terms of the support agreement.
+
+6. TERMINATION
+   This license is effective until terminated. Your rights under this license will terminate automatically without notice if you fail to comply with any of its terms.
+
+7. GOVERNING LAW
+   This license shall be governed by and construed in accordance with the laws of Poland.
+
+For questions or support, please contact: support@twostepsstudio.com
