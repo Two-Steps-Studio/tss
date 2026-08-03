@@ -8,7 +8,7 @@ import {
   Plus, 
   Trash2, 
   FileText,
-  Image,
+  ImageIcon,
   Music,
   Code,
   Folder,
@@ -38,7 +38,7 @@ import type { FileCategory } from "@/lib/types/dev-types";
 
 const categoryIcons: Record<FileCategory, React.ReactNode> = {
   documentation: <FileText size={20} className="text-blue-500" />,
-  graphics: <Image size={20} className="text-purple-500" alt="" />,
+  graphics: <ImageIcon size={20} className="text-purple-500" />,
   audio: <Music size={20} className="text-green-500" />,
   source_code: <Code size={20} className="text-orange-500" />,
   other: <Folder size={20} className="text-gray-500" />,

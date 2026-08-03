@@ -109,7 +109,7 @@ export async function PATCH(
       .eq("id", invite.project_id)
       .single();
 
-    if (project.owner_id !== user.id) {
+    if (!project || project.owner_id !== user.id) {
       const { data: member } = await supabase
         .from("dev_project_members")
         .select("role")
@@ -190,7 +190,7 @@ export async function DELETE(
     .eq("id", invite.project_id)
     .single();
 
-  if (project.owner_id !== user.id) {
+  if (!project || project.owner_id !== user.id) {
     const { data: member } = await supabase
       .from("dev_project_members")
       .select("role")

@@ -135,11 +135,13 @@ export async function POST(request: Request) {
           view_project: true,
           edit_project: true,
           manage_tasks: true,
-          manage_roadmap: true,
+          manage_kanban: true,
           manage_files: true,
           manage_description: true,
+          manage_roadmap: true,
           manage_technologies: true,
           manage_members: true,
+          manage_settings: true,
           delete_project: false
         };
         break;
@@ -148,11 +150,13 @@ export async function POST(request: Request) {
           view_project: true,
           edit_project: true,
           manage_tasks: true,
+          manage_kanban: true,
           manage_roadmap: false,
           manage_files: true,
           manage_description: true,
           manage_technologies: true,
           manage_members: false,
+          manage_settings: false,
           delete_project: false
         };
         break;
@@ -161,11 +165,13 @@ export async function POST(request: Request) {
           view_project: true,
           edit_project: false,
           manage_tasks: false,
+          manage_kanban: false,
           manage_roadmap: true,
           manage_files: true,
           manage_description: false,
           manage_technologies: true,
           manage_members: false,
+          manage_settings: false,
           delete_project: false
         };
         break;
@@ -174,11 +180,13 @@ export async function POST(request: Request) {
           view_project: true,
           edit_project: false,
           manage_tasks: false,
+          manage_kanban: false,
           manage_roadmap: true,
           manage_files: true,
           manage_description: false,
           manage_technologies: true,
           manage_members: false,
+          manage_settings: false,
           delete_project: false
         };
         break;
@@ -187,11 +195,13 @@ export async function POST(request: Request) {
           view_project: true,
           edit_project: false,
           manage_tasks: false,
+          manage_kanban: false,
           manage_roadmap: false,
           manage_files: false,
           manage_description: false,
           manage_technologies: false,
           manage_members: false,
+          manage_settings: false,
           delete_project: false
         };
     }

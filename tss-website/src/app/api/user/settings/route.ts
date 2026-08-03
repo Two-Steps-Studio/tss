@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: profile, error: profileError } = await supabase
+  let { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("games_visible, records_visible, dev_visible, project_limit, joined_projects_limit, subscription_plan")
     .eq("id", user.id)
@@ -66,13 +66,13 @@ export async function GET(request: Request) {
     .eq("user_id", user.id);
 
   // Default DEV visibility: TRUE (always visible)
-  let devVisible = profile.dev_visible;
+  let devVisible = profile?.dev_visible;
   if (devVisible === null || devVisible === undefined) {
     devVisible = true;
   }
 
   // Update profile if dev_visible needs to be set for the first time
-  if (profile.dev_visible === null || profile.dev_visible === undefined) {
+  if (profile && (profile.dev_visible === null || profile.dev_visible === undefined)) {
     await supabase
       .from("profiles")
       .update({ dev_visible: devVisible })
@@ -81,21 +81,21 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     visibility: {
-      games: profile.games_visible ?? true,
-      records: profile.records_visible ?? true,
+      games: profile?.games_visible ?? true,
+      records: profile?.records_visible ?? true,
       dev: devVisible,
     },
     limits: {
       own_projects: {
         current: ownProjectsCount || 0,
-        limit: profile.project_limit || 1,
+        limit: profile?.project_limit || 1,
       },
       joined_projects: {
         current: joinedProjectsCount || 0,
-        limit: profile.joined_projects_limit || 3,
+        limit: profile?.joined_projects_limit || 3,
       },
     },
-    subscription: profile.subscription_plan || 'free',
+    subscription: profile?.subscription_plan || 'free',
   });
 }
 

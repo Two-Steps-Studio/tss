@@ -287,7 +287,7 @@ export const scheduleCleanup = (): NodeJS.Timeout | null => {
   }
 };
 
-export default {
+const bruteForceProtection = {
   isUnderAttack,
   recordAttempt,
   applyBruteForceProtection,
@@ -297,5 +297,6 @@ export default {
   getBruteForceStats,
   cleanupOldRecords,
   scheduleCleanup,
-  DEFAULT_BRUTE_FORCE_CONFIG,
 };
+
+export default bruteForceProtection;

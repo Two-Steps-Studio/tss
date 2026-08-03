@@ -318,6 +318,8 @@ function GameFormModal({ game, onClose, onSave }: { game: Game | null; onClose: 
     category: game?.category || "indie" as GameCategory,
     genres: game?.genres?.join(", ") || "",
     tags: game?.tags?.join(", ") || "",
+    thumbnail_url: game?.thumbnail_url || "",
+    banner_url: game?.banner_url || "",
     download_url: game?.download_url || "",
     changelog: game?.changelog || "",
     status: game?.status || "published" as GameStatus,
@@ -334,14 +336,14 @@ function GameFormModal({ game, onClose, onSave }: { game: Game | null; onClose: 
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', type);
-      formData.append('gameId', game?.id?.toString() || 'temp');
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('type', type);
+      uploadFormData.append('gameId', game?.id?.toString() || 'temp');
 
       const res = await fetch('/api/upload/games', {
         method: 'POST',
-        body: formData,
+        body: uploadFormData,
       });
 
       const data = await res.json();
@@ -373,7 +375,7 @@ function GameFormModal({ game, onClose, onSave }: { game: Game | null; onClose: 
       return;
     }
 
-    const payload = {
+    const payload: any = {
       ...formData,
       genres: formData.genres.split(",").map(g => g.trim()).filter(Boolean),
       tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),

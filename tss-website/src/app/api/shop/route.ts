@@ -16,9 +16,9 @@ const sanitizeInput = (input: string): string => {
 
 const searchSchema = z.object({
   q: z.string().max(100).transform(sanitizeInput),
-  category: z.enum(
-    'bg' | 'frame' | 'style' | 'theme' | 'skin' | 'emblem' | 'other'
-  ).optional(),
+  category: z.enum([
+    'bg', 'frame', 'style', 'theme', 'skin', 'emblem', 'other'
+  ]).optional(),
 });
 
 interface ShopItem {

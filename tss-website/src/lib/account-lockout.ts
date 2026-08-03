@@ -155,10 +155,12 @@ export const getLockoutStatus = async (userId: string, ip: string): Promise<{
   };
 };
 
-export default {
+const accountLockout = {
   isLockedOut,
   recordFailedAttempt,
   resetLockout,
   getLockoutStatus,
   DEFAULT_LOCKOUT_CONFIG,
 };
+
+export default accountLockout;

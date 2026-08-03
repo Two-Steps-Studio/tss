@@ -410,7 +410,7 @@ const base32Encode = (bytes: Uint8Array): string => {
   return result.toUpperCase();
 };
 
-export default {
+const mfa = {
   generateTOTPSecret,
   verifyTOTPCode,
   initializeMFA,
@@ -421,3 +421,5 @@ export default {
   verifyEmailCode,
   getEmailVerificationStatus,
 };
+
+export default mfa;

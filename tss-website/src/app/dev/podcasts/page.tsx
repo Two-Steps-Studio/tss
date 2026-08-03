@@ -72,7 +72,7 @@ export default function PodcastsAdminPage() {
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const seasons = Array.from(new Set(podcasts.map((p) => p.season))).sort((a, b) => a - b);
+  const seasons = Array.from(new Set(podcasts.map((p) => p.season).filter((s): s is number => s !== undefined))).sort((a, b) => a - b);
 
   const filteredPodcasts = podcasts.filter((podcast) => {
     const matchesSearch =
@@ -288,14 +288,14 @@ function PodcastFormModal({ podcast, onClose, onSave }: { podcast: Podcast | nul
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', type);
-      formData.append('podcastId', podcast?.id?.toString() || 'temp');
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('type', type);
+      uploadFormData.append('podcastId', podcast?.id?.toString() || 'temp');
 
       const res = await fetch('/api/upload/podcasts', {
         method: 'POST',
-        body: formData,
+        body: uploadFormData,
       });
 
       const data = await res.json();

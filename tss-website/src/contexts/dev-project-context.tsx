@@ -204,7 +204,6 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     refetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Download, Windows, Package, CheckCircle2, Clock, HardDrive, RefreshCw } from 'lucide-react';
+import { Download, Monitor, Package, CheckCircle2, Clock, HardDrive, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -59,7 +59,7 @@ export default function DownloadPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-6 shadow-2xl">
-            <Windows className="w-10 h-10" />
+            <Monitor className="w-10 h-10" />
           </div>
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Pobierz aplikację desktopową

@@ -289,14 +289,14 @@ function MusicFormModal({ track, onClose, onSave }: { track: MusicTrack | null; 
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', type);
-      formData.append('musicId', track?.id?.toString() || 'temp');
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('type', type);
+      uploadFormData.append('musicId', track?.id?.toString() || 'temp');
 
       const res = await fetch('/api/upload/music', {
         method: 'POST',
-        body: formData,
+        body: uploadFormData,
       });
 
       const data = await res.json();
@@ -332,7 +332,7 @@ function MusicFormModal({ track, onClose, onSave }: { track: MusicTrack | null; 
       return;
     }
 
-    const payload = {
+    const payload: any = {
       ...formData,
       duration_seconds: formData.duration_seconds ? parseInt(formData.duration_seconds) : null,
       tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
