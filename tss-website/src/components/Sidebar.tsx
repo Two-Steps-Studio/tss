@@ -154,14 +154,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
       ]}
     ] : []),
     ...(categoryVisibility.dev ? [{
-      id: "dev", type: "expandable", href: "/dev", label: t.nav.dev || "Dev", icon: Code, items: [
-        { href: "/dev/projects", label: t.nav.project || "Projects", icon: FolderKanban },
-        { href: "/dev/tasks", label: t.nav.tasks || "Tasks", icon: CheckSquare },
-        { href: "/dev/roadmap", label: t.nav.roadmap || "Roadmap", icon: Map  },
-        { href: "/dev/files", label: t.nav.files ||"Files", icon: FileText },
-        { href: "/dev/description", label: t.nav.description || "Description", icon: NotebookText },
-        { href: "/dev/technology", label: t.nav.technology ||"Technology", icon: Cpu },
-      ]}
+      id: "dev", type: "single", href: "/dev", label: t.nav.dev || "Dev", icon: Code, items: []}
     ] : []),
     { id: "notifications", type: "single", href: "/powiadomienia", label: t.nav.notifications || "Powiadomienia", icon: Bell, ariaCurrent: getAriaCurrent("/ankiety/rating") },
   ];
@@ -383,8 +376,8 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
                     setTheme(current);
                   }}
                   className={cn(
-                      "w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all group relative overflow-hidden border",
-                      "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5 border-(--border-color)"
+                      "w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all group relative overflow-hidden border border-(--border-color)",
+                      "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
                   )}
               >
                 <div className="w-[18px] h-[18px] flex items-center justify-center relative z-10 opacity-70 group-hover:opacity-100 transition-opacity">
@@ -409,10 +402,10 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
           <Link
               href="/ustawienia"
               className={cn(
-                  "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all group relative overflow-hidden border",
+                  "flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all group relative overflow-hidden border border-(--border-color)",
                   pathname === "/ustawienia"
-                      ? "text-white bg-(--color-general) shadow-lg shadow-(--color-general)/20 font-black border-(--border-color)"
-                      : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5 border-(--border-color)"
+                      ? "text-white bg-(--color-general) shadow-lg shadow-(--color-general)/20 font-black"
+                      : "text-[var(--text)]/50 hover:text-[var(--text)] hover:bg-black/5 dark:hover:bg-white/5"
               )}
           >
             <div

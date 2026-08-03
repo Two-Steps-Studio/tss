@@ -333,7 +333,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--border-color)] ">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">{t.settings.appearance}</CardTitle>
           </CardHeader>
@@ -408,13 +408,6 @@ export default function SettingsPage() {
                 <div className="text-xs opacity-60">{t.settings.newsDesc}</div>
               </div>
               <Switch checked={prefs.notif_news} onCheckedChange={(v) => setPref("notif_news", v)} />
-            </div>
-            <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
-              <div>
-                <div className="font-medium">{t.settings.esport}</div>
-                <div className="text-xs opacity-60">{t.settings.esportDesc}</div>
-              </div>
-              <Switch checked={prefs.notif_esport} onCheckedChange={(v) => setPref("notif_esport", v)} />
             </div>
             <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
               <div>

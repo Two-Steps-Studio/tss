@@ -258,7 +258,7 @@ export function DevMembersPanel() {
         <CardTitle>Team Management</CardTitle>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" className="rounded-2xl">
+            <Button size="sm" className="rounded-2xl cursor-pointer">
               <UserPlus className="mr-2 h-4 w-4" />
               Send Invite
             </Button>
@@ -293,7 +293,7 @@ export function DevMembersPanel() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleSendInvite} disabled={isSending} className="w-full rounded-2xl">
+              <Button onClick={handleSendInvite} disabled={isSending} className="w-full rounded-2xl cursor-pointer">
                 {isSending ? "Sending..." : "Send Invite"}
               </Button>
             </div>
@@ -302,12 +302,12 @@ export function DevMembersPanel() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="members" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="members">Members ({members.length})</TabsTrigger>
-            <TabsTrigger value="invites">Invites ({pendingInvites.length})</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 gap-4 ">
+            <TabsTrigger className="bg-[var(--bg)]/50 border-[var(--border-color)] cursor-pointer" value="members">Members ({members.length})</TabsTrigger>
+            <TabsTrigger className="bg-[var(--bg)]/50 border-[var(--border-color)] cursor-pointer" value="invites">Invites ({pendingInvites.length})</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="members" className="space-y-2 mt-4">
+          <TabsContent value="members" className="space-y-2 mt-4 bg-[var(--bg)]/50 rounded-md">
             {members.map((member) => {
               const RoleIcon = roleIcons[member.role];
               const isOwner = member.role === 'owner';
