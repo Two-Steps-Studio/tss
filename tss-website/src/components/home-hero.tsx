@@ -106,7 +106,7 @@ export function HomeHero({ language, content }: HomeHeroProps) {
                           document.body.removeChild(link);
                         }}
                         size="lg"
-                        className="h-20 px-16 rounded-[2rem] bg-white text-black hover:bg-[var(--color-general)] hover:text-white font-black text-2xl transition-all hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)] relative overflow-hidden group/btn"
+                        className="h-20 px-16 rounded-[2rem] bg-white text-black hover:bg-[var(--color-general)] hover:text-white font-black text-2xl transition-all hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(255,255,255,0.1)] relative overflow-hidden group/btn cursor-pointer"
                     >
                   <span className="relative z-10 flex items-center gap-4">
                     <LucideDownload size={28} className="animate-bounce" />
@@ -117,7 +117,7 @@ export function HomeHero({ language, content }: HomeHeroProps) {
                 )}
 
                 <Link href="/login">
-                  <Button size="lg" variant="outline" className="h-16 px-12 rounded-2xl border-2 border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-white font-black text-xl backdrop-blur-md transition-all hover:scale-105 active:scale-95 group/btn2">
+                  <Button size="lg" variant="outline" className="h-16 px-12 rounded-2xl border-2 border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-white font-black text-xl backdrop-blur-md transition-all hover:scale-105 active:scale-95 group/btn2 cursor-pointer">
                     <span className="relative z-10">{content.hero.ctaSecondary}</span>
                     <div className="absolute inset-0 bg-[var(--color-general)] opacity-0 group-hover/btn2:opacity-5 blur-xl transition-opacity" />
                   </Button>

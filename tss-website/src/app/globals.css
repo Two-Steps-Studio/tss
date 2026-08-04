@@ -31,9 +31,9 @@
   --color-general-current: #1bbdbd;
   --color-general-rgb: 27, 189, 189;
   --bg: #e6e6e6; /* Tryb Jasny: #e6e6e6 */
-  --text: #0F172A;
+  --text: #000000;
   --sidebar-bg: rgba(255, 255, 255, 0.9);
-  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-bg: #ffffff;
   --border-color: rgba(0, 0, 0, 0.08);
   --selection-bg: var(--color-general);
   --selection-text: #ffffff;
@@ -41,101 +41,24 @@
   --transition-timing: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Domyślne wartości trybu jasnego dla wszystkich motywów */
-:root.theme-general {
-  --bg: #e6e6e6;
-  --text: #0F172A;
-  --sidebar-bg: rgba(255, 255, 255, 0.9);
-  --card-bg: rgba(0, 0, 0, 0.75);
-  --border-color: rgba(0, 0, 0, 0.08);
-}
-
 /* Globalny dark mode - nadpisuje wszystkie motywy */
 .dark {
   --color-dark: #000000;
-  --bg: #000000;
-  --text: #F1F5F9;
+  --bg: #070707;
+  --text: #ffffff;
   --sidebar-bg: rgba(0, 0, 0, 0.9);
-  --card-bg: rgba(255, 255, 255, 0.6);
+  --card-bg: #020202;
   --border-color: rgba(255, 255, 255, 0.1);
   --selection-bg: var(--color-general);
 }
 
-
-/* --- THEME DEFINITIONS --- */
-
-/* Ocean (Default / Ogólny) */
-:root.theme-ocean {
-  --bg: #e6e6e6;
-  --text: #0F172A;
+/* Light mode - używa wartości z :root */
+.light {
+  --bg: rgb(240, 240, 240);
+  --text: #000000;
   --sidebar-bg: rgba(255, 255, 255, 0.9);
-  --card-bg: rgba(255, 255, 255, 0.75);
-  --border-color: rgba(0, 0, 0, 0.08);
-}
-.dark.theme-ocean {
-  --bg: #000000;
-  --card-bg: rgba(10, 10, 10, 0.7);
-}
-
-/* Crimson (Games) */
-.theme-crimson {
-  --color-general-current: #dc3545;
-  --color-general-rgb: 220, 53, 69;
-}
-:root.theme-crimson {
-  --text: #332228;
-  --sidebar-bg: rgba(255, 241, 242, 0.9);
-  --card-bg: rgba(255, 241, 242, 0.75);
-  --border-color: rgba(51, 34, 40, 0.08);
-}
-.dark.theme-crimson {
-  --bg: #000000;
-  --card-bg: rgba(28, 5, 8, 0.7);
-}
-
-/* Emerald (E-Sport) */
-.theme-emerald {
-  --color-general-current: #06e402;
-  --color-general-rgb: 6, 228, 2;
-}
-:root.theme-emerald {
-  --text: #064E03;
-  --sidebar-bg: rgba(240, 253, 244, 0.9);
-  --card-bg: rgba(240, 253, 244, 0.75);
-  --border-color: rgba(6, 78, 3, 0.08);
-}
-.dark.theme-emerald {
-  --card-bg: rgba(5, 28, 12, 0.7);
-}
-
-/* Violet (Records) */
-.theme-violet {
-  --color-general-current: #ad83f8;
-  --color-general-rgb: 173, 131, 248;
-}
-:root.theme-violet {
-  --text: #2E1065;
-  --sidebar-bg: rgba(245, 243, 255, 0.9);
-  --card-bg: rgba(245, 243, 255, 0.75);
-  --border-color: rgba(46, 16, 101, 0.08);
-}
-.dark.theme-violet {
-  --card-bg: rgba(12, 5, 28, 0.7);
-}
-
-/* Amber (Dev) */
-.theme-amber {
-  --color-general-current: #ffcb2f;
-  --color-general-rgb: 255, 203, 47;
-}
-:root.theme-amber {
-  --text: #422006;
-  --sidebar-bg: rgba(255, 251, 235, 0.9);
-  --card-bg: rgba(255, 251, 235, 0.75);
-  --border-color: rgba(66, 32, 6, 0.08);
-}
-.dark.theme-amber {
-  --card-bg: rgba(28, 15, 5, 0.7);
+  --card-bg: #ffffff;
+  --border-color: rgba(0, 0, 0, 0.1);
 }
 
 /* Base Styles */

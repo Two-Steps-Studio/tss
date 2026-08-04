@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import type { CreateFileData, DevProjectFile } from "@/lib/types/dev-types";
 import { checkProjectPermission, checkProjectMembership, logActivity } from "@/lib/dev-permissions";
+import { uploadDevFile, getProjectStorageUsage, deleteFile as deleteStorageFile, FILE_SIZE_LIMITS } from "@/lib/supabase-storage";
 
 export async function GET(request: Request) {
   let supabase;
@@ -42,7 +43,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json(data || []);
+  // Calculate storage usage
+  const totalBytes = data?.reduce((sum, file) => sum + (file.size_bytes || 0), 0) || 0;
+
+  return NextResponse.json({
+    files: data || [],
+    storageUsage: totalBytes,
+    storageLimit: FILE_SIZE_LIMITS.DEV_PROJECT,
+  });
 }
 
 export async function POST(request: Request) {
@@ -56,6 +64,79 @@ export async function POST(request: Request) {
     );
   }
 
+  const contentType = request.headers.get('content-type');
+
+  // Handle file upload (multipart/form-data)
+  if (contentType?.includes('multipart/form-data')) {
+    try {
+      const formData = await request.formData();
+      const file = formData.get('file') as File;
+      const project_id = Number(formData.get('project_id'));
+      const category = formData.get('category') as string;
+
+      if (!file || !project_id) {
+        return NextResponse.json({ error: "File and project_id are required" }, { status: 400 });
+      }
+
+      // Check permissions
+      const permissionCheck = await checkProjectPermission(project_id, 'manage_files');
+      if (!permissionCheck.hasAccess) {
+        return NextResponse.json({ error: permissionCheck.error || "Insufficient permissions" }, { status: 403 });
+      }
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      // Check project storage limit
+      const currentUsage = await getProjectStorageUsage(project_id);
+      if (currentUsage + file.size > FILE_SIZE_LIMITS.DEV_PROJECT) {
+        const usedMB = (currentUsage / (1024 * 1024)).toFixed(0);
+        const limitMB = (FILE_SIZE_LIMITS.DEV_PROJECT / (1024 * 1024)).toFixed(0);
+        return NextResponse.json(
+          { error: `Storage limit exceeded. Current: ${usedMB}MB, Limit: ${limitMB}MB` },
+          { status: 413 }
+        );
+      }
+
+      // Upload file to Supabase Storage
+      const { path, publicUrl } = await uploadDevFile(project_id, file, user.id);
+
+      // Insert file record
+      const { data, error } = await supabase
+        .from("dev_project_files")
+        .insert({
+          project_id,
+          name: file.name,
+          storage_path: path,
+          file_url: publicUrl,
+          category: category || 'other',
+          size_bytes: file.size,
+          mime_type: file.type,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      // Log activity
+      await logActivity(project_id, 'file_uploaded', 'file', data?.id, { name: file.name, category });
+
+      return NextResponse.json(data, { status: 201 });
+    } catch (error) {
+      console.error('[Dev Files] Upload error:', error);
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Upload failed" },
+        { status: 500 }
+      );
+    }
+  }
+
+  // Handle legacy URL-based file creation
   const body: CreateFileData = await request.json();
   const { project_id, name, storage_path, file_url, category, size_bytes, mime_type } = body;
 
@@ -110,7 +191,7 @@ export async function DELETE(request: Request) {
   // Get the file to check project_id and permissions
   const { data: file } = await supabase
     .from("dev_project_files")
-    .select("project_id, name")
+    .select("project_id, name, storage_path")
     .eq("id", Number(id))
     .single();
 
@@ -122,6 +203,16 @@ export async function DELETE(request: Request) {
   const permissionCheck = await checkProjectPermission(file.project_id, 'manage_files');
   if (!permissionCheck.hasAccess) {
     return NextResponse.json({ error: permissionCheck.error || "Insufficient permissions" }, { status: 403 });
+  }
+
+  // Delete from storage if file exists
+  if (file.storage_path) {
+    try {
+      await deleteStorageFile('dev-files', file.storage_path);
+    } catch (error) {
+      console.error('[Dev Files] Storage delete error:', error);
+      // Continue with database deletion even if storage deletion fails
+    }
   }
 
   const { error } = await supabase

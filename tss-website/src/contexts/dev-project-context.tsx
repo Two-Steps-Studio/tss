@@ -52,16 +52,20 @@ interface DevProjectContextValue {
   canCreateProject: boolean;
   hasPermission: (permission: PermissionName) => boolean;
   getUserRole: () => DevProjectRole | null;
+  storageUsage: number;
+  storageLimit: number;
   createProject: (name: string, description?: string, project_type?: string) => Promise<DevProject | null>;
   updateProject: (id: number, data: Partial<DevProject>) => Promise<void>;
   deleteProject: (id: number) => Promise<void>;
   createTask: (data: Partial<DevTask> & { title: string }) => Promise<DevTask | null>;
   updateTask: (id: number, data: Partial<DevTask>) => Promise<void>;
   deleteTask: (id: number) => Promise<void>;
+  moveTask: (taskId: number, newStatus: TaskStatus, newOrder: number) => Promise<void>;
   createPhase: (data: { name: string; description?: string }) => Promise<void>;
   updatePhase: (id: number, data: Partial<DevRoadmapPhase>) => Promise<void>;
   deletePhase: (id: number) => Promise<void>;
   addFile: (data: { name: string; file_url?: string; category: FileCategory }) => Promise<void>;
+  uploadFile: (file: File, category: FileCategory) => Promise<void>;
   deleteFile: (id: number) => Promise<void>;
   addTechnology: (data: { name: string; version?: string; category: TechCategory; description?: string; icon_slug?: string }) => Promise<void>;
   updateTechnology: (id: number, data: Partial<DevTechnology>) => Promise<void>;
@@ -94,6 +98,8 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
   const [userSubscription, setUserSubscription] = useState<UserProfileWithSubscription | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [storageUsage, setStorageUsage] = useState<number>(0);
+  const [storageLimit, setStorageLimit] = useState<number>(500 * 1024 * 1024); // 500MB
 
   const projectsMap = useMemo(
     () => new Map(projects.map(p => [p.id, p])),
@@ -155,18 +161,20 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadProjectData = useCallback(async (projectId: number) => {
-    const [tasksData, phasesData, filesData, techData, membersData] = await Promise.all([
+    const [tasksData, phasesData, filesResponse, techData, membersData] = await Promise.all([
       fetchJson<DevTask[]>(`/api/dev-tasks?projectId=${projectId}`).catch(() => []),
       fetchJson<DevRoadmapPhase[]>(`/api/dev/roadmap?projectId=${projectId}`).catch(() => []),
-      fetchJson<DevProjectFile[]>(`/api/dev/files?projectId=${projectId}`).catch(() => []),
+      fetchJson<{ files: DevProjectFile[]; storageUsage: number; storageLimit: number }>(`/api/dev/files?projectId=${projectId}`).catch(() => ({ files: [], storageUsage: 0, storageLimit: 500 * 1024 * 1024 })),
       fetchJson<DevTechnology[]>(`/api/dev/technologies?projectId=${projectId}`).catch(() => []),
       fetchJson<DevProjectMember[]>(`/api/dev/members?projectId=${projectId}`).catch(() => []),
     ]);
-    
+
     // Batch state updates to prevent multiple re-renders
     setTasks(tasksData);
     setPhases(phasesData);
-    setFiles(filesData);
+    setFiles(filesResponse.files);
+    setStorageUsage(filesResponse.storageUsage);
+    setStorageLimit(filesResponse.storageLimit);
     setTechnologies(techData);
     setMembers(membersData);
   }, []);
@@ -270,6 +278,29 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     setTasks((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const moveTask = useCallback(async (taskId: number, newStatus: TaskStatus, newOrder: number) => {
+    // Update local state optimistically
+    const previousTasks = [...tasks];
+    setTasks((prev) => {
+      const taskIndex = prev.findIndex((t) => t.id === taskId);
+      if (taskIndex === -1) return prev;
+
+      const updatedTask = { ...prev[taskIndex], status: newStatus, sort_order: newOrder };
+      const newTasks = [...prev];
+      newTasks[taskIndex] = updatedTask;
+
+      return newTasks;
+    });
+
+    try {
+      await updateTask(taskId, { status: newStatus, sort_order: newOrder });
+    } catch (error) {
+      // Rollback on error
+      setTasks(previousTasks);
+      throw error;
+    }
+  }, [tasks, updateTask]);
+
   const createPhase = useCallback(async (data: { name: string; description?: string }) => {
     if (!activeProjectId) return;
     const phase = await fetchJson<DevRoadmapPhase>("/api/dev/roadmap", {
@@ -302,12 +333,40 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ ...data, project_id: activeProjectId }),
     });
     setFiles((prev) => [file, ...prev]);
+    setStorageUsage((prev) => prev + (file.size_bytes || 0));
+  }, [activeProjectId]);
+
+  const uploadFile = useCallback(async (file: File, category: FileCategory) => {
+    if (!activeProjectId) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('project_id', String(activeProjectId));
+    formData.append('category', category);
+
+    const response = await fetch('/api/dev/files', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Upload failed');
+    }
+
+    const uploadedFile = await response.json();
+    setFiles((prev) => [uploadedFile, ...prev]);
+    setStorageUsage((prev) => prev + (uploadedFile.size_bytes || 0));
   }, [activeProjectId]);
 
   const deleteFile = useCallback(async (id: number) => {
+    const file = files.find((f) => f.id === id);
     await fetchJson(`/api/dev/files?id=${id}`, { method: "DELETE" });
     setFiles((prev) => prev.filter((f) => f.id !== id));
-  }, []);
+    if (file) {
+      setStorageUsage((prev) => prev - (file.size_bytes || 0));
+    }
+  }, [files]);
 
   const addTechnology = useCallback(async (data: { name: string; version?: string; category: TechCategory; description?: string; icon_slug?: string }) => {
     if (!activeProjectId) return;
@@ -381,16 +440,20 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     canCreateProject,
     hasPermission,
     getUserRole,
+    storageUsage,
+    storageLimit,
     createProject,
     updateProject,
     deleteProject,
     createTask,
     updateTask,
     deleteTask,
+    moveTask,
     createPhase,
     updatePhase,
     deletePhase,
     addFile,
+    uploadFile,
     deleteFile,
     addTechnology,
     updateTechnology,
@@ -417,16 +480,20 @@ export function DevProjectProvider({ children }: { children: ReactNode }) {
     canCreateProject,
     hasPermission,
     getUserRole,
+    storageUsage,
+    storageLimit,
     createProject,
     updateProject,
     deleteProject,
     createTask,
     updateTask,
     deleteTask,
+    moveTask,
     createPhase,
     updatePhase,
     deletePhase,
     addFile,
+    uploadFile,
     deleteFile,
     addTechnology,
     updateTechnology,

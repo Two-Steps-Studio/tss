@@ -253,7 +253,7 @@ export function DevMembersPanel() {
   const pendingInvites = invites.filter(i => i.status === 'pending');
 
   return (
-    <Card className="rounded-3xl border-[var(--border-color)] bg-white text-black">
+    <Card className="rounded-3xl border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text)]">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Team Management</CardTitle>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -263,7 +263,7 @@ export function DevMembersPanel() {
               Send Invite
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl bg-white text-black">
+          <DialogContent className="rounded-3xl bg-[var(--bg)] text-[var(--text)]">
             <DialogHeader>
               <DialogTitle>Send Team Invite</DialogTitle>
             </DialogHeader>

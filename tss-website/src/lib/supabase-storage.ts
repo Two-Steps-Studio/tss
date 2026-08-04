@@ -1,23 +1,8 @@
-import { createClient } from "@/lib/supabase-server";
+import { createClient, createServiceClient } from "@/lib/supabase-server";
+import { STORAGE_BUCKETS, ALLOWED_DEV_FILE_EXTENSIONS, FILE_SIZE_LIMITS } from "./storage-constants";
 
-// Storage bucket names
-export const STORAGE_BUCKETS = {
-  GAMES_IMAGES: 'games-images',
-  MUSIC_FILES: 'music-files',
-  PODCAST_FILES: 'podcast-files',
-} as const;
-
-// Allowed file types
-export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-export const ALLOWED_AUDIO_TYPES = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac', 'audio/m4a'];
-export const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm'];
-
-// File size limits (in bytes)
-export const FILE_SIZE_LIMITS = {
-  IMAGE: 10 * 1024 * 1024, // 10MB
-  AUDIO: 50 * 1024 * 1024, // 50MB
-  VIDEO: 100 * 1024 * 1024, // 100MB
-} as const;
+// Re-export for convenience
+export { ALLOWED_DEV_FILE_EXTENSIONS, FILE_SIZE_LIMITS };
 
 /**
  * Upload a file to Supabase storage
@@ -31,9 +16,9 @@ export async function uploadFile(
     contentType?: string;
   }
 ) {
-  const supabase = await createClient();
+  const client = createServiceClient();
 
-  const { data, error } = await supabase.storage
+  const { data, error } = await client.storage
     .from(bucket)
     .upload(filePath, file, {
       upsert: options?.upsert ?? false,
@@ -46,7 +31,7 @@ export async function uploadFile(
   }
 
   // Get public URL
-  const { data: { publicUrl } } = supabase.storage
+  const { data: { publicUrl } } = client.storage
     .from(bucket)
     .getPublicUrl(filePath);
 
@@ -167,7 +152,7 @@ export async function uploadPodcastFile(
  * Delete a file from Supabase storage
  */
 export async function deleteFile(bucket: string, filePath: string) {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { error } = await supabase.storage
     .from(bucket)
@@ -185,7 +170,7 @@ export async function deleteFile(bucket: string, filePath: string) {
  * Get a public URL for a file
  */
 export async function getPublicUrl(bucket: string, filePath: string) {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data } = supabase.storage
     .from(bucket)
@@ -216,4 +201,57 @@ export function validateFile(file: File, type: 'image' | 'audio' | 'video') {
   }
 
   return true;
+}
+
+/**
+ * Validate dev file extension
+ */
+export function validateDevFileExtension(fileName: string): boolean {
+  const extension = '.' + fileName.split('.').pop()?.toLowerCase();
+  return ALLOWED_DEV_FILE_EXTENSIONS.includes(extension);
+}
+
+/**
+ * Upload a dev project file
+ */
+export async function uploadDevFile(
+  projectId: number,
+  file: File,
+  userId: string
+) {
+  // Validate file extension
+  if (!validateDevFileExtension(file.name)) {
+    throw new Error(`Nieobsługiwane rozszerzenie pliku. Dozwolone: ${ALLOWED_DEV_FILE_EXTENSIONS.join(', ')}`);
+  }
+
+  // Validate file size
+  if (file.size > FILE_SIZE_LIMITS.DEV_FILE) {
+    throw new Error(`Plik jest za duży. Maksymalny rozmiar: 10MB`);
+  }
+
+  const timestamp = Date.now();
+  const extension = file.name.split('.').pop();
+  const filePath = `projects/${projectId}/${userId}/${timestamp}.${extension}`;
+
+  return uploadFile(STORAGE_BUCKETS.DEV_FILES, filePath, file);
+}
+
+/**
+ * Get project storage usage
+ */
+export async function getProjectStorageUsage(projectId: number): Promise<number> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('dev_project_files')
+    .select('size_bytes')
+    .eq('project_id', projectId);
+
+  if (error) {
+    console.error('[Storage] Error fetching project storage:', error);
+    return 0;
+  }
+
+  const totalBytes = data?.reduce((sum, file) => sum + (file.size_bytes || 0), 0) || 0;
+  return totalBytes;
 }

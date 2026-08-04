@@ -123,10 +123,10 @@ export default function ProfileForm({
   };
 
   return (
-    <Card className="group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-black/40 border border-white/10 backdrop-blur-xl shadow-xl">
+    <Card className="group relative flex flex-col overflow-hidden rounded-[2.5rem] bg-[var(--bg)] border border-[var(--border-color)] backdrop-blur-xl shadow-xl">
       <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-general)]/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-      <CardHeader className="relative z-10 border-b border-white/5 pb-6">
+      <CardHeader className="relative z-10 border-b border-[var(--border-color)] pb-6">
         <CardTitle className="font-[family-name:var(--font-space)] text-xl flex items-center gap-2">
           <User className="text-[var(--color-general)]" /> Edytuj Profil
         </CardTitle>
@@ -136,20 +136,20 @@ export default function ProfileForm({
         <form onSubmit={handleUpdate} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2 space-y-2">
-              <Label htmlFor="username" className="text-zinc-300 ml-1 font-[family-name:var(--font-outfit)] flex items-center gap-2">
+              <Label htmlFor="username" className="text-[var(--text)] ml-1 font-[family-name:var(--font-outfit)] flex items-center gap-2">
                 <User size={14} /> Nazwa Użytkownika
               </Label>
               <Input
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="rounded-2xl border-white/10 bg-white/5 text-white placeholder:text-zinc-500 focus:border-[var(--color-general)] focus:ring-[var(--color-general)]/20 transition-all duration-300 h-12"
+                className="rounded-2xl border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text)] placeholder:text-zinc-500 focus:border-[var(--color-general)] focus:ring-[var(--color-general)]/20 transition-all duration-300 h-12"
                 placeholder="Wpisz nazwę..."
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="avatarFile" className="text-zinc-300 ml-1 font-[family-name:var(--font-outfit)] flex items-center gap-2">
+              <Label htmlFor="avatarFile" className="text-[var(--text)] ml-1 font-[family-name:var(--font-outfit)] flex items-center gap-2">
                 <ImageIcon size={14} /> Wgraj plik z komputera
               </Label>
               <Input
@@ -157,9 +157,9 @@ export default function ProfileForm({
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
-                className="rounded-2xl border-white/10 bg-white/5 text-white file:text-white file:bg-[var(--color-general)] file:border-0 file:rounded-xl file:px-4 file:py-2 h-12"
+                className="rounded-2xl border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text)] file:text-[var(--text)] file:bg-[var(--color-general)] file:border-0 file:rounded-xl file:px-4 file:py-2 h-12"
               />
-              <p className="text-xs text-zinc-500 font-[family-name:var(--font-outfit)]">
+              <p className="text-xs text-[var(--text)] font-[family-name:var(--font-outfit)]">
                 {uploading ? "Wgrywanie..." : "Obsługiwane formaty: JPG, PNG, WEBP"}
               </p>
               {errorMsg && <p className="text-xs text-red-500 font-[family-name:var(--font-outfit)]">{errorMsg}</p>}

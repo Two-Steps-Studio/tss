@@ -1,20 +1,8 @@
 "use client";
 
 import { useDevProject } from "@/contexts/dev-project-context";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Plus, 
-  Trash2, 
-  Edit, 
-  Calendar,
-  Loader2,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Circle
-} from "lucide-react";
+import { Plus, Loader2, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -34,33 +22,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { TaskStatus, TaskPriority } from "@/lib/types/dev-types";
-
-const statusColors: Record<TaskStatus, string> = {
-  Todo: "bg-gray-500",
-  In_progress: "bg-blue-500",
-  Testing: "bg-yellow-500",
-  Completed: "bg-green-500",
-};
-
-const priorityColors: Record<TaskPriority, string> = {
-  Low: "text-gray-500",
-  Medium: "text-yellow-500",
-  High: "text-orange-500",
-  Critical: "text-red-500",
-};
-
-const statusIcons: Record<TaskStatus, React.ReactNode> = {
-  Todo: <Circle size={16} className="text-gray-500" />,
-  In_progress: <Clock size={16} className="text-blue-500" />,
-  Testing: <Clock size={16} className="text-yellow-500" />,
-  Completed: <CheckCircle size={16} className="text-green-500" />,
-};
+import { KanbanBoard } from "@/components/dev/kanban-board";
+import type { DevTask } from "@/lib/types/dev-types";
 
 export default function DevTasks() {
-  const { tasks, activeProject, createTask, updateTask, deleteTask, isLoading, error } = useDevProject();
+  const { tasks, activeProject, createTask, updateTask, deleteTask, moveTask, isLoading, error } = useDevProject();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<typeof tasks[0] | null>(null);
+  const [editingTask, setEditingTask] = useState<DevTask | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
   const [newTaskStatus, setNewTaskStatus] = useState<TaskStatus>("todo");
@@ -127,6 +96,10 @@ export default function DevTasks() {
     await updateTask(taskId, { status: newStatus });
   };
 
+  const handleTaskMove = async (taskId: number, newStatus: TaskStatus, newOrder: number) => {
+    await moveTask(taskId, newStatus, newOrder);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -157,13 +130,6 @@ export default function DevTasks() {
     );
   }
 
-  const tasksByStatus: Record<TaskStatus, typeof tasks> = {
-    todo: tasks.filter((t) => t.status === "todo"),
-    in_progress: tasks.filter((t) => t.status === "in_progress"),
-    testing: tasks.filter((t) => t.status === "testing"),
-    completed: tasks.filter((t) => t.status === "completed"),
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -181,7 +147,7 @@ export default function DevTasks() {
               New Task
             </Button>
           </DialogTrigger>
-            <DialogContent className="rounded-3xl bg-white text-black">
+            <DialogContent className="rounded-3xl border-[var(--border)] text-[var(--text)] bg-[var(--card-bg)]">
             <DialogHeader>
               <DialogTitle>Create New Task</DialogTitle>
             </DialogHeader>
@@ -210,10 +176,10 @@ export default function DevTasks() {
                 <div>
                   <Label htmlFor="status">Status</Label>
                   <Select value={newTaskStatus} onValueChange={(val: TaskStatus) => setNewTaskStatus(val)}>
-                    <SelectTrigger className="rounded-2xl bg-white text-black">
+                    <SelectTrigger className="rounded-2xl text-[var(--text)] bg-[var(--card-bg)]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white text-black">
+                    <SelectContent className="text-[var(--text)] bg-[var(--card-bg)]">
                       <SelectItem value="todo">To Do</SelectItem>
                       <SelectItem value="in_progress">In Progress</SelectItem>
                       <SelectItem value="testing">Testing</SelectItem>
@@ -224,10 +190,10 @@ export default function DevTasks() {
                 <div>
                   <Label htmlFor="priority">Priority</Label>
                   <Select value={newTaskPriority} onValueChange={(val: TaskPriority) => setNewTaskPriority(val)}>
-                    <SelectTrigger className="rounded-2xl bg-white text-black">
+                    <SelectTrigger className="rounded-2xl text-[var(--text)] bg-[var(--card-bg)]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-white text-black">
+                    <SelectContent className=" text-[var(--text)] bg-[var(--card-bg)]">
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
@@ -245,92 +211,17 @@ export default function DevTasks() {
       </div>
 
       {/* Kanban Board */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {Object.entries(tasksByStatus).map(([status, statusTasks]) => (
-          <Card key={status} className="rounded-3xl border-[var(--border-color)]">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium capitalize flex items-center gap-2">
-                  {statusIcons[status as TaskStatus]}
-                  {status.replace("_", " ")}
-                </CardTitle>
-                <Badge variant="secondary" className="rounded-full">
-                  {statusTasks.length}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {statusTasks.length === 0 ? (
-                <div className="text-center py-8 text-sm text-muted-foreground">
-                  No tasks
-                </div>
-              ) : (
-                statusTasks.map((task) => (
-                  <Card 
-                    key={task.id} 
-                    className="rounded-2xl border-[var(--border-color)] hover:border-[var(--color-dev)]/50 transition-all cursor-pointer"
-                    onClick={() => openEditDialog(task)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold text-sm">{task.title}</h3>
-                        <Badge 
-                          className={`rounded-full text-xs ${priorityColors[task.priority]}`}
-                          variant="outline"
-                        >
-                          {task.priority}
-                        </Badge>
-                      </div>
-                      {task.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
-                          {task.description}
-                        </p>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <div className="flex gap-1" role="group" aria-label="Task status controls">
-                          {Object.entries(statusIcons).map(([s, icon]) => (
-                            <button
-                              key={s}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleStatusChange(task.id, s as TaskStatus);
-                              }}
-                              className={`p-1 rounded transition-colors ${
-                                task.status === s ? "bg-[var(--color-dev)]/20" : "hover:bg-black/5 dark:hover:bg-white/5"
-                              }`}
-                              title={`Change to ${s.replace("_", " ")}`}
-                              aria-label={`Change status to ${s.replace("_", " ")}`}
-                              aria-pressed={task.status === s}
-                            >
-                              {icon}
-                            </button>
-                          ))}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteTask(task.id);
-                          }}
-                          aria-label="Delete task"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <KanbanBoard
+        tasks={tasks}
+        onEditTask={openEditDialog}
+        onDeleteTask={handleDeleteTask}
+        onStatusChange={handleStatusChange}
+        onTaskMove={handleTaskMove}
+      />
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="rounded-3xl bg-white text-black">
+          <DialogContent className="rounded-3xl bg-[var(--card-bg)] text-[var(--text)] border-[var(--border)]">
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
           </DialogHeader>
@@ -342,7 +233,7 @@ export default function DevTasks() {
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
                 placeholder="Enter task title"
-                className="rounded-2xl"
+                className="rounded-2xl bg-[var(--card-bg)] text-[var(--text)] border-[var(--border)]"
               />
             </div>
             <div>
@@ -352,17 +243,17 @@ export default function DevTasks() {
                 value={newTaskDescription}
                 onChange={(e) => setNewTaskDescription(e.target.value)}
                 placeholder="Enter task description"
-                className="rounded-2xl min-h-[100px]"
+                className="rounded-2xl min-h-[100px] bg-[var(--card-bg)] text-[var(--text)] border-[var(--border)]"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="edit-status">Status</Label>
                 <Select value={newTaskStatus} onValueChange={(val: TaskStatus) => setNewTaskStatus(val)}>
-                  <SelectTrigger className="rounded-2xl">
+                  <SelectTrigger className="rounded-2xl bg-[var(--card-bg)] text-[var(--text)] border-[var(--border)]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[var(--card-bg)] text-[var(--text)] border-[var(--border)]">
                     <SelectItem value="todo">To Do</SelectItem>
                     <SelectItem value="in_progress">In Progress</SelectItem>
                     <SelectItem value="testing">Testing</SelectItem>
@@ -373,10 +264,10 @@ export default function DevTasks() {
               <div>
                 <Label htmlFor="edit-priority">Priority</Label>
                 <Select value={newTaskPriority} onValueChange={(val: TaskPriority) => setNewTaskPriority(val)}>
-                  <SelectTrigger className="rounded-2xl">
+                  <SelectTrigger className="rounded-2xl bg-[var(--card-bg)] text-[var(--text)] border-[var(--border)]">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[var(--card-bg)] text-[var(--text)] border-[var(--border)]">
                     <SelectItem value="low">Low</SelectItem>
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="high">High</SelectItem>

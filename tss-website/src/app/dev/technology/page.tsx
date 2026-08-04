@@ -45,7 +45,6 @@ const categoryIcons: Record<TechCategory, React.ReactNode> = {
   database: <Database size={20} className="text-orange-500" />,
   ai: <Brain size={20} className="text-pink-500" />,
   devops: <Settings size={20} className="text-cyan-500" />,
-  audio: <Music size={20} className="text-red-500" />,
   other: <Cpu size={20} className="text-gray-500" />,
 };
 
@@ -56,7 +55,6 @@ const categoryColors: Record<TechCategory, string> = {
   database: "bg-orange-500/10 text-orange-500 border-orange-500/20",
   ai: "bg-pink-500/10 text-pink-500 border-pink-500/20",
   devops: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
-  audio: "bg-red-500/10 text-red-500 border-red-500/20",
   other: "bg-gray-500/10 text-gray-500 border-gray-500/20",
 };
 
