@@ -78,11 +78,12 @@ self.addEventListener('fetch', (event) => {
     );
   }
 
-  // API requests - cache first
+  // API requests - network first (never cache API responses)
   else if (url.pathname.includes('/api/') || request.headers.get('Accept')?.includes('application/json')) {
     event.respondWith(
-      caches.match(request).then((cached) => {
-        return cached || fetch(request);
+      fetch(request).catch(() => {
+        // Fallback to cache only if network fails
+        return caches.match(request);
       })
     );
   }

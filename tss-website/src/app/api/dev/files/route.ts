@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase-server";
 import type { CreateFileData, DevProjectFile } from "@/lib/types/dev-types";
 import { checkProjectPermission, checkProjectMembership, logActivity } from "@/lib/dev-permissions";
-import { uploadDevFile, getProjectStorageUsage, deleteFile as deleteStorageFile, FILE_SIZE_LIMITS } from "@/lib/supabase-storage";
+import { uploadDevFile, getProjectStorageUsage, deleteFile, FILE_SIZE_LIMITS, ensureBucketExists } from "@/lib/supabase-storage";
 
 export async function GET(request: Request) {
   let supabase;
@@ -26,6 +26,12 @@ export async function GET(request: Request) {
   const membershipCheck = await checkProjectMembership(Number(projectId));
   if (!membershipCheck.hasAccess) {
     return NextResponse.json({ error: membershipCheck.error }, { status: 403 });
+  }
+
+  // Ensure dev-files bucket exists
+  const bucketResult = await ensureBucketExists('dev-files', { public: true });
+  if (bucketResult.error) {
+    console.error('[Dev Files] Bucket ensure error:', bucketResult.error);
   }
 
   let query = supabase
@@ -69,6 +75,15 @@ export async function POST(request: Request) {
   // Handle file upload (multipart/form-data)
   if (contentType?.includes('multipart/form-data')) {
     try {
+      // Ensure dev-files bucket exists (create if missing)
+      const bucketResult = await ensureBucketExists('dev-files', { public: true });
+      if (bucketResult.error) {
+        return NextResponse.json(
+          { error: `Storage bucket 'dev-files' could not be created: ${bucketResult.error}` },
+          { status: 503 }
+        );
+      }
+
       const formData = await request.formData();
       const file = formData.get('file') as File;
       const project_id = Number(formData.get('project_id'));
@@ -208,7 +223,11 @@ export async function DELETE(request: Request) {
   // Delete from storage if file exists
   if (file.storage_path) {
     try {
-      await deleteStorageFile('dev-files', file.storage_path);
+      // Ensure bucket exists before attempting delete
+      const bucketResult = await ensureBucketExists('dev-files', { public: true });
+      if (!bucketResult.error) {
+        await deleteFile('dev-files', file.storage_path);
+      }
     } catch (error) {
       console.error('[Dev Files] Storage delete error:', error);
       // Continue with database deletion even if storage deletion fails

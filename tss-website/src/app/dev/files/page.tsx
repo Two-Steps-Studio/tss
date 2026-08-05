@@ -4,6 +4,7 @@ import { useDevProject } from "@/contexts/dev-project-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import FileViewer from "@/components/FileViewer/FileViewer";
 import {
   Plus,
   Trash2,
@@ -36,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { FileCategory } from "@/lib/types/dev-types";
+import type { FileCategory, DevProjectFile } from "@/lib/types/dev-types";
 
 // Allowed file extensions for dev files
 const ALLOWED_DEV_FILE_EXTENSIONS = ['.txt', '.md', '.json', '.yaml', '.yml', '.xml', '.csv', '.log', '.ini', '.config'];
@@ -64,6 +65,8 @@ export default function DevFiles() {
   const { files, activeProject, addFile, uploadFile, deleteFile, isLoading, error, storageUsage, storageLimit } = useDevProject();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<DevProjectFile | null>(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [newFileName, setNewFileName] = useState("");
   const [newFileUrl, setNewFileUrl] = useState("");
   const [newFileCategory, setNewFileCategory] = useState<FileCategory>("other");
@@ -95,6 +98,16 @@ export default function DevFiles() {
     if (confirm("Are you sure you want to delete this file?")) {
       await deleteFile(id);
     }
+  };
+
+  const handleFileClick = (file: DevProjectFile) => {
+    setSelectedFile(file);
+    setIsViewerOpen(true);
+  };
+
+  const handleViewerClose = () => {
+    setIsViewerOpen(false);
+    setSelectedFile(null);
   };
 
   const handleFileUpload = async (file: File) => {
@@ -195,7 +208,7 @@ export default function DevFiles() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-black dark:text-white mb-2">
+          <h1 className="text-4xl font-bold text-[var(--text)] mb-2">
             <span className="text-[var(--color-dev)]">Files</span>
           </h1>
           <p className="text-muted-foreground">Manage files for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
@@ -341,7 +354,7 @@ export default function DevFiles() {
 
       {/* Files Grid */}
       {files.length === 0 ? (
-        <Card className="rounded-3xl border-[var(--border-color)]">
+        <Card className="rounded-3xl border-[var(--border-color)] bg-[var(--card-bg)]">
           <CardContent className="flex flex-col items-center justify-center py-20">
             <Folder className="h-16 w-16 text-muted-foreground mb-4" />
             <p className="text-muted-foreground mb-4">No files yet</p>
@@ -362,11 +375,15 @@ export default function DevFiles() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {categoryFiles.map((file) => (
-                    <Card key={file.id} className="rounded-3xl border-[var(--border-color)] hover:border-[var(--color-dev)]/50 transition-all">
+                    <Card 
+                      key={file.id} 
+                      className="rounded-3xl border-[var(--border-color)] hover:border-[var(--color-dev)]/50 bg-[var(--card-bg)] transition-all cursor-pointer"
+                      onClick={() => handleFileClick(file)}
+                    >
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-black/5 dark:bg-white/5">
+                            <div className="p-2 rounded-xl bg-[var(--card-bg)]">
                               {categoryIcons[file.category]}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -378,7 +395,10 @@ export default function DevFiles() {
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg"
-                            onClick={() => handleDeleteFile(file.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteFile(file.id);
+                            }}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -396,6 +416,7 @@ export default function DevFiles() {
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-[var(--color-dev)] transition-colors"
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <ExternalLink size={12} />
                               Open
@@ -411,6 +432,15 @@ export default function DevFiles() {
           ))}
         </div>
       )}
+      
+      {/* File Viewer */}
+      <FileViewer
+        file={selectedFile}
+        files={files}
+        isOpen={isViewerOpen}
+        onClose={handleViewerClose}
+        onDelete={deleteFile}
+      />
     </div>
   );
 }

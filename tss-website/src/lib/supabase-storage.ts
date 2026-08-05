@@ -5,6 +5,51 @@ import { STORAGE_BUCKETS, ALLOWED_DEV_FILE_EXTENSIONS, FILE_SIZE_LIMITS } from "
 export { ALLOWED_DEV_FILE_EXTENSIONS, FILE_SIZE_LIMITS };
 
 /**
+ * Check if a bucket exists and is accessible
+ */
+export async function checkBucketExists(bucket: string): Promise<boolean> {
+  try {
+    const client = createServiceClient();
+    const { data, error } = await client.storage.getBucket(bucket);
+    return !error && !!data;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Ensure a storage bucket exists, creating it if necessary
+ */
+export async function ensureBucketExists(bucket: string, options?: { public?: boolean; fileSizeLimit?: number }): Promise<{ created: boolean; error?: string }> {
+  try {
+    const client = createServiceClient();
+    
+    // Check if bucket already exists
+    const { data: existingBucket, error: getError } = await client.storage.getBucket(bucket);
+    if (!getError && existingBucket) {
+      return { created: false };
+    }
+
+    // Create the bucket
+    const { error: createError } = await client.storage.createBucket(bucket, {
+      public: options?.public ?? true,
+      fileSizeLimit: options?.fileSizeLimit ?? 10 * 1024 * 1024, // 10MB default
+    });
+
+    if (createError) {
+      console.error(`[Storage] Failed to create bucket '${bucket}':`, createError);
+      return { created: false, error: createError.message };
+    }
+
+    console.log(`[Storage] Created bucket '${bucket}'`);
+    return { created: true };
+  } catch (error: any) {
+    console.error(`[Storage] Error ensuring bucket '${bucket}':`, error);
+    return { created: false, error: error.message };
+  }
+}
+
+/**
  * Upload a file to Supabase storage
  */
 export async function uploadFile(
@@ -27,6 +72,9 @@ export async function uploadFile(
 
   if (error) {
     console.error('[Storage] Upload error:', error);
+    if (error.message.includes('Bucket not found') || error.message.includes('NoSuchBucket')) {
+      throw new Error(`Storage bucket '${bucket}' does not exist or is not accessible. Check Supabase Storage configuration and RLS policies.`);
+    }
     throw new Error(`Upload failed: ${error.message}`);
   }
 
@@ -229,11 +277,24 @@ export async function uploadDevFile(
     throw new Error(`Plik jest za duży. Maksymalny rozmiar: 10MB`);
   }
 
+  // Ensure the dev-files bucket exists
+  const bucketResult = await ensureBucketExists(STORAGE_BUCKETS.DEV_FILES, { public: true });
+  if (bucketResult.error) {
+    throw new Error(`Storage bucket '${STORAGE_BUCKETS.DEV_FILES}' could not be created: ${bucketResult.error}`);
+  }
+
   const timestamp = Date.now();
   const extension = file.name.split('.').pop();
   const filePath = `projects/${projectId}/${userId}/${timestamp}.${extension}`;
 
-  return uploadFile(STORAGE_BUCKETS.DEV_FILES, filePath, file);
+  try {
+    return await uploadFile(STORAGE_BUCKETS.DEV_FILES, filePath, file);
+  } catch (error: any) {
+    if (error.message?.includes('Bucket not found') || error.message?.includes('NoSuchBucket')) {
+      throw new Error(`Storage bucket '${STORAGE_BUCKETS.DEV_FILES}' does not exist or is not accessible. Please check Supabase Storage configuration.`);
+    }
+    throw error;
+  }
 }
 
 /**

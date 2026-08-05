@@ -191,7 +191,7 @@ export default function DevProjects() {
           {projects.map((project) => (
             <Card 
               key={project.id} 
-              className={`rounded-3xl border-[var(--border)] transition-all cursor-pointer hover:border-[var(--color-dev)]/50 ${
+              className={`rounded-3xl border-[var(--border)] transition-all hover:border-[var(--color-dev)]/50 ${
                 activeProjectId === project.id ? "border-[var(--border)] bg-[var(--card-bg)]" : ""
               }`}
               onClick={() => setActiveProjectId(project.id)}
@@ -249,7 +249,7 @@ export default function DevProjects() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="rounded-3xl bg-white text-black">
+        <DialogContent className="rounded-3xl bg-[var(--card-bg)] text-[var(--text)]">
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
           </DialogHeader>

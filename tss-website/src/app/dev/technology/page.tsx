@@ -175,9 +175,9 @@ export default function DevTechnologies() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between ">
         <div>
-          <h1 className="text-4xl font-bold text-black dark:text-white mb-2">
+          <h1 className="text-4xl font-bold text-[var(--text)] mb-2">
             <span className="text-[var(--color-dev)]">Technologies</span>
           </h1>
           <p className="text-muted-foreground">Manage technologies for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
@@ -189,7 +189,7 @@ export default function DevTechnologies() {
               Add Technology
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl bg-white text-black">
+          <DialogContent className="rounded-3xl bg-[var(--bg)] text-[var(--text)]">
             <DialogHeader>
               <DialogTitle>Add New Technology</DialogTitle>
             </DialogHeader>
@@ -220,7 +220,7 @@ export default function DevTechnologies() {
                   <SelectTrigger className="rounded-2xl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-white text-black">
+                  <SelectContent className="bg-[var(--bg)] text-[var(--text)]">
                     <SelectItem value="frontend">Frontend</SelectItem>
                     <SelectItem value="backend">Backend</SelectItem>
                     <SelectItem value="game_engine">Game Engine</SelectItem>
@@ -262,11 +262,11 @@ export default function DevTechnologies() {
 
       {/* Technologies Grid */}
       {technologies.length === 0 ? (
-        <Card className="rounded-3xl border-[var(--border-color)]">
+        <Card className="rounded-3xl border-[var(--border-color)] bg-[var(--card-bg)]">
           <CardContent className="flex flex-col items-center justify-center py-20">
             <Cpu className="h-16 w-16 text-muted-foreground mb-4" />
             <p className="text-muted-foreground mb-4">No technologies yet</p>
-            <Button onClick={() => setIsCreateOpen(true)} className="rounded-2xl">
+            <Button onClick={() => setIsCreateOpen(true)} className="rounded-2xl text-white">
               <Plus className="mr-2 h-4 w-4" />
               Add First Technology
             </Button>
@@ -283,11 +283,11 @@ export default function DevTechnologies() {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {categoryTechs.map((tech) => (
-                    <Card key={tech.id} className="rounded-3xl border-[var(--border-color)] hover:border-[var(--color-dev)]/50 transition-all">
+                    <Card key={tech.id} className="rounded-3xl border-[var(--border-color)] hover:border-[var(--color-dev)]/50 bg-[var(--card-bg)] transition-all">
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-xl bg-black/5 dark:bg-white/5">
+                            <div className="p-2 rounded-xl bg-[var(--bg)]">
                               {categoryIcons[tech.category]}
                             </div>
                             <div className="flex-1 min-w-0">
