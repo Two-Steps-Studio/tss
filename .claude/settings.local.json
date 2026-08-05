@@ -60,7 +60,9 @@
       "Bash(@echo off *)",
       "Bash(findstr /i \"build dev electron\")",
       "Bash(Select-Object -First 60)",
-      "Bash(findstr /i \"/api/\")"
+      "Bash(findstr /i \"/api/\")",
+      "Bash(git commit *)",
+      "Bash(grep -nE \"^export const|^export interface|^};|^  \\\\},$\" \"C:/tss/tss-website/src/lib/translations.ts\")"
     ]
   },
   "enabledMcpjsonServers": [
