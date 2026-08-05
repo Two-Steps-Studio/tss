@@ -36,16 +36,18 @@ Additional structural problems identified by the codebase survey:
 
 ## 4. Architecture Decision
 
-**Per-locale JSON files in `src/locales/`**, dynamically imported on demand.
+**Per-locale JSON files in `src/i18n/messages/`.**
 
 ```
-src/locales/
-├── pl.json         # canonical (source of truth)
-├── en.json
-├── de.json
-└── index.ts        # exports `loadMessages(locale)` async + `LocaleMessages` type
-src/hooks/
-└── use-translation.tsx   # new hook with HYBRID API
+src/i18n/
+├── messages/
+│   ├── pl.json
+│   ├── en.json
+│   └── de.json
+├── types.ts         # Derived from pl.json via ts-json-schema-generator (or hand-typed)
+├── loader.ts        # Static import of all 3 locales
+└── tests/
+    └── parity.test.ts  # Asserts every key exists in all 3 locales
 ```
 
 ### Why JSON not TS
@@ -55,37 +57,23 @@ src/hooks/
 - No risk of accidentally introducing JS logic in a translation file.
 - Standard tooling (i18next, formatjs) all read JSON.
 
-### Hook API — HYBRID
+### Why not flat keys (e.g. `"settings.title"`) vs nested
 
-The new hook `useTranslation()` returns:
-
-```ts
-const { t, locale, setLocale, availableLocales } = useTranslation();
-
-t.settings.title          // existing: object access (backward-compat for 21 consumers)
-t("settings.theme.dark")  // new: dot-path function access (for new code)
-```
-
-- `t` works as both an object (proxy) and a function. Already-translated components keep working unchanged — none of the 21 consumers must be modified.
-- Internally a small `lookupPath(obj, "settings.theme.dark")` function returns the value; the object proxy is built lazily using `Object.defineProperty` on the `t` returned object so `t.settings.title` resolves to the same value as `t("settings.title")`.
+Keep the existing nested shape. Two reasons:
+1. Existing consumers call `t.settings.title` — refactoring all 21 consumer files to `t('settings.title')` would be wasteful.
+2. JSON nested objects are fine and human-readable.
 
 ### Runtime
 
-- `locale/index.ts` exports `loadMessages(locale) → Promise<LocaleMessages>` using `await import(\`./${locale}.json\`)` so each locale is its own webpack chunk. Switching language at runtime pre-caches the next locale if needed.
-- For SSR, `useTranslation()` defaults to `pl` synchronously (we still import `pl.json` eagerly), then `useEffect` reads `localStorage` and triggers async load of the saved locale. No SSR mismatch because the first render is always the static PL bundle.
-- The static `pl.json` is bundled into the main chunk; `en.json` and `de.json` are split out.
+- `loader.ts` does `import pl from './messages/pl.json'`. Bundler tree-shakes nothing (all 3 imported), but the size is negligible (~50 KB total).
+- For SSR, `useLanguage()` reads `localStorage` on `useEffect` (preserves existing behavior — no SSR mismatch).
+- A `useT()` shortcut is **not** added. The existing `t` shape from `useLanguage()` is preserved.
 
 ### Type safety
 
-`LocaleMessages` is derived from `pl.json` literal via `import type pl from "./pl.json"` — TypeScript automatically infers the full nested shape. EN and DE are typed as `LocaleMessages` and a parity check fails the build if any key is missing or differs.
+`types.ts` defines `BaseMessages` derived from `pl.json`'s structure (the canonical locale). EN and DE are typed as `Record<NestedKey, string>` and a runtime parity test fails the build if any key is missing.
 
-### Persistence
-
-Active language in `localStorage` (key `"language"`). Default `pl`. Same as before.
-
-### Old hook `useLanguage()`
-
-`useLanguage()` is removed. The 21 consumers must be renamed to `useTranslation()`. (Variable rename, not API change — the object shape is identical.) This is a sweep task within Plan A.
+For simplicity we use TypeScript's `Record` + a deep-partial object type. A future iteration can add `ts-json-schema-generator` or `typed-locale-keys` but the cost is not worth it now.
 
 ## 5. Migration Strategy
 
