@@ -202,6 +202,11 @@ interface TranslationContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   availableLocales: Locale[];
+  // Back-compat aliases — kept so the existing 18 consumers keep working unchanged.
+  // Future plans can drop these once all consumers are migrated to the new names.
+  language: Locale;
+  setLanguage: (locale: Locale) => void;
+  availableLanguages: Locale[];
   /** Hybrid: works as object (`t.settings.title`) AND as function (`t("settings.title")`). */
   t: LocaleMessages & ((path: string) => string);
 }
@@ -293,6 +298,10 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
       locale,
       setLocale,
       availableLocales,
+      // Back-compat aliases
+      language: locale,
+      setLanguage: setLocale,
+      availableLanguages: LOCALES,
       t: buildHybridT(messages),
     };
   }, [locale, setLocale, messages, availableLocales]);
@@ -314,6 +323,10 @@ export function useTranslation() {
       locale: DEFAULT_LOCALE,
       setLocale: () => {},
       availableLocales: LOCALES,
+      // Back-compat aliases
+      language: DEFAULT_LOCALE,
+      setLanguage: () => {},
+      availableLanguages: LOCALES,
       t: {} as TranslationContextValue["t"],
     };
   }
@@ -342,36 +355,40 @@ git commit -m "feat(i18n): new useTranslation hook with hybrid object+dot-path A
 
 ---
 
-## Task 5: Update all 21 consumers
+## Task 5: (OPTIONAL cleanup) Rename hook usage in consumers
+
+**Status:** OPTIONAL — the hook exports `useLanguage` as an alias and the context value exposes `language`/`setLanguage`/`availableLanguages` alongside the new names. The 18 existing consumers can keep their current code unchanged.
+
+This task is here for code hygiene. Recommend deferring to Plan E (final cleanup pass).
 
 **Files:**
-- Modify: each of the 21 files that import `useLanguage`
+- Modify: each of the 18 consumer files (list below, found by `grep`)
 
 - [ ] **Step 1: Find all consumers**
 
 ```bash
 cd "C:/tss/tss-website"
-grep -rl "useLanguage" src/ --include="*.tsx" --include="*.ts"
+grep -rl "useLanguage" src/ --include="*.tsx" --include="*.ts" | grep -v "use-translation.tsx"
 ```
 
-Expected: 21 files (plus the new `use-translation.tsx` itself, which exports `useLanguage` as an alias — exclude that).
+Expected: 18 files.
 
-- [ ] **Step 2: For each consumer file, run the rename**
+- [ ] **Step 2: For each consumer file, optionally rename**
 
-In each file:
-1. Replace `from "@/hooks/use-language"` → `from "@/hooks/use-translation"`
-2. Rename `useLanguage` → `useTranslation` (note: `useLanguage` is also exported from `use-translation.tsx` as back-compat, so the rename is optional; but consistency is better)
-3. If the file referenced `Language` or `LanguageProvider`, rename to `Locale` and `TranslationProvider` respectively.
+For each file:
+1. Replace `import { useLanguage } from "@/hooks/use-language"` → `import { useTranslation } from "@/hooks/use-translation"`
+2. Rename `useLanguage` → `useTranslation`
+3. Rename destructured `language` → `locale`, `setLanguage` → `setLocale`, `availableLanguages` → `availableLocales`
 
 Sample for `src/components/Sidebar.tsx`:
 ```typescript
 // Before
 import { useLanguage } from "@/hooks/use-language";
-const { t } = useLanguage();
+const { t, language, setLanguage } = useLanguage();
 
 // After
 import { useTranslation } from "@/hooks/use-translation";
-const { t } = useTranslation();
+const { t, locale, setLocale } = useTranslation();
 ```
 
 - [ ] **Step 3: Verify no remaining old imports**
@@ -381,7 +398,7 @@ cd "C:/tss/tss-website"
 grep -r "from .*use-language" src/ --include="*.tsx" --include="*.ts"
 ```
 
-Expected: no matches (except possibly the new alias file itself).
+Expected: no matches.
 
 - [ ] **Step 4: Verify TS compiles**
 
@@ -392,19 +409,21 @@ npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "useLanguage" | head -20
 
 Expected: no errors.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Commit (only if Step 2 was done)**
 
 ```bash
 git add -A
-git commit -m "refactor(i18n): rename useLanguage → useTranslation across 21 consumers"
+git commit -m "refactor(i18n): rename useLanguage → useTranslation across consumers (optional cleanup)"
 ```
 
 ---
 
-## Task 6: Update Providers.tsx
+## Task 6: Update Providers.tsx (also optional — back-compat alias keeps old import working)
 
 **Files:**
 - Modify: `C:/tss/tss-website/src/components/Providers.tsx`
+
+`Providers.tsx` imports `LanguageProvider` and mounts it. The new hook file does NOT export `LanguageProvider` (it exports `TranslationProvider`). So this single file MUST be updated, or the old `use-language.tsx` file must keep exporting `LanguageProvider`. Plan A picks the cleanest path: update Providers.tsx.
 
 - [ ] **Step 1: Update the import**
 
