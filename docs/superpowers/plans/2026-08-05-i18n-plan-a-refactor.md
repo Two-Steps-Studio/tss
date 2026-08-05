@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Split the monolithic `src/lib/translations.ts` into per-locale JSON files in `src/locales/`, write a new `useTranslation()` hook with hybrid API (`t.settings.title` AND `t("settings.theme.dark")`), dynamically import each locale, rename `useLanguage()` → `useTranslation()` in all 21 consumers, delete the orphan stub and the dead file, and add a parity check script.
+**Goal:** Split the monolithic `src/lib/translations.ts` into per-locale JSON files in `src/i18n/messages/`, wire up `useLanguage()` to load from the new location, delete the orphan stub and the dead file, and add a parity check script. Existing 21 consumers keep working unchanged.
 
-**Architecture:** Per-locale JSON files (`pl.json`, `en.json`, `de.json`) under `src/locales/`. Static eager import of `pl.json` (default), dynamic `import()` for `en.json` and `de.json` on demand. Hybrid `t` (object + dot-path function) via Proxy. Parity check at `npm run i18n:check`.
+**Architecture:** Move from a single hand-typed TS dictionary to per-locale JSON files (`pl.json`, `en.json`, `de.json`) under `src/i18n/messages/`, with a derived `BaseMessages` TypeScript type and a Node parity-check script. The `useLanguage()` hook keeps the same public API.
 
 **Tech Stack:** Next.js 15, React 19, TypeScript, Node.js (for parity script).
 
@@ -15,23 +15,21 @@
 ## File Structure
 
 **Create:**
-- `C:/tss/tss-website/src/locales/pl.json` — Polish locale (canonical)
-- `C:/tss/tss-website/src/locales/en.json` — English locale
-- `C:/tss/tss-website/src/locales/de.json` — German locale
-- `C:/tss/tss-website/src/locales/index.ts` — exports `loadMessages(locale)` async + `LocaleMessages` type
-- `C:/tss/tss-website/src/hooks/use-translation.tsx` — new hook with hybrid API
+- `C:/tss/tss-website/src/i18n/messages/pl.json` — Polish locale (canonical)
+- `C:/tss/tss-website/src/i18n/messages/en.json` — English locale
+- `C:/tss/tss-website/src/i18n/messages/de.json` — German locale
+- `C:/tss/tss-website/src/i18n/types.ts` — `BaseMessages` derived type
+- `C:/tss/tss-website/src/i18n/loader.ts` — exports `messages` keyed by locale
 - `C:/tss/tss-website/tools/check-i18n-parity.mjs` — assertion that all 3 locales have identical keys
 - `C:/tss/docs/i18n.md` — contributor guide
 
 **Modify:**
-- 21 consumer files — rename `useLanguage` → `useTranslation` (variable + import)
-- `C:/tss/tss-website/src/components/Providers.tsx` — rename `LanguageProvider` → `TranslationProvider`
+- `C:/tss/tss-website/src/hooks/use-language.tsx` — import from new loader, drop orphan locales
 - `C:/tss/tss-website/package.json` — add `i18n:check` script
 
 **Delete:**
-- `C:/tss/tss-website/src/lib/translations.ts` — replaced by `src/locales/`
+- `C:/tss/tss-website/src/lib/translations.ts` — replaced by `src/i18n/`
 - `C:/tss/tss-website/src/lib/tss-website/src/lib/translations.ts` — dead stub
-- `C:/tss/tss-website/src/hooks/use-language.tsx` — replaced by `use-translation.tsx`
 
 ---
 
@@ -40,431 +38,251 @@
 **Files:**
 - Read: `C:/tss/tss-website/src/lib/translations.ts`
 
-- [ ] **Step 1: Read the file**
+- [ ] **Step 1: Read the entire translations.ts file**
 
 Confirm the 8 top-level keys: `settings`, `nav`, `sections`, `home`, `auth`, `profile`, `regulamin`, `rekrutacja`.
+
+- [ ] **Step 2: Create a brief inventory note**
+
+In your head (or on paper, your choice): list the keys that exist at each level. This is what `pl.json` shape will follow.
 
 ---
 
 ## Task 2: Create the JSON files (pl, en, de)
 
 **Files:**
-- Create: `C:/tss/tss-website/src/locales/pl.json`
-- Create: `C:/tss/tss-website/src/locales/en.json`
-- Create: `C:/tss/tss-website/src/locales/de.json`
+- Create: `C:/tss/tss-website/src/i18n/messages/pl.json`
+- Create: `C:/tss/tss-website/src/i18n/messages/en.json`
+- Create: `C:/tss/tss-website/src/i18n/messages/de.json`
 
-- [ ] **Step 1: Generate pl.json**
+- [ ] **Step 1: Generate pl.json from the existing PL section of translations.ts**
 
-Mirror the shape of `translations.pl` exactly. JSON keys must be quoted. Polish strings preserved verbatim.
+Run a quick mental scan to map:
+- `translations.pl.settings` → `pl.json["settings"]`
+- `translations.pl.nav` → `pl.json["nav"]`
+- `translations.pl.sections` → `pl.json["sections"]`
+- `translations.pl.home` → `pl.json["home"]`
+- `translations.pl.auth` → `pl.json["auth"]`
+- `translations.pl.profile` → `pl.json["profile"]`
+- `translations.pl.regulamin` → `pl.json["regulamin"]`
+- `translations.pl.rekrutacja` → `pl.json["rekrutacja"]`
 
-- [ ] **Step 2: Generate en.json**
+Write the JSON file using the EXACT Polish strings from `translations.ts`. JSON does NOT support comments. JSON keys must be quoted with double quotes.
 
-Mirror `translations.en`. Same keys as pl.json.
+- [ ] **Step 2: Generate en.json from translations.en**
 
-- [ ] **Step 3: Generate de.json**
+Same shape as pl.json. Same keys. English translations from `translations.ts`.
 
-Mirror `translations.de`. Same keys as pl.json.
+- [ ] **Step 3: Generate de.json from translations.de**
 
-- [ ] **Step 4: Validate JSON**
+Same shape. German translations.
 
+- [ ] **Step 4: Validate each file is valid JSON**
+
+Open a terminal:
 ```bash
 cd "C:/tss/tss-website"
-node -e "JSON.parse(require('fs').readFileSync('src/locales/pl.json', 'utf8'))" && echo "pl.json OK"
-node -e "JSON.parse(require('fs').readFileSync('src/locales/en.json', 'utf8'))" && echo "en.json OK"
-node -e "JSON.parse(require('fs').readFileSync('src/locales/de.json', 'utf8'))" && echo "de.json OK"
+node -e "JSON.parse(require('fs').readFileSync('src/i18n/messages/pl.json', 'utf8'))" && echo "pl.json OK"
+node -e "JSON.parse(require('fs').readFileSync('src/i18n/messages/en.json', 'utf8'))" && echo "en.json OK"
+node -e "JSON.parse(require('fs').readFileSync('src/i18n/messages/de.json', 'utf8'))" && echo "de.json OK"
 ```
-
-Expected: 3 lines ending with "OK".
+Expected: 3 lines, each ending with "OK".
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/locales/
+git add src/i18n/messages/
 git commit -m "refactor(i18n): extract translations to per-locale JSON files"
 ```
 
 ---
 
-## Task 3: Create the loader/index module
+## Task 3: Create the i18n types and loader
 
 **Files:**
-- Create: `C:/tss/tss-website/src/locales/index.ts`
+- Create: `C:/tss/tss-website/src/i18n/types.ts`
+- Create: `C:/tss/tss-website/src/i18n/loader.ts`
 
-- [ ] **Step 1: Write the loader**
+- [ ] **Step 1: Write the types module**
 
-File: `C:/tss/tss-website/src/locales/index.ts`
+File: `C:/tss/tss-website/src/i18n/types.ts`
 
 ```typescript
-import pl from "./pl.json";
-import type { Messages } from "./_types";
+import type pl from "./messages/pl.json";
 
+export type Messages = typeof pl;
 export type Locale = "pl" | "en" | "de";
 export const LOCALES: Locale[] = ["pl", "en", "de"];
 export const DEFAULT_LOCALE: Locale = "pl";
-
-export type LocaleMessages = Messages;
-
-// Static eager import of PL (canonical, used in SSR + default).
-export const messages: Record<Locale, LocaleMessages> = {
-  pl: pl as LocaleMessages,
-  en: null as unknown as LocaleMessages, // populated on first access
-  de: null as unknown as LocaleMessages, // populated on first access
-};
-
-// Dynamic loaders. Webpack splits each locale into its own chunk.
-const loaders: Record<Locale, () => Promise<LocaleMessages>> = {
-  pl: async () => pl as LocaleMessages,
-  en: () => import("./en.json") as Promise<unknown> as Promise<LocaleMessages>,
-  de: () => import("./de.json") as Promise<unknown> as Promise<LocaleMessages>,
-};
-
-/**
- * Load a locale's messages. Cached after first load.
- */
-export async function loadMessages(locale: Locale): Promise<LocaleMessages> {
-  if (messages[locale]) return messages[locale];
-  const data = await loaders[locale]();
-  messages[locale] = data;
-  return data;
-}
-
-/**
- * Pre-load a locale in the background (e.g., on hover of language switcher).
- */
-export function preloadLocale(locale: Locale): void {
-  if (locale in messages && messages[locale]) return;
-  void loadMessages(locale);
-}
 ```
 
-- [ ] **Step 2: Create the type module**
+Rationale: deriving `Locale` from `pl.json` keeps the source of truth in one place. Adding a new locale requires adding the JSON file and extending the union.
 
-File: `C:/tss/tss-website/src/locales/_types.ts`
+- [ ] **Step 2: Write the loader module**
+
+File: `C:/tss/tss-website/src/i18n/loader.ts`
 
 ```typescript
-import type pl from "./pl.json";
+import pl from "./messages/pl.json";
+import en from "./messages/en.json";
+import de from "./messages/de.json";
+import type { Locale, Messages } from "./types";
 
-export type Messages = typeof pl;
+export const messages: Record<Locale, Messages> = {
+  pl,
+  en,
+  de,
+};
 ```
-
-Rationale: deriving `Messages` from `pl.json` keeps the source of truth in one place. Adding a new locale requires updating the `Locale` union in `src/locales/index.ts` and the loaders map.
 
 - [ ] **Step 3: Verify TypeScript compiles**
 
 ```bash
 cd "C:/tss/tss-website"
-npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "locales" | head -20
+npx tsc --noEmit -p tsconfig.json
 ```
-
-Expected: no errors in `src/locales/`.
+Expected: same pre-existing errors as before — no NEW errors in `src/i18n/`.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/locales/index.ts src/locales/_types.ts
-git commit -m "feat(i18n): add dynamic loader with code-splitting per locale"
+git add src/i18n/types.ts src/i18n/loader.ts
+git commit -m "feat(i18n): add types and loader for per-locale messages"
 ```
 
 ---
 
-## Task 4: Write the new use-translation hook with hybrid API
+## Task 4: Update use-language.tsx to use the new loader
 
 **Files:**
-- Create: `C:/tss/tss-website/src/hooks/use-translation.tsx`
+- Modify: `C:/tss/tss-website/src/hooks/use-language.tsx`
 
-- [ ] **Step 1: Write the hook**
-
-File: `C:/tss/tss-website/src/hooks/use-translation.tsx`
-
-```typescript
-"use client";
-
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import {
-  DEFAULT_LOCALE,
-  LOCALES,
-  loadMessages,
-  type Locale,
-  type LocaleMessages,
-} from "@/locales";
-
-const STORAGE_KEY = "tss-i18n-locale";
-
-interface TranslationContextValue {
-  locale: Locale;
-  setLocale: (locale: Locale) => void;
-  availableLocales: Locale[];
-  /** Hybrid: works as object (`t.settings.title`) AND as function (`t("settings.title")`). */
-  t: LocaleMessages & ((path: string) => string);
-}
-
-const TranslationContext = createContext<TranslationContextValue | null>(null);
-
-/**
- * Resolve a dot-path against a nested object. Returns undefined if any segment missing.
- */
-function lookupPath(obj: unknown, path: string): string | undefined {
-  const segments = path.split(".");
-  let current: unknown = obj;
-  for (const seg of segments) {
-    if (current == null || typeof current !== "object") return undefined;
-    current = (current as Record<string, unknown>)[seg];
-  }
-  return typeof current === "string" ? current : undefined;
-}
-
-/**
- * Build the hybrid `t`: a Proxy that exposes nested objects AND is callable with a dot-path.
- */
-function buildHybridT(messages: LocaleMessages): TranslationContextValue["t"] {
-  const callable = ((path: string) => {
-    const value = lookupPath(messages, path);
-    if (value === undefined) {
-      if (process.env.NODE_ENV !== "production") {
-        console.warn(`[i18n] Missing key: ${path}`);
-      }
-      return path;
-    }
-    return value;
-  }) as TranslationContextValue["t"];
-
-  // Wrap the messages object so that property access also returns nested hybrid proxies.
-  const proxy = new Proxy(messages, {
-    get(target, prop, receiver) {
-      if (prop === Symbol.toPrimitive) return undefined;
-      const value = Reflect.get(target, prop, receiver);
-      if (value && typeof value === "object") {
-        return buildHybridT(value as LocaleMessages);
-      }
-      return value;
-    },
-  });
-
-  return new Proxy(callable, {
-    get(_target, prop) {
-      return (proxy as Record<PropertyKey, unknown>)[prop];
-    },
-  }) as TranslationContextValue["t"];
-}
-
-export function TranslationProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
-  const [messages, setMessages] = useState<LocaleMessages | null>(null);
-
-  // Initial load: synchronously serve PL (already eager), then hydrate from localStorage.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const saved = (typeof window !== "undefined"
-        ? localStorage.getItem(STORAGE_KEY)
-        : null) as Locale | null;
-      const initial = saved && LOCALES.includes(saved) ? saved : DEFAULT_LOCALE;
-      const data = await loadMessages(initial);
-      if (cancelled) return;
-      setLocaleState(initial);
-      setMessages(data);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const setLocale = useCallback((next: Locale) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, next);
-    }
-    setLocaleState(next);
-    void loadMessages(next).then(setMessages);
-  }, []);
-
-  const availableLocales = LOCALES;
-
-  const value = useMemo<TranslationContextValue | null>(() => {
-    if (!messages) return null;
-    return {
-      locale,
-      setLocale,
-      availableLocales,
-      t: buildHybridT(messages),
-    };
-  }, [locale, setLocale, messages, availableLocales]);
-
-  // Avoid hydration mismatch: render nothing translation-dependent until messages load.
-  if (!value) {
-    return <TranslationContext.Provider value={null}>{children}</TranslationContext.Provider>;
-  }
-  return (
-    <TranslationContext.Provider value={value}>{children}</TranslationContext.Provider>
-  );
-}
-
-export function useTranslation() {
-  const ctx = useContext(TranslationContext);
-  if (!ctx) {
-    // TranslationProvider not mounted — return no-op fallback so SSR doesn't throw.
-    return {
-      locale: DEFAULT_LOCALE,
-      setLocale: () => {},
-      availableLocales: LOCALES,
-      t: {} as TranslationContextValue["t"],
-    };
-  }
-  return ctx;
-}
-
-/** Back-compat alias for any code that still imports the old name. */
-export const useLanguage = useTranslation;
-```
-
-- [ ] **Step 2: Verify TypeScript compiles**
-
-```bash
-cd "C:/tss/tss-website"
-npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "use-translation|i18n" | head -20
-```
-
-Expected: no errors.
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add src/hooks/use-translation.tsx
-git commit -m "feat(i18n): new useTranslation hook with hybrid object+dot-path API"
-```
-
----
-
-## Task 5: Update all 21 consumers
-
-**Files:**
-- Modify: each of the 21 files that import `useLanguage`
-
-- [ ] **Step 1: Find all consumers**
-
-```bash
-cd "C:/tss/tss-website"
-grep -rl "useLanguage" src/ --include="*.tsx" --include="*.ts"
-```
-
-Expected: 21 files (plus the new `use-translation.tsx` itself, which exports `useLanguage` as an alias — exclude that).
-
-- [ ] **Step 2: For each consumer file, run the rename**
-
-In each file:
-1. Replace `from "@/hooks/use-language"` → `from "@/hooks/use-translation"`
-2. Rename `useLanguage` → `useTranslation` (note: `useLanguage` is also exported from `use-translation.tsx` as back-compat, so the rename is optional; but consistency is better)
-3. If the file referenced `Language` or `LanguageProvider`, rename to `Locale` and `TranslationProvider` respectively.
-
-Sample for `src/components/Sidebar.tsx`:
-```typescript
-// Before
-import { useLanguage } from "@/hooks/use-language";
-const { t } = useLanguage();
-
-// After
-import { useTranslation } from "@/hooks/use-translation";
-const { t } = useTranslation();
-```
-
-- [ ] **Step 3: Verify no remaining old imports**
-
-```bash
-cd "C:/tss/tss-website"
-grep -r "from .*use-language" src/ --include="*.tsx" --include="*.ts"
-```
-
-Expected: no matches (except possibly the new alias file itself).
-
-- [ ] **Step 4: Verify TS compiles**
-
-```bash
-cd "C:/tss/tss-website"
-npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "useLanguage" | head -20
-```
-
-Expected: no errors.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add -A
-git commit -m "refactor(i18n): rename useLanguage → useTranslation across 21 consumers"
-```
-
----
-
-## Task 6: Update Providers.tsx
-
-**Files:**
-- Modify: `C:/tss/tss-website/src/components/Providers.tsx`
-
-- [ ] **Step 1: Update the import**
+- [ ] **Step 1: Replace the import**
 
 Replace:
 ```typescript
-import { LanguageProvider } from "@/hooks/use-language";
+import { translations, BaseTranslations } from "../lib/translations";
 ```
 
 With:
 ```typescript
-import { TranslationProvider } from "@/hooks/use-translation";
+import { messages } from "../i18n/loader";
+import { DEFAULT_LOCALE, LOCALES, type Locale, type Messages } from "../i18n/types";
 ```
 
-- [ ] **Step 2: Replace the JSX usage**
+- [ ] **Step 2: Update the type exports**
 
-Replace all `<LanguageProvider>` and `</LanguageProvider>` with `<TranslationProvider>` and `</TranslationProvider>`.
+Replace:
+```typescript
+// Lista dostępnych języków (domyślnie: polski)
+export type Language = keyof typeof translations;
 
-- [ ] **Step 3: Verify TS compiles**
+// Lista domyślnych języków dla dropdown menu
+export const defaultLanguages = ["pl", "en", "de", "ru", "es", "fr", "it"] as const;
+```
+
+With:
+```typescript
+// Locale definition stays compatible with the previous `Language` alias.
+export type Language = Locale;
+export type Languages = Messages;
+export const defaultLanguages = LOCALES;
+```
+
+(Note: `BaseTranslations` is referenced by `addTranslation` and `importTranslations`. We will remove those next.)
+
+- [ ] **Step 3: Update the context value**
+
+Replace:
+```typescript
+const contextValue = {
+  language,
+  setLanguage,
+  t: translations[language] || translations.pl,
+  availableLanguages,
+};
+```
+
+With:
+```typescript
+const availableLanguages = LOCALES;
+const contextValue = {
+  language,
+  setLanguage,
+  t: messages[language] || messages[DEFAULT_LOCALE],
+  availableLanguages,
+};
+```
+
+- [ ] **Step 4: Update the useEffect and availableLanguages**
+
+Remove the trailing `const availableLanguages = Object.keys(translations) as Language[];` line (moved into the context value block above).
+
+Update the `useEffect`:
+```typescript
+useEffect(() => {
+  const savedLanguage = localStorage.getItem("language") as Locale | null;
+  if (savedLanguage && savedLanguage in messages) {
+    setLanguageState(savedLanguage);
+  }
+}, []);
+```
+
+- [ ] **Step 5: Remove the window-only helpers `addTranslation` and `importTranslations`**
+
+These depended on `BaseTranslations` and the dynamic `__TSS_TRANSLATIONS__` window hack. They are unused in the current codebase (the `/tlumaczenia` page uses `LanguageSelect`'s `importTranslations` from a different export). Verify no usage:
 
 ```bash
 cd "C:/tss/tss-website"
-npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "Providers" | head -20
+grep -R "useLanguage" src/ --include="*.tsx" --include="*.ts" | grep -E "addTranslation|importTranslations"
 ```
 
-Expected: no errors.
+If there are no hits in `src/`, remove the two functions from `use-language.tsx`. If there ARE hits, keep them and re-export from a deprecated module instead — but this is unlikely given the survey.
 
-- [ ] **Step 4: Commit**
+Expected: no matches → delete both functions.
+
+- [ ] **Step 6: Verify the file compiles**
 
 ```bash
-git add src/components/Providers.tsx
-git commit -m "refactor(i18n): mount TranslationProvider in app providers"
+cd "C:/tss/tss-website"
+npx tsc --noEmit -p tsconfig.json 2>&1 | grep -E "use-language|i18n" | head -20
+```
+Expected: no errors.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add src/hooks/use-language.tsx
+git commit -m "refactor(i18n): point useLanguage at new per-locale loader"
 ```
 
 ---
 
-## Task 7: Delete obsolete files
+## Task 5: Delete obsolete files
 
 **Files:**
 - Delete: `C:/tss/tss-website/src/lib/translations.ts`
 - Delete: `C:/tss/tss-website/src/lib/tss-website/src/lib/translations.ts`
-- Delete: `C:/tss/tss-website/src/hooks/use-language.tsx`
 
 - [ ] **Step 1: Verify no remaining imports**
 
 ```bash
 cd "C:/tss/tss-website"
-grep -r "from .*lib/translations" src/ --include="*.tsx" --include="*.ts"
-grep -r "from .*use-language" src/ --include="*.tsx" --include="*.ts"
-grep -r "BaseTranslations" src/ --include="*.tsx" --include="*.ts"
+grep -R "from .*lib/translations" src/ --include="*.tsx" --include="*.ts"
+grep -R "from .*translations" src/ --include="*.tsx" --include="*.ts" | grep -v "use-language"
+grep -R "BaseTranslations" src/ --include="*.tsx" --include="*.ts"
 ```
 
-Expected: no matches.
+Expected: no matches. (The `useLanguage` import inside `use-language.tsx` is now from `../i18n/loader`, not `../lib/translations`.)
 
 - [ ] **Step 2: Delete the files**
 
 ```bash
 rm "C:/tss/tss-website/src/lib/translations.ts"
 rm "C:/tss/tss-website/src/lib/tss-website/src/lib/translations.ts"
-rm "C:/tss/tss-website/src/hooks/use-language.tsx"
 ```
+
+(The `C:/tss/tss-website/src/lib/tss-website/...` directory is now empty — that's fine; leaving the empty parent is OK. Optionally clean it up with `rm -rf` if it has no other contents.)
 
 - [ ] **Step 3: Verify build still works**
 
@@ -472,8 +290,7 @@ rm "C:/tss/tss-website/src/hooks/use-language.tsx"
 cd "C:/tss/tss-website"
 npx tsc --noEmit -p tsconfig.json 2>&1 | grep -vE "brute-force|use-dev-projects|mfa|redis|resend|supabase-storage|supabase\.ts|middleware" | head -20
 ```
-
-Expected: no NEW errors.
+Expected: no NEW errors. (Pre-existing errors in unrelated files are acceptable; the design document lists them.)
 
 - [ ] **Step 4: Commit**
 
@@ -484,7 +301,7 @@ git commit -m "refactor(i18n): remove old monolithic translations.ts and dead st
 
 ---
 
-## Task 8: Add parity check script
+## Task 6: Add parity check script
 
 **Files:**
 - Create: `C:/tss/tss-website/tools/check-i18n-parity.mjs`
@@ -496,12 +313,17 @@ File: `C:/tss/tss-website/tools/check-i18n-parity.mjs`
 
 ```javascript
 #!/usr/bin/env node
+/**
+ * i18n parity check.
+ * Asserts that all locales in src/i18n/messages/ have the same key structure
+ * as the canonical PL locale. Exits with code 1 on any mismatch.
+ */
 import { readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const messagesDir = resolve(__dirname, "../src/locales");
+const messagesDir = resolve(__dirname, "../src/i18n/messages");
 
 function load(locale) {
   const path = resolve(messagesDir, `${locale}.json`);
@@ -566,24 +388,27 @@ cd "C:/tss/tss-website"
 node tools/check-i18n-parity.mjs
 ```
 
-Expected:
+Expected output:
 ```
 ✓ en.json parity OK (N keys)
 ✓ de.json parity OK (N keys)
 ✓ All locales match pl.json (N keys).
 ```
+(where N is the total leaf count)
 
 - [ ] **Step 3: Add the npm script**
 
-In `C:/tss/tss-website/package.json`, add:
+In `C:/tss/tss-website/package.json`, find the `"scripts"` section and add:
 ```json
 "i18n:check": "node tools/check-i18n-parity.mjs"
 ```
 
-And chain it into `"lint"`:
+Also add to `"lint"` (after the existing `next lint` call):
 ```json
 "lint": "next lint && npm run i18n:check"
 ```
+
+(Or chain it. Pick whichever maintains the existing pattern.)
 
 - [ ] **Step 4: Verify via npm run**
 
@@ -591,8 +416,7 @@ And chain it into `"lint"`:
 cd "C:/tss/tss-website"
 npm run i18n:check
 ```
-
-Expected: success.
+Expected: same success output as Step 2.
 
 - [ ] **Step 5: Commit**
 
@@ -603,7 +427,7 @@ git commit -m "feat(i18n): add parity check script for all locales"
 
 ---
 
-## Task 9: Write the contributor guide
+## Task 7: Write the contributor guide
 
 **Files:**
 - Create: `C:/tss/docs/i18n.md`
@@ -622,34 +446,21 @@ Currently supported: **pl** (default), **en**, **de**.
 ## Directory layout
 
 ```
-src/locales/
-├── pl.json   # canonical (source of truth)
-├── en.json
-├── de.json
-├── _types.ts # `Messages` type derived from pl.json
-└── index.ts  # exports `loadMessages(locale)`, `Locale`, `LocaleMessages`
-src/hooks/
-└── use-translation.tsx   # `TranslationProvider` + `useTranslation()` hook
-```
-
-## Hook API
-
-```typescript
-const { t, locale, setLocale, availableLocales } = useTranslation();
-
-// Object access (legacy, still works):
-t.settings.title;
-
-// Dot-path function access (preferred for new code):
-t("settings.theme.dark");
+src/i18n/
+├── messages/
+│   ├── pl.json   # canonical (Polish is the source of truth)
+│   ├── en.json
+│   └── de.json
+├── types.ts      # Locale union + Messages type derived from pl.json
+└── loader.ts     # static import of all locales
 ```
 
 ## Adding a new translation key
 
-1. Add the key to `src/locales/pl.json` (canonical).
+1. Add the key to `src/i18n/messages/pl.json` (canonical).
 2. Add the same key path to `en.json` and `de.json`.
 3. Run `npm run i18n:check` — fails if any locale is missing the key.
-4. Use it in a component: `const { t } = useTranslation(); t("nav.home")`.
+4. Use it in a component: `const { t } = useLanguage(); t.nav.home`.
 
 The check script is wired into `npm run lint`.
 
@@ -657,21 +468,17 @@ The check script is wired into `npm run lint`.
 
 1. Copy `pl.json` to `<newlocale>.json`.
 2. Translate every value.
-3. Add `<newlocale>` to:
-   - `Locale` union in `src/locales/index.ts`
-   - `LOCALES` array in `src/locales/index.ts`
-   - `loaders` map in `src/locales/index.ts`
-4. Run `npm run i18n:check`.
+3. Add `<newlocale>` to the `Locale` union in `src/i18n/types.ts` and to `LOCALES`.
+4. Add it to the loader map in `src/i18n/loader.ts`.
+5. Run `npm run i18n:check`.
 
 ## Persistence
 
-Active language is stored in `localStorage` under the key `"tss-i18n-locale"`. SSR uses the default (`pl`). The mismatch is intentional — clients hydrate from localStorage on mount.
+Active language is stored in `localStorage` under the key `"language"`. SSR uses the default (`pl`). The mismatch is intentional — clients hydrate from localStorage on mount.
 
-## Runtime loading
+## Adding languages via JSON import
 
-- `pl.json` is bundled into the main chunk (eager).
-- `en.json` and `de.json` are split into separate webpack chunks and loaded on demand when the user switches language.
-- `preloadLocale(locale)` can be called ahead of time (e.g., on hover of the language switcher) to warm the cache.
+The `/tlumaczenia` admin page lets administrators upload additional locale JSON files at runtime. These are stored in `window.__TSS_TRANSLATIONS__` and override the static load. They are **not** persisted across reloads by default.
 ```
 
 - [ ] **Step 2: Commit**
@@ -683,7 +490,7 @@ git commit -m "docs(i18n): contributor guide for translations"
 
 ---
 
-## Task 10: Final verification
+## Task 8: Final verification
 
 - [ ] **Step 1: Run lint**
 
@@ -691,7 +498,6 @@ git commit -m "docs(i18n): contributor guide for translations"
 cd "C:/tss/tss-website"
 npm run lint
 ```
-
 Expected: passes (the `i18n:check` step runs as part of this).
 
 - [ ] **Step 2: Run a build**
@@ -700,8 +506,7 @@ Expected: passes (the `i18n:check` step runs as part of this).
 cd "C:/tss/tss-website"
 npm run build 2>&1 | tail -30
 ```
-
-Expected: builds successfully.
+Expected: builds successfully (some pre-existing warnings are acceptable).
 
 - [ ] **Step 3: Smoke test in dev server**
 
@@ -716,12 +521,13 @@ In a browser:
 - Switch to DE → page text updates.
 - Refresh the page → language persists.
 - Open `/ustawienia` — language switcher still works.
+- Open `/dev` — page renders (Dev panel does not yet have translations — that's Plan E).
 
 - [ ] **Step 4: Take screenshots**
 
-Use Playwright to capture `/` in PL/EN/DE. Save to `docs/superpowers/plans/screenshots/plan-a/`.
+Use Playwright to capture `/` in PL/EN/DE. Save to `docs/superpowers/plans/screenshots/plan-a/`. These confirm post-implementation parity.
 
-- [ ] **Step 5: Final commit**
+- [ ] **Step 5: Final commit if any stray changes**
 
 ```bash
 git status
@@ -733,7 +539,7 @@ git commit -m "chore(i18n): plan A verification — screenshots and adjustments"
 
 ## Done When
 
-- [ ] All 10 tasks green.
+- [ ] All 8 tasks green.
 - [ ] `npm run i18n:check` exits 0.
 - [ ] `npm run lint` exits 0.
 - [ ] `npm run build` succeeds.
