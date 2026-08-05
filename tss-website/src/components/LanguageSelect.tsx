@@ -56,7 +56,7 @@ export function LanguageSelect({
           variant="ghost"
           size="icon"
           className={cn(
-            "relative rounded-2xl w-11 h-11 bg-black/5 dark:bg-white hover:bg-black dark:hover:bg-white border-none transition-all",
+            "relative rounded-2xl w-11 h-11 bg-[var(--bg)] border border-[var(--border-color)] transition-all cursor-pointer",
           )}
         >
           <Languages size={20} />
@@ -75,7 +75,7 @@ export function LanguageSelect({
       >
         {/* Lista języków */}
         <div className="max-h-[300px] overflow-y-auto p-2 space-y-1">
-          <div className="px-3 py-2 text-sm font-bold text-muted-foreground border-b border-white/10">
+          <div className="px-3 py-2 text-sm font-bold text-[var(--text)] border-[var(--border-color)]">
             {t.settings.language}
           </div>
           {availableLanguages.map((locale) => (

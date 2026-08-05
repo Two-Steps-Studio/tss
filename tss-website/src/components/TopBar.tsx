@@ -145,12 +145,12 @@ export function TopBar() {
             </button>
 
             <div className="hidden md:flex items-center relative max-w-md w-full group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-[var(--color-general)]" size={18} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-[var(--color-general)] " size={18} />
               <input
                   maxLength={50}
                   type="text"
                   placeholder={t.nav.searchPlaceholder}
-                  className="w-full bg-black/5 dark:bg-white/5 border-none rounded-2xl py-2.5 pl-12 pr-12 text-sm font-medium focus:ring-2 focus:ring-[var(--color-general)]/20 transition-all outline-none"
+                  className="w-full rounded-2xl py-2.5 pl-12 pr-12 text-sm font-medium focus:ring-2 focus:ring-[var(--color-general)]/20 transition-all outline-none bg-[var(--bg)] border border-[var(--border-color)]"
                   onInput={(e) => {
                     const valid = /^[^\n\r\t]+$/;
                     if (!valid.test(e.currentTarget.value)) {
@@ -172,7 +172,7 @@ export function TopBar() {
               )}
 
               <Link href="/powiadomienia">
-                <Button variant="ghost" size="icon" aria-label="Powiadomienia" className="rounded-2xl w-11 h-11 relative bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-none transition-all hover:scale-105 active:scale-95">
+                <Button variant="ghost" size="icon" aria-label="Powiadomienia" className="rounded-2xl w-11 h-11 relative bg-[var(--bg)] border border-[var(--border-color)] transition-all hover:scale-105 active:scale-95 cursor-pointer">
                   <Bell size={20} />
                   {unread > 0 ? (
                       <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-[var(--color-general)] text-white text-[10px] font-black flex items-center justify-center border-2 border-[var(--bg)]">

@@ -404,15 +404,15 @@ export default function SettingsPage() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
               <div>
-                <div className="font-medium">{t.settings.news}</div>
-                <div className="text-xs opacity-60">{t.settings.newsDesc}</div>
+                <div className="font-medium text-[var(--text)]">{t.settings.news}</div>
+                <div className="text-xs opacity-60 text-[var(--text)]">{t.settings.newsDesc}</div>
               </div>
               <Switch checked={prefs.notif_news} onCheckedChange={(v) => setPref("notif_news", v)} />
             </div>
             <div className="flex items-center justify-between px-4 py-3 rounded-xl border-[var(--border-color)] bg-[var(--bg)]/50">
               <div>
-                <div className="font-medium">{t.settings.dev}</div>
-                <div className="text-xs opacity-60">{t.settings.devDesc}</div>
+                <div className="font-medium text-[var(--text)]">{t.settings.dev}</div>
+                <div className="text-xs opacity-60 text-[var(--text)]">{t.settings.devDesc}</div>
               </div>
               <Switch checked={prefs.notif_dev} onCheckedChange={(v) => setPref("notif_dev", v)} />
             </div>
@@ -421,7 +421,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+        <Card className="rounded-xl glass bg-[var(--card-bg)] border-2 border-[var(--border-color)]">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">Nazwa użytkownika</CardTitle>
           </CardHeader>
@@ -430,7 +430,7 @@ export default function SettingsPage() {
               <input
                 type="text"
                 placeholder="Wpisz nazwę użytkownika..."
-                className="flex-1 px-4 py-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg)]/50 text-[var(--text)] placeholder:text-zinc-400/50 focus:outline-none focus:ring-2 focus:ring-[var(--color-general)]"
+                className="flex-1 px-4 py-3 rounded-xl border border-[var(--border-color)] bg-[var(--bg)] text-[var(--text)] placeholder:text-zinc-400/50 focus:outline-none focus:ring-2 focus:ring-[var(--color-general)]"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={loadingUsername}
@@ -439,7 +439,7 @@ export default function SettingsPage() {
                 onClick={updateUsername}
                 disabled={loadingUsername || !username.trim()}
                 variant="outline"
-                className="px-4 py-3 border-[var(--color-general)]/30 text-[var(--color-general)] hover:bg-[var(--color-general)]/20 disabled:opacity-50"
+                className="px-4 py-3 border-[var(--border-color)] text-[var(--color-general)] hover:bg-[var(--color-general)]/20 disabled:opacity-50"
               >
                 {loadingUsername ? "Zapisywanie..." : "Zapisz"}
               </Button>
@@ -447,7 +447,7 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl glass bg-white/0 dark:bg-black/40 border-2 border-[var(--color-general)]/30">
+        <Card className="rounded-xl glass bg-[var(--card-bg)] border-2 border-[var(--color-general)]/30">
           <CardHeader>
             <CardTitle className="text-[var(--text)]">Integracje</CardTitle>
           </CardHeader>
@@ -486,11 +486,11 @@ export default function SettingsPage() {
                 </div>
               </div>
             ) : (
-              <div className="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--bg)]/50">
+              <div className="p-4 rounded-xl border border-[var(--border-color)] bg-[var(--card-bg)]0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center">
-                      <span className="text-white font-bold text-xl">D</span>
+                      <span className="text-[var(--text)] font-bold text-xl">D</span>
                     </div>
                     <div>
                       <div className="font-bold text-[var(--text)]">Discord</div>
@@ -501,7 +501,7 @@ export default function SettingsPage() {
                     onClick={connectDiscord}
                     disabled={loadingIntegrations}
                     variant="outline"
-                    className="px-4 py-3 border-[var(--color-general)]/30 text-[var(--color-general)] hover:bg-[var(--color-general)]/20 disabled:opacity-50"
+                    className="px-4 py-3 border-[var(--border-color)] text-[var(--color-general)] hover:bg-[var(--color-general)]/20 disabled:opacity-50"
                   >
                     <Link2 className="w-4 h-4 mr-2" />
                     {loadingIntegrations ? "Łączenie..." : "Połącz Discord"}

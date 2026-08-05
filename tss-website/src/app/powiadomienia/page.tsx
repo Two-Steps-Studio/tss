@@ -48,16 +48,6 @@ export default function NotificationsPage() {
           read: readIds.includes(`news:${n.id}`),
         });
       });
-      (esports.data || []).forEach((e: any) => {
-        data.push({
-          id: `esport:${e.id}`,
-          type: "esport",
-          title: e.name,
-          description: e.description,
-          date: e.event_date,
-          read: readIds.includes(`esport:${e.id}`),
-        });
-      });
       (dev.data || []).forEach((d: any) => {
         data.push({
           id: `dev:${d.id}`,
@@ -118,12 +108,12 @@ export default function NotificationsPage() {
 
   return (
     <div className="container mx-auto p-6 mt-20 max-w-6xl">
-      <Card className="relative overflow-hidden rounded-[2.5rem] bg-black/40 border border-white/10 backdrop-blur-xl">
-        <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)]/15 via-transparent to-transparent opacity-70" />
+      <Card className="relative overflow-hidden rounded-[2.5rem] bg-black/40 border border-[var(--border-color)] backdrop-blur-xl">
+        <div className="absolute inset-0 bg-[var(--card-bg)]" />
         <CardHeader className="relative z-10 p-8 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight text-white font-[family-name:var(--font-space)]">
+              <h1 className="text-4xl font-bold tracking-tight text-[var(--text)] font-[family-name:var(--font-space)]">
                 {t.settings.notifications}
               </h1>
               <p className="text-zinc-400 mt-2 font-[family-name:var(--font-outfit)]">
@@ -137,19 +127,13 @@ export default function NotificationsPage() {
         </CardHeader>
         <CardContent className="relative z-10 p-8 pt-0 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--bg)]5 border border-[var(--border-color)]">
               <div className="flex items-center gap-2">
                 <Newspaper size={16} className="text-[var(--color-records)]" /> News
               </div>
               <Switch checked={prefs.news} onCheckedChange={() => togglePref("news")} />
             </div>
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
-              <div className="flex items-center gap-2">
-                <Trophy size={16} className="text-[var(--color-e-sport)]" /> E-sport
-              </div>
-              <Switch checked={prefs.esport} onCheckedChange={() => togglePref("esport")} />
-            </div>
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--bg)]5 border border-[var(--border-color)]">
               <div className="flex items-center gap-2">
                 <Code2 size={16} className="text-[var(--color-dev)]" /> DEV
               </div>

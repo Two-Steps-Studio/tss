@@ -279,7 +279,7 @@ export default function ProfilePage() {
                                 <span className="font-bold flex items-center gap-2 text-[var(--text)] text-base"><Trophy size={15} className="text-[var(--color-general)]" /> Postęp Poziomu</span>
                                 <span className="font-black text-[var(--color-general)] text-base">{Math.round(progress)}%</span>
                             </div>
-                            <Progress value={progress} className="h-4 rounded-full bg-white/10" />
+                            <Progress value={progress} className="h-4 rounded-full bg-white/10 border-[var(--border-color)]"  />
                             <div className="flex justify-between text-xs uppercase font-black opacity-40 text-[var(--text)]">
                                 <span>{xp} XP</span><span>{nextLevelXp} XP</span>
                             </div>
@@ -292,7 +292,7 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 {/* Statystyki */}
-                <div className="rounded-[2.5rem] border-2 border-[var(--border)] bg-[var(--card-bg)] backdrop-blur-xl">
+                <div className="rounded-[2.5rem] border-2 border-[var(--border-color)] bg-[var(--card-bg)] backdrop-blur-xl">
                     <Card className="bg-transparent border-0 shadow-none rounded-[2.5rem]">
                         <CardHeader className="border-b border-black/10 dark:border-white/5 text-[var(--text)]  font-bold italic flex items-center">
                             <Star size={18} className="mr-2 text-[var(--color-general)]" /> Statystyki
@@ -332,13 +332,13 @@ export default function ProfilePage() {
                             <div className="flex gap-2 w-full">
                                 <button
                                     onClick={() => setTopTab("level")}
-                                    className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all cursor-pointer${topTab === "level" ? "bg-[var(--color-general)] text-[var(--text)]" : "bg-black/10 dark:bg-white/10 text-[var(--text)] opacity-60 hover:opacity-100"}`}
+                                    className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${topTab === "level" ? "bg-[var(--color-general)] text-[var(--text)]" : "bg-[var(--bg)] text-[var(--text)] opacity-60 border-[var(--border-color)] hover:opacity-100 "}`}
                                 >
                                     🏆 Poziomy
                                 </button>
                                 <button
                                     onClick={() => setTopTab("money")}
-                                    className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${topTab === "money" ? "bg-[var(--color-general)] text-[var(--text)]" : "bg-black/10 dark:bg-white/10 text-[var(--text)] opacity-60 hover:opacity-100"}`}
+                                    className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${topTab === "money" ? "bg-[var(--color-general)] text-[var(--text)] " : "bg-[var(--bg)] text-[var(--text)] opacity-60 border-[var(--border-color)] hover:opacity-100"}`}
                                 >
                                     💰 Pieniądze
                                 </button>
