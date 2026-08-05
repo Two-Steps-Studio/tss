@@ -89,7 +89,7 @@ export function DevPageClient() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ">
-        <Card className="rounded-2xl border-[var(--border-color)] bg-white text-black">
+        <Card className="rounded-2xl border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text)]">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <CheckSquare className="h-4 w-4" />
@@ -104,7 +104,7 @@ export function DevPageClient() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-[var(--border-color)] bg-white text-black">
+        <Card className="rounded-2xl border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text)]">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Map className="h-4 w-4" />
@@ -119,7 +119,7 @@ export function DevPageClient() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-[var(--border-color)] bg-white text-black">
+        <Card className="rounded-2xl border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text)]">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <FileText className="h-4 w-4" />
@@ -134,7 +134,7 @@ export function DevPageClient() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-[var(--border-color)] bg-white text-black">
+        <Card className="rounded-2xl border-[var(--border-color)] bg-[var(--card-bg)] text-[var(--text)]">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <Cpu className="h-4 w-4" />
@@ -153,7 +153,7 @@ export function DevPageClient() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ">
         <Link href="/dev/tasks">
-          <Card className="rounded-2xl border-[var(--border-color)] hover:border-[var(--color-dev)]/50 transition-colors cursor-pointer bg-white text-black" >
+          <Card className="rounded-2xl border-[var(--border-color)] hover:border-[var(--color-dev)]/50 transition-colors cursor-pointer bg-[var(--card-bg)] text-[var(--text)]" >
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CheckSquare className="h-5 w-5 text-[var(--color-dev)]" />
@@ -169,7 +169,7 @@ export function DevPageClient() {
         </Link>
 
         <Link href="/dev/roadmap">
-          <Card className="rounded-2xl border-[var(--border-color)] hover:border-[var(--color-dev)]/50 transition-colors cursor-pointer bg-white text-black">
+          <Card className="rounded-2xl border-[var(--border-color)] hover:border-[var(--color-dev)]/50 transition-colors cursor-pointer bg-[var(--card-bg)] text-[var(--text)]">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Map className="h-5 w-5 text-[var(--color-dev)]" />
@@ -185,7 +185,7 @@ export function DevPageClient() {
         </Link>
 
         <Link href="/dev/files">
-          <Card className="rounded-2xl border-[var(--border-color)] hover:border-[var(--color-dev)]/50 transition-colors cursor-pointer bg-white text-black">
+          <Card className="rounded-2xl border-[var(--border-color)] hover:border-[var(--color-dev)]/50 transition-colors cursor-pointer bg-[var(--card-bg)] text-[var(--text)]">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-[var(--color-dev)]" />

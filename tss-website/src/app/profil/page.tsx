@@ -180,6 +180,9 @@ export default function ProfilePage() {
             setLoading(false);
         };
 
+        // Set up realtime subscription FIRST, then check current session.
+        // This handles BOTH cases: refresh (where onAuthStateChange may not
+        // emit if session state hasn't changed) and initial load.
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_OUT') { router.push('/login'); return; }
             if (session?.user) {
@@ -191,6 +194,21 @@ export default function ProfilePage() {
                 if (!window.location.search.includes("code=")) router.push("/login");
             }
         });
+
+        // Synchronous fallback: check current session immediately.
+        // This is the primary path for page refresh where no event is emitted.
+        (async () => {
+            try {
+                const { data: { session: currentSession } } = await supabase.auth.getSession();
+                if (currentSession?.user) {
+                    setUser(currentSession.user);
+                    setAuthChecked(true);
+                    await fetchData(currentSession.user);
+                }
+            } catch (err) {
+                console.error("[Profile] getSession fallback failed:", err);
+            }
+        })();
 
         return () => {
             subscription.unsubscribe();
@@ -221,7 +239,7 @@ export default function ProfilePage() {
         <div className="container mx-auto p-6 space-y-8 mt-20 max-w-6xl pb-16" suppressHydrationWarning>
 
             {/* ── PROFIL ── */}
-            <Card className="relative overflow-hidden rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-2xl shadow-2xl">
+            <Card className="relative overflow-hidden rounded-[2.5rem] border-2 border-[var(--border-color)] bg-[var(--card-bg)] backdrop-blur-2xl shadow-2xl">
                 <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-general)]/15 via-transparent to-transparent opacity-90" />
                 <CardContent className="relative z-10 p-8 md:p-12">
                     <div className="flex flex-col md:flex-row items-center gap-8">
@@ -229,16 +247,16 @@ export default function ProfilePage() {
                             <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-[var(--color-general)] to-transparent opacity-60 blur-md" />
                             <Avatar className="h-48 w-48 ring-4 ring-[var(--color-general)]/20 border-2 border-[var(--color-general)]/30">
                                 <AvatarImage src={user?.user_metadata?.avatar_url || user?.user_metadata?.picture} />
-                                <AvatarFallback className="text-4xl bg-white text-black font-bold">{discordName?.[0]}</AvatarFallback>
+                                <AvatarFallback className="text-4xl bg-white text-[var(--text)] font-bold">{discordName?.[0]}</AvatarFallback>
                             </Avatar>
-                            <Badge className="absolute -bottom-2 -right-2 px-3 py-1 text-white font-bold rounded-full" style={{ backgroundColor: roleInfo.color }}>
+                            <Badge className="absolute -bottom-2 -right-2 px-3 py-1 text-[var(--text)] font-bold rounded-full" style={{ backgroundColor: roleInfo.color }}>
                                 {roleInfo.label}
                             </Badge>
                         </div>
 
                         <div className="text-center md:text-left space-y-3 flex-1 min-w-0">
                             <div>
-                                <h1 className="text-4xl font-bold text-white tracking-tight">{discordName}</h1>
+                                <h1 className="text-4xl font-bold text-[var(--text)] tracking-tight">{discordName}</h1>
                                 {isDiscordLinked ? (
                                     <Badge variant="outline" className="mt-2 border-emerald-500/30 bg-emerald-500/10 text-emerald-400 gap-1.5">
                                         <CheckCircle2 size={12} /> Zweryfikowany Discord
@@ -249,20 +267,20 @@ export default function ProfilePage() {
                                     </Button>
                                 )}
                             </div>
-                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-zinc-300">
-                                <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10 text-sm"><Mail size={13} /> {user?.email}</span>
-                                <span className="flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10 text-sm"><Shield size={13} /> ID: {user?.id.slice(0, 8)}</span>
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-[var(--text)]">
+                                <span className="flex items-center gap-1.5 bg-[var(--bg)] px-3 py-1 rounded-full border border-[var(--border-color)] text-sm"><Mail size={13} /> {user?.email}</span>
+                                <span className="flex items-center gap-1.5 bg-[var(--bg)] px-3 py-1 rounded-full border border-[var(--border-color)] text-sm"><Shield size={13} /> ID: {user?.id.slice(0, 8)}</span>
                             </div>
                             <DiscordRolesPanel discordRoles={discordRoles} />
                         </div>
 
-                        <div className="w-full md:w-72 space-y-3 bg-white/5 p-5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                        <div className="w-full md:w-72 space-y-3 bg-[var(--bg)] p-5 rounded-2xl border border-[var(--border-color)] backdrop-blur-sm">
                             <div className="flex items-center justify-between text-sm mb-1">
-                                <span className="font-bold flex items-center gap-2 text-white text-base"><Trophy size={15} className="text-[var(--color-general)]" /> Postęp Poziomu</span>
+                                <span className="font-bold flex items-center gap-2 text-[var(--text)] text-base"><Trophy size={15} className="text-[var(--color-general)]" /> Postęp Poziomu</span>
                                 <span className="font-black text-[var(--color-general)] text-base">{Math.round(progress)}%</span>
                             </div>
                             <Progress value={progress} className="h-4 rounded-full bg-white/10" />
-                            <div className="flex justify-between text-xs uppercase font-black opacity-40 text-white">
+                            <div className="flex justify-between text-xs uppercase font-black opacity-40 text-[var(--text)]">
                                 <span>{xp} XP</span><span>{nextLevelXp} XP</span>
                             </div>
                         </div>
@@ -274,98 +292,103 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 {/* Statystyki */}
-                <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl">
-                    <CardHeader className="border-b border-black/10 dark:border-white/5 text-black dark:text-white font-bold italic flex items-center">
-                        <Star size={18} className="mr-2 text-[var(--color-general)]" /> Statystyki
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-4">
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
-                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">Portfel</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xl font-black text-[var(--color-general)]">{(profile?.money ?? 0).toLocaleString()}</span>
-                                <Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} />
+                <div className="rounded-[2.5rem] border-2 border-[var(--border)] bg-[var(--card-bg)] backdrop-blur-xl">
+                    <Card className="bg-transparent border-0 shadow-none rounded-[2.5rem]">
+                        <CardHeader className="border-b border-black/10 dark:border-white/5 text-[var(--text)]  font-bold italic flex items-center">
+                            <Star size={18} className="mr-2 text-[var(--color-general)]" /> Statystyki
+                        </CardHeader>
+                        <CardContent className="p-6 space-y-4">
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--bg)] border border-[var(--border-color)]">
+                                <span className="text-sm font-bold opacity-60 text-[var(--text)]">Portfel</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xl font-black text-[var(--color-general)]">{(profile?.money ?? 0).toLocaleString()}</span>
+                                    <Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} />
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
-                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">Bank</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xl font-black text-[var(--color-general)]">{profile?.bank || 0}</span>
-                                <Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} className="opacity-80" />
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--bg)] border border-[var(--border-color)]">
+                                <span className="text-sm font-bold opacity-60 text-[var(--text)]">Bank</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xl font-black text-[var(--color-general)]">{profile?.bank || 0}</span>
+                                    <Image src="/assets/discord/coin/Coin_TSS.png" alt="C" width={24} height={24} className="opacity-80" />
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/5">
-                            <span className="text-sm font-bold opacity-60 text-black dark:text-white">Saldo PLN</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-xl font-black text-[var(--color-general)]">{profile?.pln_balance?.toFixed(2) || "0.00"} zł</span>
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--bg)] border border-[var(--border-color)]">
+                                <span className="text-sm font-bold opacity-60 text-[var(--text)]">Saldo PLN</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xl font-black text-[var(--color-general)]">{profile?.pln_balance?.toFixed(2) || "0.00"} zł</span>
+                                </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 {/* Topka */}
-                <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl flex flex-col h-[520px]">
-                    <CardHeader className="border-b border-black/10 dark:border-white/5 flex flex-col gap-3 pb-4">
-                        <div className="flex items-center text-black dark:text-white font-bold italic">
-                            <Trophy size={18} className="mr-2 text-[var(--color-general)]" /> Tabela Wyników
-                        </div>
-                        {/* Przełącznik */}
-                        <div className="flex gap-2 w-full">
-                            <button
-                                onClick={() => setTopTab("level")}
-                                className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "level" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
-                            >
-                                🏆 Poziomy
-                            </button>
-                            <button
-                                onClick={() => setTopTab("money")}
-                                className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all ${topTab === "money" ? "bg-[var(--color-general)] text-black" : "bg-black/10 dark:bg-white/10 text-black dark:text-white opacity-60 hover:opacity-100"}`}
-                            >
-                                💰 Pieniądze
-                            </button>
-                        </div>
-                    </CardHeader>
-                    <div className="flex-1 overflow-y-auto p-4 space-y-2 no-scrollbar">
-                        {topList.length === 0 && (
-                            <div className="text-center opacity-40 text-sm pt-8">Wczytywanie...</div>
-                        )}
-                        {topList.map((u, idx) => (
-                            <div key={u.id} className={cn("w-full flex items-center justify-between p-4 rounded-xl border transition-colors",
-                                u.id === discordId ? "bg-[var(--color-general)]/10 border-[var(--color-general)]/30" : "",
-                                idx === 0 ? "bg-yellow-500/10" : "",
-                                idx === 1 ? "bg-zinc-500/10" : "",
-                                idx === 2 ? "bg-orange-600/10" : "",
-                                idx > 2 ? "bg-sky-500/10" : ""
-                            )}>
-                                <div className="flex items-center gap-4">
-                                    <span className={`font-black w-6 text-center`}>{u.rank}</span>
-                                    <div className="w-6"></div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className={cn("font-bold truncate text-sm", u.discord_id === discordId ? "text-[var(--color-general)]" : "")}>{u.username || u.discord_name || u.email?.split("@")[0] || (u.discord_id ? u.discord_id.slice(0, 14) : "Nieznany")}</div>
-                                        <div className="text-xs opacity-50">
-                                            {topTab === "level" ? `Poziom ${u.level}` : `${(u.money / 1000).toFixed(1)}K monet`}
+                <div className="rounded-[2.5rem] border-2 border-[var(--border-color)] bg-[var(--card-bg)] backdrop-blur-xl flex flex-col h-[520px] overflow-hidden">
+                    <Card className="bg-transparent border-0 shadow-none rounded-[2.5rem] flex-1 flex flex-col min-h-0">
+                        <CardHeader className="border-b border-black/10 dark:border-white/5 flex flex-col gap-3 pb-4 flex-shrink-0">
+                            <div className="flex items-center text-[var(--text)] font-bold italic">
+                                <Trophy size={18} className="mr-2 text-[var(--color-general)]" /> Tabela Wyników
+                            </div>
+                            <div className="flex gap-2 w-full">
+                                <button
+                                    onClick={() => setTopTab("level")}
+                                    className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all cursor-pointer${topTab === "level" ? "bg-[var(--color-general)] text-[var(--text)]" : "bg-black/10 dark:bg-white/10 text-[var(--text)] opacity-60 hover:opacity-100"}`}
+                                >
+                                    🏆 Poziomy
+                                </button>
+                                <button
+                                    onClick={() => setTopTab("money")}
+                                    className={`flex-1 py-1.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${topTab === "money" ? "bg-[var(--color-general)] text-[var(--text)]" : "bg-black/10 dark:bg-white/10 text-[var(--text)] opacity-60 hover:opacity-100"}`}
+                                >
+                                    💰 Pieniądze
+                                </button>
+                            </div>
+                        </CardHeader>
+                        <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-2 no-scrollbar">
+                            {topList.length === 0 && (
+                                <div className="text-center opacity-40 text-sm pt-8">Wczytywanie...</div>
+                            )}
+                            {topList.map((u, idx) => (
+                                <div key={u.id} className={cn("w-full flex items-center justify-between p-4 rounded-xl border transition-colors",
+                                    u.id === discordId ? "bg-[var(--color-general)]/10 border-[var(--color-general)]/30" : "",
+                                    idx === 0 ? "bg-yellow-500/10" : "",
+                                    idx === 1 ? "bg-zinc-500/10" : "",
+                                    idx === 2 ? "bg-orange-600/10" : "",
+                                    idx > 2 ? "bg-[var(--bg)]" : ""
+                                )}>
+                                    <div className="flex items-center gap-4">
+                                        <span className="font-black w-6 text-center">{u.rank}</span>
+                                        <div className="w-6"></div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className={cn("font-bold truncate text-sm", u.discord_id === discordId ? "text-[var(--color-general)]" : "")}>{u.username || u.discord_name || u.email?.split("@")[0] || (u.discord_id ? u.discord_id.slice(0, 14) : "Nieznany")}</div>
+                                            <div className="text-xs opacity-50">
+                                                {topTab === "level" ? `Poziom ${u.level}` : `${(u.money / 1000).toFixed(1)}K monet`}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
+                            ))}
+                        </div>
+                    </Card>
+                </div>
             </div>
 
             {/* ── USTAWIENIA ── */}
-            <Card className="rounded-[2.5rem] border-2 border-black dark:border-white/10 bg-white/0 dark:bg-black/40 backdrop-blur-xl shadow-xl">
-                <CardHeader className="border-b border-black/10 dark:border-white/5 text-black dark:text-white font-bold italic flex items-center">
-                    <Bell size={18} className="mr-2 text-[var(--color-general)]" /> Ustawienia
-                </CardHeader>
-                <CardContent className="p-8">
-                    <ProfileForm
-                        user={user}
-                        discordId={discordId}
-                        profile={profile}
-                        onUpdated={(p) => setProfile({ ...profile, ...p })}
-                    />
-                </CardContent>
-            </Card>
+            <div className="rounded-[2.5rem] border-2 border-[var(--border-color)] bg-[var(--card-bg)] shadow-xl">
+                <Card className="bg-transparent border-0 shadow-none rounded-[2.5rem]">
+                    <CardHeader className="border-b border-black/10 dark:border-white/5 text-[var(--text)] font-bold italic flex items-center">
+                        <Bell size={18} className="mr-2 text-[var(--color-general)]" /> Ustawienia
+                    </CardHeader>
+                    <CardContent className="p-8">
+                        <ProfileForm
+                            user={user}
+                            discordId={discordId}
+                            profile={profile}
+                            onUpdated={(p) => setProfile({ ...profile, ...p })}
+                        />
+                    </CardContent>
+                </Card>
+            </div>
 
             <LogoutButton />
             <BottomNavigation />

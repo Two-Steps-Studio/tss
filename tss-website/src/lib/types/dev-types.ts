@@ -117,6 +117,7 @@ export interface DevTask {
   progress_percent?: number;
   assignee_name?: string | null;
   estimated_hours?: number | null;
+  sort_order?: number | null;
   created_at: string;
   updated_at?: string;
 }

@@ -25,6 +25,22 @@ export function TopBar() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string>("");
   const [unread, setUnread] = useState<number>(0);
+  const [plnBalance, setPlnBalance] = useState<string>("0,00");
+
+  // Hydrate plnBalance from localStorage on client only (after mount)
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("pln_balance");
+      if (stored !== null) {
+        setPlnBalance(
+          Number(stored).toLocaleString("pl-PL", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        );
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -73,6 +89,12 @@ export function TopBar() {
       setDisplayName((profileData.username as string) || user.user_metadata?.full_name || emailName);
       if (profileData.pln_balance !== undefined) {
         localStorage.setItem("pln_balance", String(profileData.pln_balance));
+        setPlnBalance(
+          Number(profileData.pln_balance).toLocaleString("pl-PL", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        );
       }
     };
     loadProfile();
@@ -85,6 +107,12 @@ export function TopBar() {
       if (d.username) setDisplayName(d.username);
       if (d.pln_balance !== undefined) {
         localStorage.setItem("pln_balance", String(d.pln_balance));
+        setPlnBalance(
+          Number(d.pln_balance).toLocaleString("pl-PL", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        );
       }
     };
     window.addEventListener("profile:updated", handler as any);
@@ -159,18 +187,25 @@ export function TopBar() {
 
             <div className="w-px h-8 bg-[var(--border-color)] mx-1" />
 
-            {!loading && user ? (
-                <div className="flex items-center gap-2">
-                  {/* Balans PLN - każdy użytkownik ma własny balans */}
-                  <div className="flex flex-col items-end mr-2">
+
+
+                  {/* Balans PLN */}
+                  <div className="hidden md:flex flex-col items-end mr-2">
                     <span className="text-xs text-muted-foreground font-medium">Saldo:</span>
                     <span className="text-sm font-black text-[var(--color-general)]">
-                  {(localStorage.getItem("pln_balance") || "0,00").toLocaleString("pl-PL", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  })} zł
-                </span>
+                      {plnBalance} zł
+                    </span>
                   </div>
+            
+                  {!loading && user ? (
+                      <div className="flex items-center gap-1">
+                        {/* Nazwa użytkownika */}
+                        <div className="hidden sm:flex flex-col items-end mr-1">
+                          <span className="text-xs text-muted-foreground font-medium text-[var(--text)]">Witaj,</span>
+                          <span className="text-sm font-black text-[var(--color-general)] truncate max-w-[160px]">
+                            {displayName || "Użytkownik"}
+                          </span>
+                        </div>
 
                   <Link href="/profil">
                     <motion.div

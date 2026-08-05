@@ -110,7 +110,7 @@ export default function DevProjects() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-black dark:text-white mb-2">
+          <h1 className="text-4xl font-bold text-[var(--text)] mb-2">
             <span className="text-[var(--color-dev)]">Projects</span>
           </h1>
           <p className="text-muted-foreground">Manage your development projects</p>
@@ -122,7 +122,7 @@ export default function DevProjects() {
               New Project
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl bg-white text-black">
+          <DialogContent className="rounded-3xl border-[var(--border)] text-[var(--text)] bg-[var(--card-bg)]">
             <DialogHeader>
               <DialogTitle>Create New Project</DialogTitle>
             </DialogHeader>
@@ -176,7 +176,7 @@ export default function DevProjects() {
 
       {/* Projects Grid */}
       {projects.length === 0 ? (
-        <Card className="rounded-3xl border-[var(--border-color)]">
+        <Card className="rounded-3xl border-[var(--border)]">
           <CardContent className="flex flex-col items-center justify-center py-20">
             <FolderKanban className="h-16 w-16 text-muted-foreground mb-4" />
             <p className="text-muted-foreground mb-4">No projects yet</p>
@@ -191,8 +191,8 @@ export default function DevProjects() {
           {projects.map((project) => (
             <Card 
               key={project.id} 
-              className={`rounded-3xl border-[var(--border-color)] transition-all cursor-pointer hover:border-[var(--color-dev)]/50 ${
-                activeProjectId === project.id ? "border-[var(--color-dev)] bg-[var(--color-dev)]/5" : ""
+              className={`rounded-3xl border-[var(--border)] transition-all hover:border-[var(--color-dev)]/50 ${
+                activeProjectId === project.id ? "border-[var(--border)] bg-[var(--card-bg)]" : ""
               }`}
               onClick={() => setActiveProjectId(project.id)}
             >
@@ -249,7 +249,7 @@ export default function DevProjects() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="rounded-3xl bg-white text-black">
+        <DialogContent className="rounded-3xl bg-[var(--card-bg)] text-[var(--text)]">
           <DialogHeader>
             <DialogTitle>Edit Project</DialogTitle>
           </DialogHeader>

@@ -329,10 +329,10 @@ function PodcastFormModal({ podcast, onClose, onSave }: { podcast: Podcast | nul
 
     const payload = {
       ...formData,
-      series_id: formData.series_id ? parseInt(formData.series_id) : null,
-      episode_number: formData.episode_number ? parseInt(formData.episode_number) : null,
-      season: parseInt(formData.season),
-      duration_seconds: formData.duration_seconds ? parseInt(formData.duration_seconds) : null,
+      series_id: formData.series_id ? parseInt(String(formData.series_id)) : null,
+      episode_number: formData.episode_number ? parseInt(String(formData.episode_number)) : null,
+      season: parseInt(String(formData.season)),
+      duration_seconds: formData.duration_seconds ? parseInt(String(formData.duration_seconds)) : null,
       guests: formData.guests.split(",").map(g => g.trim()).filter(Boolean),
       tags: formData.tags.split(",").map(t => t.trim()).filter(Boolean),
     };
@@ -342,7 +342,7 @@ function PodcastFormModal({ podcast, onClose, onSave }: { podcast: Podcast | nul
       const method = podcast ? "PUT" : "POST";
       
       if (podcast) {
-        payload.id = podcast.id;
+        (payload as any).id = podcast.id;
       }
 
       const res = await fetch(url, {

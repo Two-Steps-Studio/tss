@@ -28,11 +28,6 @@ export function ColorThemeProvider({ children }: { children: React.ReactNode }) 
 
   const applyThemeToElement = (newTheme: ColorTheme) => {
     const root = document.documentElement;
-    // Remove all possible theme classes
-    const themes: ColorTheme[] = ["ocean", "crimson", "emerald", "violet", "amber"];
-    themes.forEach(t => root.classList.remove(`theme-${t}`));
-
-    root.classList.add(`theme-${newTheme}`);
 
     // ocean and amber are light mode themes, others are dark
     if (newTheme === "ocean" || newTheme === "amber") {

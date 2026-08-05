@@ -157,7 +157,7 @@ export default function DevRoadmap() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-black dark:text-white mb-2">
+          <h1 className="text-4xl font-bold text-[var(--text)] mb-2">
             <span className="text-[var(--color-dev)]">Roadmap</span>
           </h1>
           <p className="text-muted-foreground">Manage phases for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
@@ -169,7 +169,7 @@ export default function DevRoadmap() {
               New Phase
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl bg-white text-black">
+          <DialogContent className="rounded-3xl bg-[var(--card-bg)] text-[var(--text)]">
             <DialogHeader>
               <DialogTitle>Create New Phase</DialogTitle>
             </DialogHeader>
@@ -204,7 +204,7 @@ export default function DevRoadmap() {
 
       {/* Roadmap Timeline */}
       {sortedPhases.length === 0 ? (
-        <Card className="rounded-3xl border-[var(--border-color)]">
+        <Card className="rounded-3xl border-[var(--border-color)] bg-[var(--card-bg)]">
           <CardContent className="flex flex-col items-center justify-center py-20">
             <Map className="h-16 w-16 text-muted-foreground mb-4" />
             <p className="text-muted-foreground mb-4">No phases yet</p>
@@ -217,7 +217,7 @@ export default function DevRoadmap() {
       ) : (
         <div className="space-y-4">
           {sortedPhases.map((phase, index) => (
-            <Card key={phase.id} className="rounded-3xl border-[var(--border-color)]">
+            <Card key={phase.id} className="rounded-3xl border-[var(--border-color)] bg-[var(--card-bg)]">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   <div className="flex flex-col items-center">
@@ -274,7 +274,7 @@ export default function DevRoadmap() {
                             key={status}
                             onClick={() => handleStatusChange(phase.id, status as PhaseStatus)}
                             className={`p-1.5 rounded-lg transition-colors ${
-                              phase.status === status ? "bg-[var(--color-dev)]/20" : "hover:bg-black/5 dark:hover:bg-white/5"
+                              phase.status === status ? "bg-[var(--color-dev)]/20" : "hover:bg-[var(--card-bg)] "
                             }`}
                             title={`Change to ${status.replace("_", " ")}`}
                           >
@@ -313,7 +313,7 @@ export default function DevRoadmap() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="rounded-3xl bg-white text-black">
+        <DialogContent className="rounded-3xl bg-[var(--card-bg)] text-[var(--text)]">
           <DialogHeader>
             <DialogTitle>Edit Phase</DialogTitle>
           </DialogHeader>

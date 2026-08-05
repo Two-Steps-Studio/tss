@@ -54,7 +54,7 @@ export function NewsletterForm() {
           <Button
             type="submit"
             disabled={status === "loading" || status === "success"}
-            className="h-full px-8 rounded-2xl bg-white text-black hover:bg-[var(--color-general)] hover:text-white font-black uppercase tracking-widest transition-all disabled:opacity-50"
+            className="h-full px-8 rounded-2xl bg-white text-black hover:bg-[var(--color-general)] hover:text-white font-black uppercase tracking-widest transition-all disabled:opacity-50 cursor-pointer"
           >
             {status === "loading" ? (
               <motion.div

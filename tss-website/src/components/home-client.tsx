@@ -65,35 +65,51 @@ const NewsletterForm = dynamic(() => import("./newsletter-form").then(mod => mod
 const t = {
     pl: {
         hero: {
-          badge: "",
-          title: "TWO STEPS",
-          titleAccent: "STUDIO",
-          desc: "Kreatywny kolektyw przesuwający granice cyfrowego świata. Od epickich światów gier po nowoczesne rozwiązania programistyczne.",
-          ctaPrimary: "POBIERZ APLIKACJĘ",
-          ctaSecondary: "DOŁĄCZ DO NAS",
+            badge: "",
+            title: "TWO STEPS",
+            titleAccent: "STUDIO",
+            desc: "Kreatywny kolektyw przesuwający granice cyfrowego świata. Od epickich światów gier po nowoczesne rozwiązania programistyczne.",
+            ctaPrimary: "POBIERZ NASZ APLIKACJĘ ",
+            ctaSecondary: "DOŁĄCZ DO NAS",
         },
-      marquee: ["Nowe projekty", "E-sport", "Games", "Records", "DEV", "Community",],
-      sections: {
-        games: { title: "Games", desc: "Interaktywne światy.", stats: "0 gier" },
-        records: { title: "Records", desc: "Brzmienie pasji.", stats: "0 utwory" },
-        dev: { title: "DEV", desc: "Kod przyszłości.", stats: "1 projektów" },
-      }
+        marquee: ["Nowe projekty", "E-sport", "Games", "Records", "DEV", "Community",],
+        sections: {
+            games: { title: "Games", desc: "Interaktywne światy.", stats: "0 gier" },
+            records: { title: "Records", desc: "Brzmienie pasji.", stats: "0 utwory" },
+            dev: { title: "DEV", desc: "Kod przyszłości.", stats: "1 projektów" },
+        }
     },
     en: {
-      hero: {
-        badge: "",
-        title: "TWO STEPS",
-        titleAccent: "STUDIO",
-        desc: "A creative collective pushing the boundaries of the digital world. From epic game worlds to cutting-edge software solutions.",
-        ctaPrimary: "DOWNLOAD APP",
-        ctaSecondary: "JOIN US",
-      },
-      marquee: ["New projects", "Games", "Records", "DEV", "Community"],
-      sections: {
-        games: { title: "Games", desc: "Interactive worlds.", stats: "0 games" },
-        records: { title: "Records", desc: "Sound of passion.", stats: "0 tracks" },
-        dev: { title: "DEV", desc: "Code of tomorrow.", stats: "1 projects" },
-      }
+        hero: {
+            badge: "",
+            title: "TWO STEPS",
+            titleAccent: "STUDIO",
+            desc: "A creative collective pushing the boundaries of the digital world. From epic game worlds to cutting-edge software solutions.",
+            ctaPrimary: "DOWNLOAD OUR APP",
+            ctaSecondary: "JOIN US",
+        },
+        marquee: ["New projects", "Games", "Records", "DEV", "Community"],
+        sections: {
+            games: { title: "Games", desc: "Interactive worlds.", stats: "0 games" },
+            records: { title: "Records", desc: "Sound of passion.", stats: "0 tracks" },
+            dev: { title: "DEV", desc: "Code of tomorrow.", stats: "1 projects" },
+        }
+    },
+    de: {
+        hero: {
+            badge: "",
+            title: "TWO STEPS",
+            titleAccent: "STUDIO",
+            desc: "Ein kreatives Kollektiv, das die Grenzen der digitalen Welt verschiebt. Von epischen Spielwelten bis zu modernen Softwarelösungen.",
+            ctaPrimary: "APP HERUNTERLADEN",
+            ctaSecondary: "MACH MIT",
+        },
+        marquee: ["Neue Projekte", "E-Sport", "Games", "Records", "DEV", "Community"],
+        sections: {
+            games: { title: "Games", desc: "Interaktive Welten.", stats: "0 Spiele" },
+            records: { title: "Records", desc: "Klang der Leidenschaft.", stats: "0 Titel" },
+            dev: { title: "DEV", desc: "Code der Zukunft.", stats: "1 Projekte" },
+        }
     }
 };
 

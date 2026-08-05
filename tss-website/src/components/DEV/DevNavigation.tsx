@@ -27,7 +27,7 @@ export function DevNavigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="border-b border-[var(--border-color)] bg-[var(--bg)]/50 backdrop-blur-sm sticky top-0 z-10">
+    <nav className="border-b border-[var(--border-color)] bg-[var(--bg)]/0 backdrop-blur-sm sticky top-0 z-10">
       <div className="flex items-center gap-1 px-4 overflow-x-auto">
         {navItems.map((item) => {
           const Icon = item.icon;

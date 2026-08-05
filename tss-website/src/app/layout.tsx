@@ -112,8 +112,8 @@ export default function RootLayout({
                     {children}
                   </PageTransition>
                 </ErrorBoundary>
-                <Footer />
               </main>
+              <Footer />
             </div>
             <AdminConsole />
           </LanguageProvider>

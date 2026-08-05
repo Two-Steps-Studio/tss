@@ -8,7 +8,7 @@
    const { signOut, loading } = useAuth();
    return (
      <div className="flex items-center justify-between gap-4">
-       <p className="text-sm text-zinc-500">
+       <p className="text-sm text-[var(--text)]">
          Wylogowanie zakończy wszystkie aktywne sesje.
        </p>
        <Button

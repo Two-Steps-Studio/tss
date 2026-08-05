@@ -78,7 +78,7 @@ export default function DevDescription() {
       </div>
 
       {/* Markdown Editor */}
-      <Card className="rounded-3xl border-[var(--border-color)]">
+      <Card className="rounded-3xl border-[var(--border-color)] bg-[var(--card-bg)]">
         <CardContent className="p-6">
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -101,7 +101,7 @@ export default function DevDescription() {
 
       {/* Preview */}
       {markdown && (
-        <Card className="rounded-3xl border-[var(--border-color)]">
+        <Card className="rounded-3xl border-[var(--border-color)] bg-[var(--card-bg)]">
           <CardContent className="p-6">
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -109,7 +109,7 @@ export default function DevDescription() {
                 <span>Preview</span>
               </div>
               <div 
-                className="prose prose-sm dark:prose-invert max-w-none rounded-2xl p-6 bg-black/5 dark:bg-white/5"
+                className="prose prose-sm dark:prose-invert max-w-none rounded-2xl p-6 bg-[var(--bg)]"
                 dangerouslySetInnerHTML={{ 
                   __html: markdown
                     .replace(/^### (.*$)/gim, '<h3>$1</h3>')

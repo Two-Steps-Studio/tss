@@ -61,7 +61,7 @@ export function DevProjectSwitcher() {
             Create Project
           </Button>
         </DialogTrigger>
-        <DialogContent className="rounded-3xl bg-white text-black border-[var(--border-color)]" >
+        <DialogContent className="rounded-3xl bg-[var(--card-bg)] text-[var(--text)] border-[var(--border-color)]" >
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
           </DialogHeader>
@@ -113,10 +113,10 @@ export function DevProjectSwitcher() {
   return (
     <div className="flex items-center gap-2">
       <Select value={activeProjectId?.toString()} onValueChange={(val) => setActiveProjectId(Number(val))}  >
-        <SelectTrigger className="w-[200px] rounded-2xl bg-white border-[var(--border-color)] cursor-pointer" aria-label="Select project" >
+        <SelectTrigger className="w-[200px] rounded-2xl bg-[var(--card-bg)]  border-[var(--border-color)] cursor-pointer" aria-label="Select project" >
           <SelectValue placeholder="Select project" />
         </SelectTrigger>
-        <SelectContent className="bg-white">
+        <SelectContent className="bg-[var(--card-bg)]">
           {projects.map((project) => (
             <SelectItem key={project.id} value={project.id.toString()}>
               {project.name}
@@ -130,7 +130,7 @@ export function DevProjectSwitcher() {
             <Plus className="h-4 w-4" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="rounded-3xl bg-white text-black">
+        <DialogContent className="rounded-3xl bg-[var(--card-bg)] text-[var(--text)]">
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
           </DialogHeader>
