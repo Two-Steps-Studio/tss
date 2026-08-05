@@ -50,7 +50,7 @@ export function LanguageSelect({
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={setIsOpen} >
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
@@ -67,9 +67,7 @@ export function LanguageSelect({
       </PopoverTrigger>
       <PopoverContent
         className={cn(
-          "w-80 p-0 overflow-hidden",
-          "bg-black/50 dark:bg-white/10 border-none shadow-2xl",
-          "rounded-2xl max-w-[calc(100vw-2rem)]",
+          "w-80 p-0 overflow-hidden bg-[var(--bg)] border border-[var(--border-color)] shadow-2xl rounded-2xl max-w-[calc(100vw-2rem)]",
         )}
         align="end"
       >

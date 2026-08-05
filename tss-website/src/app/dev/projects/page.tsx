@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/select";
 
 export default function DevProjects() {
-  const { projects, activeProjectId, setActiveProjectId, createProject, deleteProject, updateProject, isLoading, error } = useDevProject();
+  const { projects, activeProjectId, setActiveProjectId, createProject, deleteProject, updateProject, isLoading, error, canCreateProject } = useDevProject();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<typeof projects[0] | null>(null);
@@ -41,16 +41,21 @@ export default function DevProjects() {
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [newProjectType, setNewProjectType] = useState("general");
   const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const handleCreateProject = async () => {
     if (!newProjectName.trim()) return;
     setIsCreating(true);
+    setCreateError(null);
     try {
       await createProject(newProjectName, newProjectDescription || undefined, newProjectType);
       setNewProjectName("");
       setNewProjectDescription("");
       setNewProjectType("general");
       setIsCreateOpen(false);
+    } catch (e) {
+      const err = e as Error & { serverMessage?: string };
+      setCreateError(err.serverMessage || err.message || "Nie udało się utworzyć projektu");
     } finally {
       setIsCreating(false);
     }
@@ -115,18 +120,24 @@ export default function DevProjects() {
           </h1>
           <p className="text-muted-foreground">Manage your development projects</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if (!open) setCreateError(null); }}>
           <DialogTrigger asChild>
-            <Button className="rounded-2xl">
-              <Plus className="mr-2 h-4 w-4" />
+            <Button disabled={!canCreateProject} className="rounded-2xl text-white cursor-pointer">
+              <Plus className="mr-2 h-4 w-4 text-white" />
               New Project
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-3xl border-[var(--border)] text-[var(--text)] bg-[var(--card-bg)]">
             <DialogHeader>
-              <DialogTitle>Create New Project</DialogTitle>
+              <DialogTitle >Create New Project</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              {createError && (
+                <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-500">
+                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <span>{createError}</span>
+                </div>
+              )}
               <div>
                 <Label htmlFor="name">Project Name</Label>
                 <Input
@@ -139,20 +150,20 @@ export default function DevProjects() {
               </div>
               <div>
                 <Label htmlFor="type">Project Type</Label>
-                <Select value={newProjectType} onValueChange={setNewProjectType}>
-                  <SelectTrigger id="type" className="rounded-2xl">
+                <Select value={newProjectType} onValueChange={setNewProjectType} > 
+                  <SelectTrigger id="type" className="rounded-2xl cursor-pointer" >
                     <SelectValue placeholder="Select project type" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="general">General</SelectItem>
-                    <SelectItem value="web_application">Web Application</SelectItem>
-                    <SelectItem value="mobile_application">Mobile Application</SelectItem>
-                    <SelectItem value="desktop_application">Desktop Application</SelectItem>
-                    <SelectItem value="game">Game</SelectItem>
-                    <SelectItem value="api">API</SelectItem>
-                    <SelectItem value="library">Library</SelectItem>
-                    <SelectItem value="plugin">Plugin</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                  <SelectContent className="bg-[var(--bg)] border border-[var(--border)]">
+                    <SelectItem value="general" className="cursor-pointer">General</SelectItem>
+                    <SelectItem value="web_application " className="cursor-pointer"> Web Application</SelectItem>
+                    <SelectItem value="mobile_application" className="cursor-pointer" >Mobile Application</SelectItem>
+                    <SelectItem value="desktop_application" className="cursor-pointer" >Desktop Application</SelectItem>
+                    <SelectItem value="game" className="cursor-pointer"> Game</SelectItem>
+                    <SelectItem value="api" className="cursor-pointer" >API</SelectItem>
+                    <SelectItem value="library" className="cursor-pointer" >Library</SelectItem>
+                    <SelectItem value="plugin" className="cursor-pointer" >Plugin</SelectItem>
+                    <SelectItem value="other" className="cursor-pointer" >Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -166,7 +177,7 @@ export default function DevProjects() {
                   className="rounded-2xl min-h-[100px]"
                 />
               </div>
-              <Button onClick={handleCreateProject} disabled={isCreating} className="w-full rounded-2xl">
+              <Button onClick={handleCreateProject} disabled={isCreating} className="w-full rounded-2xl cursor-pointer">
                 {isCreating ? "Creating..." : "Create Project"}
               </Button>
             </div>
@@ -176,11 +187,11 @@ export default function DevProjects() {
 
       {/* Projects Grid */}
       {projects.length === 0 ? (
-        <Card className="rounded-3xl border-[var(--border)]">
+        <Card className="rounded-3xl border-[var(--border-color)] bg-[var(--card-bg)]">
           <CardContent className="flex flex-col items-center justify-center py-20">
             <FolderKanban className="h-16 w-16 text-muted-foreground mb-4" />
             <p className="text-muted-foreground mb-4">No projects yet</p>
-            <Button onClick={() => setIsCreateOpen(true)} className="rounded-2xl">
+            <Button onClick={() => setIsCreateOpen(true)} disabled={!canCreateProject} className="rounded-2xl text-white cursor-pointer">
               <Plus className="mr-2 h-4 w-4" />
               Create Your First Project
             </Button>

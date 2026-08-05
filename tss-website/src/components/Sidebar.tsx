@@ -196,7 +196,7 @@ export function Sidebar({ isOpen: sidebarOpen }: { isOpen?: boolean }) {
   // Client-side navigation w Next.js nie powinien resetować stanu sidebara
 
   const SidebarContent = (
-      <div className="flex flex-col h-full py-4">
+      <div className="flex flex-col h-full py-4 border border-[var(--border-color)]">
         {/* Logo Section */}
         <div className="px-6 mb-8 flex items-center justify-center relative">
           <Link href="/" className="block relative group w-full">

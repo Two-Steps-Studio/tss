@@ -3,25 +3,44 @@
 import { useDevProject } from "@/contexts/dev-project-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
+import {
   Loader2,
   AlertCircle,
   Save,
-  FileText
+  FileText,
+  CheckCircle2
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function DevDescription() {
-  const { activeProject, saveDescription, isLoading, error } = useDevProject();
+  const { activeProject, saveDescription, isLoading, error, refetch } = useDevProject();
   const [markdown, setMarkdown] = useState(activeProject?.description_markdown || "");
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  // Keep local editor in sync when the active project (or its saved description) changes.
+  // Without this, the first render captures `activeProject = null` and the textarea is
+  // forever bound to an empty string even after the project loads from the API.
+  useEffect(() => {
+    setMarkdown(activeProject?.description_markdown || "");
+    setSaveError(null);
+    setSavedAt(null);
+  }, [activeProject?.id, activeProject?.description_markdown]);
 
   const handleSave = async () => {
     if (!activeProject) return;
     setIsSaving(true);
+    setSaveError(null);
     try {
       await saveDescription(markdown);
+      setSavedAt(Date.now());
+      // Refresh server-side state so the context reflects what was persisted.
+      await refetch();
+    } catch (e) {
+      const err = e as Error & { serverMessage?: string };
+      setSaveError(err.serverMessage || err.message || "Nie udało się zapisać opisu");
     } finally {
       setIsSaving(false);
     }
@@ -77,28 +96,6 @@ export default function DevDescription() {
         </Button>
       </div>
 
-      {/* Markdown Editor */}
-      <Card className="rounded-3xl border-[var(--border-color)] bg-[var(--card-bg)]">
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <FileText size={16} />
-              <span>Markdown Editor</span>
-            </div>
-            <Textarea
-              value={markdown}
-              onChange={(e) => setMarkdown(e.target.value)}
-              placeholder="Enter project description in Markdown format..."
-              className="rounded-2xl min-h-[400px] font-mono text-sm resize-y"
-            />
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Supports standard Markdown syntax</span>
-              <span>{markdown.length} characters</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Preview */}
       {markdown && (
         <Card className="rounded-3xl border-[var(--border-color)] bg-[var(--card-bg)]">
@@ -125,6 +122,45 @@ export default function DevDescription() {
           </CardContent>
         </Card>
       )}
+
+      {/* Markdown Editor */}
+      <Card className="rounded-3xl border-[var(--border-color)] bg-[var(--card-bg)]">
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <FileText size={16} />
+                <span>Markdown Editor</span>
+              </div>
+              {saveError && (
+                  <div className="flex items-center gap-1 text-red-500">
+                    <AlertCircle size={14} />
+                    <span className="text-xs">{saveError}</span>
+                  </div>
+              )}
+              {!saveError && savedAt && !isSaving && (
+                  <div className="flex items-center gap-1 text-green-500">
+                    <CheckCircle2 size={14} />
+                    <span className="text-xs">Zapisano</span>
+                  </div>
+              )}
+            </div>
+            <Textarea
+                value={markdown}
+                onChange={(e) => {
+                  setMarkdown(e.target.value);
+                  setSavedAt(null);
+                }}
+                placeholder="Enter project description in Markdown format..."
+                className="rounded-2xl min-h-[400px] font-mono text-sm resize-y"
+            />
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Supports standard Markdown syntax</span>
+              <span>{markdown.length} characters</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -15,10 +15,10 @@ import {
   Folder,
   Loader2,
   AlertCircle,
-  Download,
   ExternalLink,
   Upload,
-  HardDrive
+  HardDrive,
+  Eye
 } from "lucide-react";
 import { useState, useRef } from "react";
 import {
@@ -39,11 +39,59 @@ import {
 } from "@/components/ui/select";
 import type { FileCategory, DevProjectFile } from "@/lib/types/dev-types";
 
-// Allowed file extensions for dev files
-const ALLOWED_DEV_FILE_EXTENSIONS = ['.txt', '.md', '.json', '.yaml', '.yml', '.xml', '.csv', '.log', '.ini', '.config'];
-const FILE_SIZE_LIMITS = {
-  DEV_FILE: 10 * 1024 * 1024, // 10MB
+// Allowed file extensions for dev files, grouped by category with per-category size limits.
+// Large binary types (images, audio, video) are allowed but capped aggressively to protect
+// the shared 500MB project storage cap.
+type FileGroup = "text" | "image" | "audio" | "video" | "code" | "document" | "archive";
+
+const FILE_GROUPS: Record<FileGroup, { extensions: string[]; maxBytes: number; label: string }> = {
+  text: {
+    label: "Tekst / konfiguracja",
+    extensions: [".txt", ".md", ".log", ".csv", ".ini", ".config", ".env"],
+    maxBytes: 2 * 1024 * 1024, // 2MB
+  },
+  code: {
+    label: "Kod źródłowy",
+    extensions: [".json", ".yaml", ".yml", ".xml", ".ts", ".tsx", ".js", ".jsx", ".css", ".scss", ".html", ".sql", ".py", ".cs", ".cpp", ".h", ".java", ".php", ".sh", ".rb", ".go", ".rs"],
+    maxBytes: 2 * 1024 * 1024, // 2MB
+  },
+  document: {
+    label: "Dokumenty",
+    extensions: [".pdf"],
+    maxBytes: 5 * 1024 * 1024, // 5MB
+  },
+  image: {
+    label: "Grafika",
+    extensions: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".ico", ".bmp"],
+    maxBytes: 5 * 1024 * 1024, // 5MB
+  },
+  audio: {
+    label: "Audio",
+    extensions: [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"],
+    maxBytes: 8 * 1024 * 1024, // 8MB
+  },
+  video: {
+    label: "Wideo",
+    extensions: [".mp4", ".webm", ".mov"],
+    maxBytes: 20 * 1024 * 1024, // 20MB
+  },
+  archive: {
+    label: "Archiwa",
+    extensions: [".zip"],
+    maxBytes: 20 * 1024 * 1024, // 20MB
+  },
 };
+
+const ALLOWED_DEV_FILE_EXTENSIONS = Object.values(FILE_GROUPS).flatMap((g) => g.extensions);
+
+function getFileLimitForExtension(ext: string): { maxBytes: number; label: string } | null {
+  for (const group of Object.values(FILE_GROUPS)) {
+    if (group.extensions.includes(ext)) {
+      return { maxBytes: group.maxBytes, label: group.label };
+    }
+  }
+  return null;
+}
 
 const categoryIcons: Record<FileCategory, React.ReactNode> = {
   documentation: <FileText size={20} className="text-blue-500" />,
@@ -74,11 +122,13 @@ export default function DevFiles() {
   const [isCreating, setIsCreating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [addUrlError, setAddUrlError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddFile = async () => {
     if (!newFileName.trim() || !activeProject) return;
     setIsCreating(true);
+    setAddUrlError(null);
     try {
       await addFile({
         name: newFileName,
@@ -89,6 +139,9 @@ export default function DevFiles() {
       setNewFileUrl("");
       setNewFileCategory("other");
       setIsCreateOpen(false);
+    } catch (e) {
+      const err = e as Error & { serverMessage?: string };
+      setAddUrlError(err.serverMessage || err.message || "Nie udało się dodać pliku");
     } finally {
       setIsCreating(false);
     }
@@ -114,15 +167,17 @@ export default function DevFiles() {
     if (!activeProject) return;
 
     // Validate file extension
-    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-    if (!ALLOWED_DEV_FILE_EXTENSIONS.includes(extension)) {
-      setUploadError(`Nieobsługiwane rozszerzenie. Dozwolone: ${ALLOWED_DEV_FILE_EXTENSIONS.join(', ')}`);
+    const extension = '.' + (file.name.split('.').pop()?.toLowerCase() || '');
+    const group = getFileLimitForExtension(extension);
+    if (!group) {
+      setUploadError(`Nieobsługiwane rozszerzenie "${extension}". Dozwolone: ${ALLOWED_DEV_FILE_EXTENSIONS.join(', ')}`);
       return;
     }
 
-    // Validate file size
-    if (file.size > FILE_SIZE_LIMITS.DEV_FILE) {
-      setUploadError(`Plik jest za duży. Maksymalny rozmiar: 10MB`);
+    // Validate file size against the per-group limit
+    if (file.size > group.maxBytes) {
+      const limitMB = (group.maxBytes / (1024 * 1024)).toFixed(0);
+      setUploadError(`Plik jest za duży dla kategorii "${group.label}". Maksymalny rozmiar: ${limitMB}MB`);
       return;
     }
 
@@ -214,7 +269,7 @@ export default function DevFiles() {
           <p className="text-muted-foreground">Manage files for <span className="text-[var(--color-dev)]">{activeProject.name}</span></p>
         </div>
         <div className="flex gap-2">
-          <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+          <Dialog open={isUploadOpen} onOpenChange={(open) => { setIsUploadOpen(open); if (!open) setUploadError(null); }}>
             <DialogTrigger asChild>
               <Button className="rounded-2xl border-[var(--border-color)]">
                 <Upload className="mr-2 h-4 w-4" />
@@ -257,7 +312,7 @@ export default function DevFiles() {
                     className="rounded-2xl bg-[var(--card-bg)] text-[var(--text)] border-[var(--border-color)]"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Dozwolone: {ALLOWED_DEV_FILE_EXTENSIONS.join(', ')} | Max: 10MB
+                    Dozwolone typy: {Object.entries(FILE_GROUPS).map(([key, g]) => `${key} (${(g.maxBytes / (1024 * 1024))}MB)`).join(' • ')}
                   </p>
                 </div>
                 {uploadError && (
@@ -272,7 +327,7 @@ export default function DevFiles() {
               </div>
             </DialogContent>
           </Dialog>
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <Dialog open={isCreateOpen} onOpenChange={(open) => { setIsCreateOpen(open); if (!open) setAddUrlError(null); }}>
             <DialogTrigger asChild>
               <Button className="rounded-2xl border-[var(--border-color)]" variant="outline">
                 <Plus className="mr-2 h-4 w-4" />
@@ -284,6 +339,12 @@ export default function DevFiles() {
                 <DialogTitle>Add File from URL</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
+                {addUrlError && (
+                  <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-500">
+                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                    <span>{addUrlError}</span>
+                  </div>
+                )}
                 <div>
                   <Label htmlFor="name">File Name</Label>
                   <Input
@@ -404,24 +465,36 @@ export default function DevFiles() {
                           </Button>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge 
-                            className={`rounded-full text-xs ${categoryColors[file.category]}`}
+                          <Button
                             variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFileClick(file);
+                            }}
+                            className="rounded-xl flex-1 hover:bg-[var(--color-dev)]/10 hover:text-[var(--color-dev)] hover:border-[var(--color-dev)]/40"
                           >
-                            {file.category}
-                          </Badge>
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
                           {file.file_url && (
                             <a
                               href={file.file_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-[var(--color-dev)] transition-colors"
+                              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-[var(--color-dev)] transition-colors px-2"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <ExternalLink size={12} />
                               Open
                             </a>
                           )}
+                          <Badge
+                            className={`rounded-full text-xs ${categoryColors[file.category]}`}
+                            variant="outline"
+                          >
+                            {file.category}
+                          </Badge>
                         </div>
                       </CardContent>
                     </Card>

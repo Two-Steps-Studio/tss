@@ -46,9 +46,9 @@ export function DevPageClient() {
       <div className="flex items-center justify-center py-20">
         <div className="text-center max-w-md">
           <Lock className="h-12 w-12 text-[var(--color-dev)] mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Brak dostępu do DEV</h2>
+          <h2 className="text-xl font-bold mb-2">Brak dostępu do żadnego projektu.</h2>
           <p className="text-muted-foreground mb-4">
-            Nie masz dostępu do żadnego projektu deweloperskiego. Skontaktuj się z administratorem lub dołącz do projektu.
+            Nie masz dostępu do żadnego projektu deweloperskiego. <a href="/dev/projects" className="text-[var(--color-dev)]"> Stwórz swój </a> lub dołącz do istniejącego po przez zaproszenie.
           </p>
         </div>
       </div>

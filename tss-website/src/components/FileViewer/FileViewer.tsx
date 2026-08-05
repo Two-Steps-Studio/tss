@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   X,
   Download,
@@ -145,6 +145,7 @@ export default function FileViewer({ file, files, isOpen, onClose, onDelete }: F
     if (file) {
       const index = files.findIndex(f => f.id === file.id);
       setCurrentIndex(index >= 0 ? index : 0);
+      setIsLoading(true);
     }
   }, [file, files]);
 
@@ -222,6 +223,7 @@ export default function FileViewer({ file, files, isOpen, onClose, onDelete }: F
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-[var(--card-bg)] border-[var(--border-color)]">
+        <DialogTitle className="sr-only">File viewer: {currentFile.name}</DialogTitle>
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
           <div className="flex items-center gap-3 flex-1 min-w-0">

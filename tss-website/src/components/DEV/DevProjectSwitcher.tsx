@@ -56,7 +56,7 @@ export function DevProjectSwitcher() {
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="rounded-2xl">
+          <Button variant="outline" className="rounded-2xl border-[var(--border-color)] bg-[var(--card-bg)] cursor-pointer">
             <Plus className="mr-2 h-4 w-4" />
             Create Project
           </Button>

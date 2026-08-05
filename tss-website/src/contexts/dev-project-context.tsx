@@ -78,11 +78,24 @@ interface DevProjectContextValue {
 
 const DevProjectContext = createContext<DevProjectContextValue | null>(null);
 
+export class ApiError extends Error {
+  status: number;
+  serverMessage?: string;
+  constructor(message: string, status: number, serverMessage?: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.serverMessage = serverMessage;
+  }
+}
+
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || "Request failed");
+    const err: { error?: string; message?: string } = await res
+      .json()
+      .catch(() => ({ error: res.statusText }));
+    throw new ApiError(err.error || "Request failed", res.status, err.message);
   }
   return res.json();
 }
